@@ -194,7 +194,7 @@
 - 代码已确认：`tileEngineV2Requests.ts` 每个 upload 完成都会调用 `commitCohort()`，但 `TileEngineV2.#queueCohortCommit()` 同步执行 `#synchronizeCoverage()`，没有 rAF 收集窗口或空间 cohort 原子提交，因此仍按 Tile 逐个改变 Render Cover。
 - 代码已确认：Fetch/Worker 与 coverage 选择主要按 `screenDistance` 排序，默认 8 Fetch/4 Worker；有限并发叠加中心优先会确定性地产生中心向外扩散。初始 `DisplayCoordinator` 在没有 active/outgoing 时不请求 fallback，无法先建立稳定 coarse cover。
 - 代码已确认：`tileCoverage.ts` 用 `remaining = maxTiles - visible.length` 截断 prefetch；默认 `maxTiles=128` 且 visible 接近上限时，普通预取空间近似为零。该限制来自 T017 的预算模型，T023 未解除。
-- 项目结论：T023 不标记 `DONE`，也不回到旧 Runtime 继续打补丁。T024 已完成，后续按 T025（运动中连续调度与公平性）→T026（Coverage/prefetch 预算解耦）→T027（逐帧诊断与人工验收）执行；T022 fog-bounded Coverage 与 T019 发布验证顺延到 T027 通过后。
+- 项目结论：T023 不标记 `DONE`，也不回到旧 Runtime 继续打补丁。T024/T025 已完成，后续按 T026（Coverage/prefetch 预算解耦）→T027（逐帧诊断与人工验收）执行；T022 fog-bounded Coverage 与 T019 发布验证顺延到 T027 通过后。
 
 ### 2026-09-12 — T024 TileEngineV2 Render transaction
 
@@ -202,7 +202,16 @@
 - 代码已确认：`TileEngineV2DisplayCoordinator` 在初始无 active/outgoing 显示时会派生 required parent fallback 请求；若 next selection 不能完整覆盖当前 visible Target，则拒绝提交部分 exact。ready ancestor 只有在其覆盖范围内全部 target child 具备 ready replacement cohort 后才退出。
 - 自动证据：`pnpm --filter @nova/map3d typecheck` 通过；`pnpm --filter @nova/map3d test` 为 34 个测试文件、176 项测试通过；仓库级 `pnpm check` 通过。新增/更新测试覆盖多 upload 同帧提交、单 Tile upload 不改变不完整 Render Cover、初始 coarse cover、真实 rAF flush 前非 idle/不挂载资源和 parent 不叠加部分 child。
 - 浏览器证据：Chrome 152 headless 中 WebGPU、强制 WebGL2 和 reduced-motion 的 1500 ms pan 回归通过，console issue 为 0，dispose 后 Tile/resource/worker 归零，pan settled 请求无重复 canonical；WebGPU offline fallback/recovery 也完成恢复与 dispose 归零。证据见 `docs/evidence/T024-browser-regression.json` 与 `docs/evidence/T024-*.png`。
-- 状态边界：T024 已完成且未改变 Three.js、Worker protocol、Map3D 0.1 公共 API、默认并发或 cache 预算。T025/T026/T027 仍需解决运动中 refinement 调度、公平队列、prefetch 预算分离和最终人工 pan/zoom 验收。
+- 状态边界：T024 已完成且未改变 Three.js、Worker protocol、Map3D 0.1 公共 API、默认并发或 cache 预算。T025 已完成运动中 refinement 调度与公平队列；T026/T027 仍需解决 prefetch 预算分离和最终人工 pan/zoom 验收。
+
+### 2026-09-12 — T025 TileEngineV2 continuous motion scheduling
+
+- 代码已确认：`tileEngineV2Schedule.ts` 已移除 V2 的 `TILE_ENGINE_V2_REFINEMENT_DEBOUNCE_MS=180` 闸门；active、settling 和 idle 阶段的当前可见 refinement 不再被统一 `notBefore` 延迟到运动结束后，ordinary prefetch 与 leading prefetch 仍保留，预算压力抑制规则未改变。
+- 代码已确认：V2 schedule 为 coverage、refinement、leading-prefetch 和 ordinary prefetch 生成 `coverageRank`，使用 4 条屏幕距离带轮询打散近/中/远候选；`compareTilePriority()` 在角色和 visible 优先后加入 deadline/starvation 判定，未过期时按 `coverageRank` 与 `screenDistance` 排序，过期 queued/decoding 记录按 deadline/等待时长抢占。
+- 诊断已确认：V2 内部 diagnostics 增加 scheduler `delayedByNotBefore`、requestQueue `coverageRank/deadlineAt/queueAgeMs/starved`，runtime scheduling stats 增加 `queuedNotBeforeCount/starvedQueueCount/oldestStarvedQueueAgeMs`；请求原因分类、取消迟滞、stale generation、失败恢复和默认 8 Fetch / 4 Worker 并发未改变。
+- 自动证据：`pnpm --filter @nova/map3d typecheck` 通过；`pnpm --filter @nova/map3d test` 为 34 个测试文件、179 项测试通过；仓库级 `pnpm check` 通过。新增测试覆盖 active/settling 无 idle-only refinement `notBefore`、同角色距离带轮询、deadline/age 防饥饿以及既有取消、stale、cache、progressive 回归。
+- 浏览器证据：真实 Chrome 152 headless、1500 ms 延迟下，WebGPU/WebGL2 pointer pan 分别记录运动期间 16 个请求启动和 ready +7；WebGPU wheel zoom 记录运动期间 24 个请求启动；WebGPU reduced-motion pointer pan 记录运动期间 17 个请求启动和 ready +7。所有场景 console warning/error 为 0，`maxPerCanonical=1`，dispose 后 Tile/resource/worker 归零。证据见 `docs/evidence/T025-browser-regression.json` 与 `docs/evidence/T025-*.png`。
+- 状态边界：T025 已完成且未改变 Render transaction、parent/child 提交、Coverage/prefetch 容量预算、Map3D 0.1 公共 API、Three.js、Worker protocol、默认并发或 cache 预算。T026 仍需解决 Coverage/prefetch 预算解耦，T027 仍需执行最终人工 pan/zoom 观感验收。
 
 ### 2026-09-10 — T014 交互阻尼实现验证
 

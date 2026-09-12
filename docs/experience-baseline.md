@@ -15,8 +15,9 @@
 - T015 已实现 Polygon/Line 共享 TSL 远景渐隐，根据 pitch、camera target distance 和 ground footprint 更新 view-space fade 参数，并已于 2026-09-10 获人工负责人接受 pitch 0/20/40/60 观感。
 - T021 已将旧 Display Coverage 更新为按空间区域判断：parent/fallback 仅在当前有效 Target 区域具备 ready replacement cohort 后退出，same-zoom/cache hit 直接完整显示；Render instance/material 在 render key 暂时移除后复用。该实现通过自动和浏览器回归，但 2026-09-11 人工 pan/zoom 加载观感明确不通过。
 - T024 已在 V2 生产路径增加 rAF Render transaction gate、初始 parent fallback 请求和空间完整 Render Cover 提交；upload 完成不会立刻挂载 render key，parent 只在 replacement cohort 完整后退出。
+- T025 已在 V2 生产路径移除 idle-only refinement debounce；运动期间可持续请求当前可见 refinement，leading/ordinary prefetch 不因 phase 自动归零，同角色请求通过 coverageRank 距离带轮询和 deadline/age starvation 诊断避免中心向外独占。
 
-T013-T015 是当前已获人工接受的连续体验基线；T024 已修复 V2 提交事务与初始 fallback 缺口。T025/T026/T027 仍需完成运动调度、预加载预算和真实操作验收，T010 的数据只作为资源/帧时间安全门槛，不替代真实操作验收。
+T013-T015 是当前已获人工接受的连续体验基线；T024 已修复 V2 提交事务与初始 fallback 缺口，T025 已修复 V2 运动调度闸门和队列公平性。T026/T027 仍需完成预加载预算和真实操作验收，T010 的数据只作为资源/帧时间安全门槛，不替代真实操作验收。
 
 ## 渐进式 Tile 展示
 
@@ -104,4 +105,4 @@ MVP 默认启用惯性。尊重 `prefers-reduced-motion: reduce` 时禁用释放
 
 ## 最终判断
 
-T013-T015 已完成首轮体验实现；D028 的 Retained Cache 已由 T020 完成，T021/T023 的人工 pan/zoom 观感明确不通过。T024 已完成 V2 Render transaction 和稳定 coarse cover；T025/T026/T027 继续完成运动中连续加载、预加载预算和逐帧人工验收。D029 Fog-Bounded Coverage 需在 V2 稳定后由 T022 更新本基线，最终由 T019 执行发布验收。体验是否达到“常用地图般连续”仍以人工负责人观看和实际操作接受为准；单张截图或单元测试不能替代该结论。
+T013-T015 已完成首轮体验实现；D028 的 Retained Cache 已由 T020 完成，T021/T023 的人工 pan/zoom 观感明确不通过。T024 已完成 V2 Render transaction 和稳定 coarse cover，T025 已完成运动中连续加载调度与公平队列；T026/T027 继续完成预加载预算和逐帧人工验收。D029 Fog-Bounded Coverage 需在 V2 稳定后由 T022 更新本基线，最终由 T019 执行发布验收。体验是否达到“常用地图般连续”仍以人工负责人观看和实际操作接受为准；单张截图或单元测试不能替代该结论。

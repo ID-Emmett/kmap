@@ -44,6 +44,7 @@ export interface TilePriorityInput {
   role: TilePriorityRole;
   visible: boolean;
   screenDistance: number;
+  coverageRank?: number;
   notBefore?: number;
 }
 

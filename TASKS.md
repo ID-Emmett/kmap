@@ -30,7 +30,7 @@
 | T022 | Implement Fog-Bounded Pitched Coverage | BACKLOG | Implementation / Performance | T015, T017, T023, T024, T025, T026, T027 |
 | T023 | Replace Custom Tile Runtime with TileEngineV2 | VERIFYING | Project Control / Architecture Migration | T008, T009, T017, T020, T021 |
 | T024 | TileEngineV2 Render Transaction and Stable Cover | DONE | Implementation | T023 |
-| T025 | TileEngineV2 Continuous Motion Scheduling | BACKLOG | Implementation / Performance | T023, T024 |
+| T025 | TileEngineV2 Continuous Motion Scheduling | DONE | Implementation / Performance | T023, T024 |
 | T026 | TileEngineV2 Coverage and Prefetch Budget Separation | BACKLOG | Implementation / Performance | T023, T025 |
 | T027 | TileEngineV2 Diagnostic and Manual Acceptance | BACKLOG | Review / Performance | T024, T025, T026 |
 
@@ -38,12 +38,12 @@
 
 T021 的代码实现、自动验证和真实浏览器脚本已完成，但人工负责人明确验收不通过：pan/zoom 仍慢、停止后才集中出现、缺少有效预加载、Tile 逐块显示并伴随白闪。T021 保持 `VERIFYING`，其问题记录作为 T023 输入，不再继续给旧 Runtime 打补丁。T018 仍为 `BLOCKED`，其旧生产调度路径由 T023 替代；T022 和 T019 暂停到 V2 稳定后重新规划。
 
-当前架构迁移任务为 T023：独立建立 `TileEngineV2`，借鉴 MapLibre/deck.gl 的已验证规则并保留现有 Three.js GPU 上传链路。虽然 T021 仍为 `VERIFYING`，T023 使用其已完成代码和失败证据作为输入，不等待 T021 被标记 `DONE`；V2 已接入 `Map3D` 唯一生产路径，但人工负责人验收已明确不通过。T024 已完成 Render transaction、初始 parent fallback 和空间完整 Render Cover 提交；T023 保持 `VERIFYING`，后续按 T025→T026→T027 顺序修复和重新验收，不回到旧 Runtime 追加补丁。
+当前架构迁移任务为 T023：独立建立 `TileEngineV2`，借鉴 MapLibre/deck.gl 的已验证规则并保留现有 Three.js GPU 上传链路。虽然 T021 仍为 `VERIFYING`，T023 使用其已完成代码和失败证据作为输入，不等待 T021 被标记 `DONE`；V2 已接入 `Map3D` 唯一生产路径，但人工负责人验收已明确不通过。T024 已完成 Render transaction、初始 parent fallback 和空间完整 Render Cover 提交；T025 已完成运动中连续 refinement 调度与公平队列；T023 保持 `VERIFYING`，后续按 T026→T027 顺序修复和重新验收，不回到旧 Runtime 追加补丁。
 
 执行顺序固定为：
 
 1. T024 已完成真实 Render transaction、初始 coarse cover 和空间原子 replacement，先解决逐 Tile 提交与白闪。
-2. T025 移除 idle-only refinement 闸门，建立运动中连续加载与公平队列，解决停止后集中请求。
+2. T025 已移除 idle-only refinement 闸门，建立运动中连续加载与公平队列，解决停止后集中请求。
 3. T026 分离 Coverage 与 prefetch 配额，在不提高总资源预算的前提下恢复预加载空间。
 4. T027 运行逐帧诊断和真实 Chromium 人工验收；通过后关闭/更新 T023，并重新定义被其替代的 T018。
 5. T022 接入 V2 的 fogStart/fogEnd/loadCutoff，再由 T019 完成最终发布验证。
@@ -55,4 +55,4 @@ T021 的代码实现、自动验证和真实浏览器脚本已完成，但人工
 - 任务范围、Non-Goals、输入、约束、验收和测试计划以任务文件为准。
 - Project Control 负责新增、拆分、排序和批准后续 Implementation Tasks。
 - 未经确认，不直接进入地图功能实现。
-- T003-T024 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。
+- T003-T025 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。

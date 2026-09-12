@@ -108,7 +108,7 @@ export class TileEngineV2RequestController<Payload> {
           (candidate) =>
             candidate.state === 'queued' && candidate.notBefore <= now,
         )
-        .sort(compareTilePriority)[0];
+        .sort((left, right) => compareTilePriority(left, right, now))[0];
       if (record === undefined) {
         return;
       }
@@ -178,10 +178,11 @@ export class TileEngineV2RequestController<Payload> {
   }
 
   #pumpWorkers(): void {
+    const now = this.#options.clock.now();
     while (this.#activeWorkers < this.#options.workerConcurrency) {
       const record = [...this.#records.values()]
         .filter((candidate) => candidate.state === 'decoding')
-        .sort(compareTilePriority)[0];
+        .sort((left, right) => compareTilePriority(left, right, now))[0];
       if (record === undefined) {
         return;
       }

@@ -50,4 +50,4 @@ DONE
 ## Open Issues
 
 - T024 scope 内无未解决问题；rAF 提交边界已采用，LOD replacement 保留既有受控 transition 且满足空间原子性。
-- T025/T026/T027 仍需继续解决运动中 refinement 调度、公平队列、prefetch 预算分离和最终人工 pan/zoom 观感验收。
+- T025 已完成运动中 refinement 调度与公平队列；T026/T027 仍需继续解决 prefetch 预算分离和最终人工 pan/zoom 观感验收。

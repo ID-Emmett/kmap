@@ -14,6 +14,7 @@ export interface TileConsumerGroup {
   priorityRole: TilePriorityRole;
   visible: boolean;
   screenDistance: number;
+  coverageRank: number;
   notBefore: number;
 }
 
@@ -30,6 +31,7 @@ export function groupTileCoverage(
       priorityRole: entry.priority.role,
       visible: entry.priority.visible,
       screenDistance: entry.priority.screenDistance,
+      coverageRank: entry.priority.coverageRank ?? Number.MAX_SAFE_INTEGER,
       notBefore: entry.priority.notBefore ?? 0,
     };
     let group = groups.get(id);
@@ -42,6 +44,7 @@ export function groupTileCoverage(
         priorityRole: entry.priority.role,
         visible: false,
         screenDistance: Number.MAX_VALUE,
+        coverageRank: Number.MAX_SAFE_INTEGER,
         notBefore: Number.POSITIVE_INFINITY,
       };
       groups.set(id, group);
@@ -61,6 +64,7 @@ export function groupTileCoverage(
     } else if (!group.visible && consumer.screenDistance < group.screenDistance) {
       group.screenDistance = consumer.screenDistance;
     }
+    group.coverageRank = Math.min(group.coverageRank, consumer.coverageRank);
     group.notBefore = Math.min(group.notBefore, consumer.notBefore);
     group.consumers.set(consumer.id, consumer);
   }
@@ -71,6 +75,7 @@ export function groupTileCoverage(
 export function compareTilePriority<Payload>(
   left: TileRecord<Payload>,
   right: TileRecord<Payload>,
+  now = Number.NEGATIVE_INFINITY,
 ): number {
   const roleDifference = priorityRoleRank(left.priorityRole) -
     priorityRoleRank(right.priorityRole);
@@ -80,8 +85,30 @@ export function compareTilePriority<Payload>(
   if (left.visible !== right.visible) {
     return left.visible ? -1 : 1;
   }
+  const leftStarved = isTilePriorityStarved(left, now);
+  const rightStarved = isTilePriorityStarved(right, now);
+  const starvationDifference = Number(rightStarved) - Number(leftStarved);
+  if (starvationDifference !== 0) {
+    return starvationDifference;
+  }
+  if (leftStarved && rightStarved) {
+    const deadlineDifference =
+      getTilePriorityDeadlineAt(left) - getTilePriorityDeadlineAt(right);
+    if (deadlineDifference !== 0) {
+      return deadlineDifference;
+    }
+    if (left.stateChangedAt !== right.stateChangedAt) {
+      return left.stateChangedAt - right.stateChangedAt;
+    }
+  }
+  if (left.coverageRank !== right.coverageRank) {
+    return left.coverageRank - right.coverageRank;
+  }
   if (left.screenDistance !== right.screenDistance) {
     return left.screenDistance - right.screenDistance;
+  }
+  if (left.stateChangedAt !== right.stateChangedAt) {
+    return left.stateChangedAt - right.stateChangedAt;
   }
   if (left.createdAt !== right.createdAt) {
     return left.createdAt - right.createdAt;
@@ -100,6 +127,7 @@ export function applyConsumerGroup<Payload>(
   record.priorityRole = group?.priorityRole ?? 'prefetch';
   record.visible = group?.visible ?? false;
   record.screenDistance = group?.screenDistance ?? Number.MAX_VALUE;
+  record.coverageRank = group?.coverageRank ?? Number.MAX_SAFE_INTEGER;
   record.notBefore = group?.notBefore ?? now;
   if (group !== undefined) {
     record.retainUntil = undefined;
@@ -107,6 +135,19 @@ export function applyConsumerGroup<Payload>(
   if (group !== undefined) {
     record.lastAccessedAt = now;
   }
+}
+
+export function getTilePriorityDeadlineAt<Payload>(
+  record: TileRecord<Payload>,
+): number {
+  return record.stateChangedAt + getRoleDeadlineMs(record.priorityRole);
+}
+
+export function isTilePriorityStarved<Payload>(
+  record: TileRecord<Payload>,
+  now: number,
+): boolean {
+  return Number.isFinite(now) && getTilePriorityDeadlineAt(record) <= now;
 }
 
 function priorityRoleRank(role: TilePriorityRole): number {
@@ -117,4 +158,14 @@ function priorityRoleRank(role: TilePriorityRole): number {
     return 1;
   }
   return role === 'leading-prefetch' ? 2 : 3;
+}
+
+function getRoleDeadlineMs(role: TilePriorityRole): number {
+  if (role === 'coverage') {
+    return 120;
+  }
+  if (role === 'refinement') {
+    return 240;
+  }
+  return role === 'leading-prefetch' ? 480 : 960;
 }

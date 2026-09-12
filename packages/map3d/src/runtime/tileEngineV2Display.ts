@@ -132,6 +132,7 @@ export class TileEngineV2DisplayBridge<Payload> {
               priorityRole: 'coverage' as const,
               visible: true,
               screenDistance: 0,
+              coverageRank: 0,
               notBefore: 0,
             },
           ];

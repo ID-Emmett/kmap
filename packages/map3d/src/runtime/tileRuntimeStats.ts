@@ -1,5 +1,6 @@
 import { isTileRecordInFlight } from './tileRecord.js';
 import type { TileRecord, TileState } from './tileRecord.js';
+import { isTilePriorityStarved } from './tileRuntimePriority.js';
 import type { NormalizedTileRuntimeOptions } from './tileRuntimeBudget.js';
 import type {
   TileMemoryPressureReason,
@@ -46,7 +47,11 @@ interface TileRuntimeStatsInput<Payload> {
   now: number;
   scheduling: Omit<
     TileRuntimeStats['scheduling'],
-    'oldestQueueAgeMs' | DiagnosticSchedulingKey
+    | 'oldestQueueAgeMs'
+    | 'queuedNotBeforeCount'
+    | 'starvedQueueCount'
+    | 'oldestStarvedQueueAgeMs'
+    | DiagnosticSchedulingKey
   >;
 }
 
@@ -66,6 +71,9 @@ export function createTileRuntimeStats<Payload>(
   let indices = 0;
   let objects = 0;
   let oldestQueueAgeMs = 0;
+  let queuedNotBeforeCount = 0;
+  let starvedQueueCount = 0;
+  let oldestStarvedQueueAgeMs = 0;
   let retainedEntries = 0;
   let retainedReady = 0;
   let retainedEmpty = 0;
@@ -105,10 +113,18 @@ export function createTileRuntimeStats<Payload>(
       objects += record.resource.stats.objects;
     }
     if (record.state === 'queued' || record.state === 'decoding') {
+      const queueAgeMs = Math.max(0, input.now - record.stateChangedAt);
       oldestQueueAgeMs = Math.max(
         oldestQueueAgeMs,
-        Math.max(0, input.now - record.stateChangedAt),
+        queueAgeMs,
       );
+      if (record.state === 'queued' && record.notBefore > input.now) {
+        queuedNotBeforeCount += 1;
+      }
+      if (isTilePriorityStarved(record, input.now)) {
+        starvedQueueCount += 1;
+        oldestStarvedQueueAgeMs = Math.max(oldestStarvedQueueAgeMs, queueAgeMs);
+      }
     }
   }
 
@@ -166,6 +182,9 @@ export function createTileRuntimeStats<Payload>(
       cancellationReloadStarts: input.diagnostics.cancellationReloadStarts,
       duplicateRequestStarts: input.diagnostics.duplicateRequestStarts,
       oldestQueueAgeMs,
+      queuedNotBeforeCount,
+      starvedQueueCount,
+      oldestStarvedQueueAgeMs,
     },
   };
 }

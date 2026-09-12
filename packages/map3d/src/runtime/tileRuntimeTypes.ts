@@ -138,6 +138,9 @@ export interface TileRuntimeStats {
     discardedBuilds: number;
     discardedDownloadBytes: number;
     oldestQueueAgeMs: number;
+    queuedNotBeforeCount: number;
+    starvedQueueCount: number;
+    oldestStarvedQueueAgeMs: number;
   };
 }
 

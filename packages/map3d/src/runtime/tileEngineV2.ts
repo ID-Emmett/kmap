@@ -20,7 +20,9 @@ import {
 import type { NormalizedTileRuntimeOptions } from './tileRuntimeBudget.js';
 import {
   compareTilePriority,
+  getTilePriorityDeadlineAt,
   groupTileCoverage,
+  isTilePriorityStarved,
 } from './tileRuntimePriority.js';
 import type { TileConsumerGroup } from './tileRuntimePriority.js';
 import type {
@@ -157,30 +159,31 @@ export class TileEngineV2<Payload> {
 
   /** 返回 V2 内部诊断快照，不扩大 Map3D 公开 API。 */
   getDiagnostics(): TileEngineV2Diagnostics {
+    const now = this.#options.clock.now();
     return Object.freeze({
       targetCoverage: Object.freeze([...this.#scheduled.keys()]),
-      renderCover: Object.freeze(
-        [...this.#records.values()]
-          .filter((record) => record.displayConsumers.size > 0)
-          .map((record) => record.id),
-      ),
-      retainedCache: Object.freeze(
-        [...this.#records.values()]
-          .filter((record) => record.retained)
-          .map((record) => record.id),
-      ),
+      renderCover: Object.freeze([...this.#records.values()]
+        .filter((record) => record.displayConsumers.size > 0)
+        .map((record) => record.id)),
+      retainedCache: Object.freeze([...this.#records.values()]
+        .filter((record) => record.retained)
+        .map((record) => record.id)),
       scheduler: this.#lastSchedule,
       cohortCommits: this.#cohortCommits,
       requestQueue: Object.freeze(
         [...this.#records.values()]
           .filter((record) => record.state === 'queued')
-          .sort(compareTilePriority)
+          .sort((left, right) => compareTilePriority(left, right, now))
           .map((record) => ({
             id: record.id,
             role: record.priorityRole,
             visible: record.visible,
             screenDistance: record.screenDistance,
+            coverageRank: record.coverageRank,
             notBefore: record.notBefore,
+            deadlineAt: getTilePriorityDeadlineAt(record),
+            queueAgeMs: Math.max(0, now - record.stateChangedAt),
+            starved: isTilePriorityStarved(record, now),
           })),
       ),
     });

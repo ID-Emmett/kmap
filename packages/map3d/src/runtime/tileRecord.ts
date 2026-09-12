@@ -19,6 +19,7 @@ export interface TileConsumer {
   priorityRole: TilePriorityRole;
   visible: boolean;
   screenDistance: number;
+  coverageRank: number;
   notBefore: number;
 }
 
@@ -60,6 +61,7 @@ export interface TileRecord<Payload> {
   priorityRole: TilePriorityRole;
   visible: boolean;
   screenDistance: number;
+  coverageRank: number;
   notBefore: number;
   retainUntil: number | undefined;
   requestLoadedBytes: number;
@@ -109,6 +111,7 @@ export function createTileRecord<Payload>(
     priorityRole: 'prefetch',
     visible: false,
     screenDistance: Number.MAX_VALUE,
+    coverageRank: Number.MAX_SAFE_INTEGER,
     notBefore: now,
     retainUntil: undefined,
     requestLoadedBytes: 0,

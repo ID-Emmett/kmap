@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
+import { createInteractionMotionSnapshot } from '../src/interaction/motionSnapshot.js';
 import { TileEngineV2 } from '../src/runtime/tileEngineV2.js';
 import { TileEngineV2Scheduler } from '../src/runtime/tileEngineV2Schedule.js';
 import type { TileRuntimeResource } from '../src/runtime/tileRecord.js';
 import { normalizeVectorTileSourceOptions } from '../src/source/vectorTileSource.js';
 import { calculateTileCoverage } from '../src/spatial/tileCoverage.js';
+import type {
+  TileCoverageEntry,
+  TileCoverageResult,
+} from '../src/spatial/tileCoverage.js';
 import type { RenderTileKey } from '../src/spatial/types.js';
 import type { CanonicalTileKey } from '../src/types.js';
 import {
@@ -18,6 +23,7 @@ import {
 
 const A = { sourceId: 'main', z: 3, x: 1, y: 2 } as const;
 const B = { sourceId: 'main', z: 3, x: 2, y: 2 } as const;
+const C = { sourceId: 'main', z: 3, x: 3, y: 2 } as const;
 const PARENT = { sourceId: 'main', z: 2, x: 2, y: 1 } as const;
 const CHILDREN = [
   { sourceId: 'main', z: 3, x: 4, y: 2 },
@@ -52,6 +58,115 @@ describe('TileEngineV2', () => {
     expect(schedule.entries.findIndex((entry) => entry.priority.role === 'coverage')).toBeLessThan(
       schedule.entries.findIndex((entry) => entry.priority.role === 'prefetch'),
     );
+  });
+
+  it('active 和 settling 阶段不再给 refinement 设置统一 idle-only notBefore', () => {
+    const scheduler = new TileEngineV2Scheduler();
+    const source = normalizeVectorTileSourceOptions({
+      id: 'main',
+      tiles: ['https://example.test/{z}/{x}/{y}.mvt'],
+      minZoom: 0,
+      maxZoom: 4,
+    });
+    const view = { center: { lng: 0, lat: 0 }, zoom: 4, bearing: 0, pitch: 0 };
+    const viewport = { width: 512, height: 512 };
+    const coverage = createManualCoverage([
+      createCoverageEntry({ sourceId: 'main', z: 2, x: 0, y: 0 }, {
+        screenDistance: 500,
+      }),
+      ...createFairnessEntries(8),
+    ]);
+
+    for (const phase of ['active', 'settling'] as const) {
+      scheduler.setMotion(
+        createInteractionMotionSnapshot(
+          phase,
+          2_000,
+          { panX: 60_000, panY: 10_000, bearing: 0, pitch: 0 },
+        ),
+      );
+      const schedule = scheduler.createSchedule(view, viewport, source, coverage, 2_050);
+      const refinements = schedule.entries.filter(
+        (entry) => entry.priority.role === 'refinement',
+      );
+
+      expect(refinements.length).toBeGreaterThan(0);
+      expect(refinements.every((entry) => entry.priority.notBefore === undefined)).toBe(true);
+      expect(schedule.diagnostics.refinementReadyAt).toBe(2_050);
+      expect(schedule.diagnostics.delayedByNotBefore).toBe(0);
+    }
+  });
+
+  it('同角色 refinement 按距离带轮询生成 coverageRank，避免中心向外独占', () => {
+    const scheduler = new TileEngineV2Scheduler();
+    const source = normalizeVectorTileSourceOptions({
+      id: 'main',
+      tiles: ['https://example.test/{z}/{x}/{y}.mvt'],
+      minZoom: 0,
+      maxZoom: 4,
+    });
+    const view = { center: { lng: 0, lat: 0 }, zoom: 4, bearing: 0, pitch: 0 };
+    const viewport = { width: 512, height: 512 };
+    const coverage = createManualCoverage([
+      createCoverageEntry({ sourceId: 'main', z: 2, x: 0, y: 0 }, {
+        screenDistance: 500,
+      }),
+      ...createFairnessEntries(8),
+    ]);
+
+    const schedule = scheduler.createSchedule(view, viewport, source, coverage, 0);
+    const refinementDistances = schedule.entries
+      .filter((entry) => entry.priority.role === 'refinement')
+      .map((entry) => entry.priority.screenDistance);
+
+    expect(refinementDistances.slice(0, 4)).toEqual([0, 20, 40, 60]);
+    expect(refinementDistances.slice(4)).toEqual([10, 30, 50, 70]);
+  });
+
+  it('同角色请求使用 coverageRank 和 deadline age，远处 queued Tile 不被新中心 Tile 饿死', async () => {
+    const clock = new FakeTileRuntimeClock();
+    const source = new ControlledTileSource();
+    const worker = new ControlledTileWorker<never>();
+    const render = new ControlledTileRender<never>();
+    const engine = new TileEngineV2({
+      source,
+      worker,
+      render,
+      clock,
+      fetchConcurrency: 1,
+      minFallbackZoom: 3,
+    });
+
+    engine.setCoverage([
+      createCoverageEntry(A, { role: 'refinement', screenDistance: 0, coverageRank: 0 }),
+      createCoverageEntry(B, { role: 'refinement', screenDistance: 1_000, coverageRank: 1 }),
+    ]);
+    expect(source.calls.map((call) => call.key)).toEqual([A]);
+
+    clock.advance(300);
+    engine.setCoverage([
+      createCoverageEntry(A, { role: 'refinement', screenDistance: 0, coverageRank: 0 }),
+      createCoverageEntry(B, { role: 'refinement', screenDistance: 1_000, coverageRank: 1 }),
+      createCoverageEntry(C, { role: 'refinement', screenDistance: 1, coverageRank: 2 }),
+    ]);
+    const queuedB = engine.getDiagnostics().requestQueue.find(
+      (entry) => entry.id === 'main/3/2/2',
+    );
+    expect(queuedB).toMatchObject({
+      coverageRank: 1,
+      queueAgeMs: 300,
+      starved: true,
+    });
+    expect(engine.getStats().scheduling).toMatchObject({
+      starvedQueueCount: 1,
+      oldestStarvedQueueAgeMs: 300,
+    });
+
+    source.resolve(A, { status: 'empty' });
+    await flushTileRuntime();
+
+    expect(source.calls.map((call) => call.key)).toEqual([A, B]);
+    engine.dispose();
   });
 
   it('提供 Target/Render Cover/Retained Cache 的独立诊断集合', async () => {
@@ -209,6 +324,40 @@ describe('TileEngineV2', () => {
     }
   });
 });
+
+function createManualCoverage(
+  visible: readonly TileCoverageEntry[],
+  prefetch: readonly TileCoverageEntry[] = [],
+): TileCoverageResult {
+  return {
+    referenceZoom: 4,
+    origin: { z: 4, tileX: 0, tileY: 0, meters: { x: 0, y: 0 } },
+    footprint: Object.freeze([]),
+    maxGroundDistance: 0,
+    tiles: Object.freeze([...visible, ...prefetch]),
+    visible: Object.freeze([...visible]),
+    prefetch: Object.freeze([...prefetch]),
+    truncated: false,
+    diagnostics: Object.freeze({
+      candidateCount: visible.length + prefetch.length,
+      evaluatedCount: 0,
+      refinedCount: 0,
+      coarsenedCount: 0,
+      budgetLimited: false,
+      budgetExceeded: false,
+      zoomDistribution: Object.freeze([]),
+    }),
+  };
+}
+
+function createFairnessEntries(count: number): TileCoverageEntry[] {
+  return Array.from({ length: count }, (_, index) =>
+    createCoverageEntry(
+      { sourceId: 'main', z: 3, x: index, y: 0 },
+      { screenDistance: index * 10 },
+    ),
+  );
+}
 
 async function resolveReady(
   engine: TileEngineV2<{ id: string }>,

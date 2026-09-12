@@ -237,6 +237,7 @@ export function createCoverageEntry(
     kind?: 'visible' | 'prefetch';
     role?: TileCoverageEntry['priority']['role'];
     screenDistance?: number;
+    coverageRank?: number;
     notBefore?: number;
   } = {},
 ): TileCoverageEntry {
@@ -248,6 +249,9 @@ export function createCoverageEntry(
       role: options.role ?? (kind === 'visible' ? 'coverage' : 'prefetch'),
       visible: kind === 'visible',
       screenDistance: options.screenDistance ?? 0,
+      ...(options.coverageRank === undefined
+        ? {}
+        : { coverageRank: options.coverageRank }),
       ...(options.notBefore === undefined
         ? {}
         : { notBefore: options.notBefore }),

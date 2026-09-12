@@ -35,8 +35,17 @@
 
 ## Status
 
-BACKLOG
+DONE
+
+## Findings
+
+- 2026-09-12：`tileEngineV2Schedule.ts` 已移除 V2 全局 `180 ms` refinement debounce；active/settling/idle 阶段的当前可见 refinement 不再写入统一 idle-only `notBefore`，`refinementReadyAt` 诊断改为当前调度时间，停止交互只触发自然队列重排。
+- 2026-09-12：V2 schedule 为 coverage、refinement、leading prefetch 和 ordinary prefetch 分别生成 `coverageRank`；同一角色按屏幕距离带轮询打散近/中/远 Tile，leading prefetch 的 24 个候选也不再只取最近中心候选。
+- 2026-09-12：请求/Worker 队列比较器保持角色顺序和 visible 优先，在同角色内加入 deadline/starvation 判定；未过期时按 `coverageRank` 与 `screenDistance` 排序，过期 queued/decoding 记录按 deadline/等待时长抢占，避免中心 Tile 长期垄断有限 Fetch/Worker 槽。
+- 2026-09-12：新增内部诊断字段：scheduler `delayedByNotBefore`，V2 `requestQueue.coverageRank/deadlineAt/queueAgeMs/starved`，runtime stats `queuedNotBeforeCount/starvedQueueCount/oldestStarvedQueueAgeMs`；请求来源分类、取消迟滞、generation、失败恢复和默认 8 Fetch / 4 Worker 并发保持不变。
+- 自动验证：`pnpm --filter @nova/map3d typecheck` 通过；`pnpm --filter @nova/map3d test -- tileEngineV2.test.ts tileRuntime.test.ts tileRuntimeCache.test.ts tileRuntimeProgressive.test.ts` 为 4 个测试文件、44 项通过；`pnpm --filter @nova/map3d test` 为 34 个测试文件、179 项通过；`pnpm check` 通过。
+- 浏览器验证：`node docs/evidence/T025-browser-regression-runner.mjs` 通过，真实 Chrome 152 headless 下 WebGPU/WebGL2 1500 ms pointer pan、WebGPU 1500 ms wheel zoom 和 WebGPU reduced-motion pointer pan 均在运动期间记录请求启动，console warning/error 为 0，dispose 后 Tile/resource/worker 归零。证据见 `docs/evidence/T025-browser-regression.json` 和 `docs/evidence/T025-*.png`。
 
 ## Open Issues
 
-- 具体 priority tuple 的权重必须以诊断可解释性和完整 coverage 为准，不以单纯中心距离排序。
+- T025 范围内无未解决代码问题；Coverage/prefetch 容量配额仍按 T026 处理，最终人工 pan/zoom 观感验收仍按 T027 处理。

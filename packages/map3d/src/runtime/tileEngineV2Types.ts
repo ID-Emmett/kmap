@@ -12,6 +12,10 @@ export interface TileEngineV2Diagnostics {
     role: TileConsumerGroup['priorityRole'];
     visible: boolean;
     screenDistance: number;
+    coverageRank: number;
     notBefore: number;
+    deadlineAt: number;
+    queueAgeMs: number;
+    starved: boolean;
   }[];
 }

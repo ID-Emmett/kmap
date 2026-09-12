@@ -127,6 +127,7 @@ export class TileRuntimeDisplayBridge<Payload> {
               priorityRole: 'coverage' as const,
               visible: true,
               screenDistance: 0,
+              coverageRank: 0,
               notBefore: 0,
             },
           ];
