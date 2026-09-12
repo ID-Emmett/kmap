@@ -1,0 +1,27 @@
+{
+  "name": "KYE main MVT z15/26978/12416",
+  "sourceUrl": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/15/26978/12416.pbf",
+  "retrievedAt": "2026-09-08T13:06:51Z",
+  "storage": "Decompressed response body produced by curl --compressed; production browser Fetch performs the same Content-Encoding handling.",
+  "response": {
+    "status": 200,
+    "contentType": "application/x-protobuf;charset=UTF-8",
+    "contentEncoding": "gzip",
+    "contentLength": 17909
+  },
+  "byteLength": 35594,
+  "sha256": "46f4ff67546c8ca229d76b5e31e4758cdf7b31588657dc9c89702aa62482202f",
+  "tile": {
+    "z": 15,
+    "x": 26978,
+    "y": 12416
+  },
+  "expectedLayers": {
+    "water": 4,
+    "landuse": 39,
+    "poi_label": 17,
+    "building": 233,
+    "road": 386,
+    "waterway": 1
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "nova",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Nova 3D Map SDK Monorepo",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @nova/playground dev",
+    "build": "pnpm --filter @nova/map3d build && pnpm --filter @nova/playground build",
+    "typecheck": "pnpm --filter @nova/map3d typecheck && pnpm --filter @nova/playground typecheck",
+    "test": "pnpm --filter @nova/map3d build && pnpm --filter @nova/map3d test && pnpm --filter @nova/playground test",
+    "check": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "26.5.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@nova/map3d",
+  "version": "0.0.0",
+  "description": "Nova 3D Map SDK",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build && vite build --config vite.worker.config.ts && tsc -p tsconfig.build.json",
+    "dev": "vite build --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "catalog:",
+    "three": "catalog:",
+    "vite": "catalog:"
+  },
+  "dependencies": {
+    "@mapbox/vector-tile": "3.0.0",
+    "earcut": "3.2.3",
+    "pbf": "5.1.2"
+  }
+}

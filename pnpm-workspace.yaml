@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  three: 0.185.1
+  "@types/three": 0.185.4
+  vite: 8.2.2
