@@ -2,12 +2,12 @@
 
 更新日期：2026-09-12
 
-状态：T002 已确认架构基线；D030 已确认 TileEngineV2 迁移边界。本文定义架构与实施边界，不代表未列入已完成 Task 的地图功能已经实现。
+状态：T002 已确认架构基线；D031 已冻结 TileEngineV2 补丁链并要求通过 T028 重置瓦片子系统。低 token 架构入口见 `docs/architecture/index.md`。本文定义架构与实施边界，不代表未列入已完成 Task 的地图功能已经实现。
 
 ## 证据边界
 
 - 已验证输入：KYE 主瓦片为标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096；部分专用空瓦片返回 HTTP 204。
-- 代码现状：`@nova/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、world-wrap render instance、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024 已补齐 V2 rAF Render transaction、初始 parent fallback 和空间完整 Render Cover 提交；T025 已移除 V2 idle-only refinement debounce，并建立运动中连续调度、公平队列和 requestQueue 诊断。
+- 代码现状：`@nova/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、world-wrap render instance、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024/T025 已补齐 V2 rAF Render transaction 和运动调度补丁，但人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链。
 - 架构决策：本文件中的坐标、Tile、Worker、Batch、公共 API 和性能目标属于 T002 设计结论，不写入 `KNOWLEDGE.md`，直到实现和真实环境验证形成证据。
 - 未验证项继续保持未验证：服务节点正式负载均衡规则、完整字段 schema、跨地域建筑数据、Raster DPR 语义、Glyph/Sprite 许可与目标设备性能。
 
@@ -80,9 +80,9 @@ Application / Playground
 
 ## TileEngineV2 迁移边界
 
-D030 已确认旧 Tile Runtime 的调度与 Display Coverage 生产路径不再继续叠加补丁。T023 已建立独立 `TileEngineV2`，其内部唯一拥有 Target Coverage、Render Cover、Retained Cache、请求调度和 cohort 提交 authority；T024 已将 upload completion 与 Display selection 之间增加 rAF transaction gate，pending resource 在提交边界前不进入 Render Cover；T025 已将 V2 请求计划改为运动中可持续推进 refinement，并在同角色内使用 coverageRank、deadline/等待时长和 screenDistance 公平排序。旧 `TileMotionScheduler`、旧 Display Coverage authority 不得与 V2 双轨消费同一 Map3D 实例。
+D030 曾确认旧 Tile Runtime 的调度与 Display Coverage 生产路径不再继续叠加补丁，并由 T023 建立 `TileEngineV2` 作为生产 authority。T024/T025 又补齐 rAF transaction 与运动调度，但人工体验仍失败。D031 已确认：T026/T027 补丁链冻结，T028 完成前不得继续扩大 `TileEngineV2`。
 
-V2 只采用 MapLibre/deck.gl 公开且已验证的 best-available、parent/child retain、优先级调度和缓存规则，不导入完整第三方地图 Runtime。`CanonicalTileKey`/`RenderTileKey`、KYE Source、Worker protocol v1、Polygon/Line batch、MapOrigin、Layer recipe、Three.js GPU upload、WebGPU/WebGL2、Material Registry、Map3D 0.1 公共 API 和资源 ownership 继续保持。旧 Runtime 文件目前仅供兼容测试和审计参考，不进入 `Map3D` 生产路径。
+后续瓦片路线的当前入口见 `docs/architecture/tile-system.md`。默认保留边界仍是 `CanonicalTileKey`/`RenderTileKey`、KYE Source、Worker protocol v1、Polygon/Line batch、MapOrigin、Layer recipe、Three.js GPU upload、WebGPU/WebGL2、Material Registry、Map3D 0.1 公共 API 和资源 ownership。旧 Runtime、旧 Display Coverage、旧 `TileMotionScheduler` 和 `TileEngineV2` 补丁链只能在任务上下文包明确允许时读取或处理。
 
 ## 坐标与相机
 
@@ -516,11 +516,14 @@ T007 + T008 + T013 + T015 + T016
   └── T017 Mixed-LOD frustum tile selection
         ├── T020 Retained tile cache and request thrash
         │     └── T021 Spatial best-available replacement (old path; human acceptance failed)
-        └── T023 TileEngineV2 migration
-              └── T022 Fog-bounded pitched coverage
-                    └── T019 Pitched tile loading and LOD verification
+        └── T023 TileEngineV2 migration (human acceptance failed; blocked by D031)
+              └── T028 Tile subsystem reset and AI context isolation
+                    ├── Future MapLibre/source mapping/legacy isolation tasks
+                    └── Future tile implementation route
+                          └── T022 Fog-bounded pitched coverage
+                                └── T019 Pitched tile loading and LOD verification
 
-T018 Motion-aware tile scheduling remains BLOCKED and is not resumed on the old Runtime; its coverage-first, prefetch and cancellation requirements are inputs to T023.
+T018/T021/T023/T026/T027 remain BLOCKED for the failed V2/old Runtime route; T024/T025 remain DONE as evidence only.
 ```
 
-所有 Implementation Task 必须保持公共契约和本文件边界；需要改变 MVP 范围、坐标语义、Tile 状态、Worker 协议或公共 API 时，返回 Project Control 确认。
+所有 实施任务 必须保持公共契约和本文件边界；需要改变 MVP 范围、坐标语义、Tile 状态、Worker 协议或公共 API 时，返回决策会话确认。

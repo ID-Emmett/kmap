@@ -30,7 +30,7 @@
 
 ## Constraints
 
-- 公共 API 必须与人工批准版本一致；任何字段或生命周期变化返回 Project Control。
+- 公共 API 必须与人工批准版本一致；任何字段或生命周期变化返回决策会话。
 - KYE URL 由 Playground 显式配置，SDK 不隐式硬编码生产服务。
 - render loop、交互、requests、workers 和 resources 必须由 dispose 统一释放。
 - SDK 不依赖 Inspector；Playground 只通过 `getRenderer` 挂载 Inspector。

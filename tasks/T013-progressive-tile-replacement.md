@@ -36,7 +36,7 @@
 - 正常同时显示最多 exact + 一个 fallback/outgoing 层级；快速输入合并到最新目标。
 - 过渡资源计入预算，参与显示者 pinned；pressure 下先停 prefetch，不释放仍可见 fallback。
 - 自定义过渡材质必须使用 TSL/Node Material，并保持 Feature 不创建独立 Object3D。
-- 如需改变 D015-D019 公共契约，返回 Project Control；本 Task 默认不扩大根入口 API。
+- 如需改变 D015-D019 公共契约，返回决策会话；本 Task 默认不扩大根入口 API。
 
 ## Acceptance Criteria
 

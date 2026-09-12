@@ -35,7 +35,7 @@
 - Fade 距离按当前 Camera frame 相对推导，不得使用只适配北京 zoom 15 的固定世界米数。
 - 渐隐不得掩盖 T011 seam 或 T013 loading gap，专项验收必须可临时禁用效果作对照。
 - 共享 Material/transition resource 必须有明确所有权，dispose 后 uniform/animation 引用归零。
-- 公共 API 保持不变；若 background 无法满足效果配置需求，返回 Project Control。
+- 公共 API 保持不变；若 background 无法满足效果配置需求，返回决策会话。
 
 ## Acceptance Criteria
 

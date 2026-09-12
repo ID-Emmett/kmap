@@ -13,7 +13,8 @@
     "build": "pnpm --filter @nova/map3d build && pnpm --filter @nova/playground build",
     "typecheck": "pnpm --filter @nova/map3d typecheck && pnpm --filter @nova/playground typecheck",
     "test": "pnpm --filter @nova/map3d build && pnpm --filter @nova/map3d test && pnpm --filter @nova/playground test",
-    "check": "pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "ai:check": "node scripts/ai-governance/check-ai-governance.mjs"
   },
   "devDependencies": {
     "@types/node": "26.5.0",

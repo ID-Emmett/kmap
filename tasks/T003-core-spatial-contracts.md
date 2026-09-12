@@ -31,7 +31,7 @@
 - 纯计算模块不得依赖 DOM、Playground、Inspector 或 Three.js Scene。
 - CPU 投影使用 number/Float64 语义；GPU Float32 转换留给 Geometry Task。
 - 公共注释和类型说明使用中文，工程命名使用英文。
-- 任何坐标语义变化都返回 Project Control。
+- 任何坐标语义变化都返回决策会话。
 
 ## Acceptance Criteria
 

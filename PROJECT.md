@@ -14,7 +14,7 @@ Nova 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立�
 
 T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯通，T011-T015 已完成视觉与连续体验阻断项修复并经人工接受。
 
-Project Control 已建立 T011 规则网格水印伪影诊断/修复、T012 浅色底图、T013 渐进式 Tile 替换、T014 阻尼交互和 T015 倾斜远景渐隐。T016 已完成 Line casing/fill 几何复用并解除 T010 资源阻断；T017 已按 D027 完成 mixed-LOD Coverage，T020 已完成预算内 Retained Cache 和 warm ancestor request thrash 修复。T021 Spatial Replacement 的代码、自动测试和真实浏览器脚本虽已完成，但人工负责人明确不接受 pan/zoom 加载观感；T023 已将生产路径切换为独立 TileEngineV2，自动与真实 Chromium 回归通过，但人工验收仍明确失败。T024 已完成真实 Render transaction、初始 parent fallback 和空间完整 Render Cover 提交；T025 已完成运动中连续 refinement 调度、公平队列和 request timeline 诊断；当前按 T026→T027 继续建立预算配额和人工验收闭环；T018 旧调度路径保持 BLOCKED，T022/T019 等 V2 稳定后再执行。
+决策会话已建立 T011 规则网格水印伪影诊断/修复、T012 浅色底图、T013 渐进式 Tile 替换、T014 阻尼交互和 T015 倾斜远景渐隐。T016 已完成 Line casing/fill 几何复用并解除 T010 资源阻断；T017 已按 D027 完成 mixed-LOD Coverage，T020 已完成预算内 Retained Cache 和 warm ancestor request thrash 修复。T021 Spatial Replacement 与 T023 TileEngineV2 的自动测试和真实 Chromium 脚本曾通过，但人工负责人明确不接受 pan/zoom 加载观感；T024/T025 的 V2 render transaction 与 motion scheduling 补丁完成后，人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链；当前下一步为 T028 瓦片子系统重置与 AI 上下文隔离。
 
 ## 当前事实基线
 
@@ -29,7 +29,7 @@ Project Control 已建立 T011 规则网格水印伪影诊断/修复、T012 浅�
 - 固定 `z15/26978/12416` Polygon 场景在当前 Chromium 的 WebGPU 与强制 WebGL2 中通过可视验证；三个 batch 对应 276 features、2,139 vertices、4,755 indices 和 53,244 bytes TypedArray/GPU estimate。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
 - 当前可见集使用 Camera Frustum/Tile AABB、projected tile size 和 best-first 四叉树 refinement 生成 mixed canonical zoom Target Coverage；默认 128 Tile 数量预算通过停止细分或父级合并满足，支持日期线 world wrap、source bounds、Y 边界和 maxZoom overzoom，并与 MapOrigin/horizon fade 的 `referenceZoom` 解耦。
-- 当前 TileEngineV2 按 canonical key 共享多个 render wrap consumer，默认限制 8 个 Fetch、4 个 Worker job、256 entries、128 MiB CPU 和 256 MiB GPU。T020/T021 已形成 Retained Cache 与空间 replacement 的代码证据；T023 已将这些边界接入唯一生产 authority；T024 已将 upload 完成后的显示提交收敛到 rAF transaction，并在初始无显示时请求 parent fallback；T025 已移除 V2 refinement debounce，并用 coverageRank、deadline/age starvation 和 requestQueue 诊断建立运动中连续调度。
+- 当前 TileEngineV2 按 canonical key 共享多个 render wrap consumer，默认限制 8 个 Fetch、4 个 Worker job、256 entries、128 MiB CPU 和 256 MiB GPU。T020/T025 已形成 Retained Cache、空间 replacement、rAF transaction 和运动调度证据；但 T021/T023/T025 的人工体验均未达到可接受状态。D031 已确认这些证据只能作为失败路线输入，不再作为继续 T026/T027 补丁推进的依据。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
 ## MVP 基线
@@ -57,7 +57,7 @@ KYE Tile
 - Worker 协议、transferable buffers、Feature 映射和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。
-- zoom/pan 的目标架构由 T023-T026 TileEngineV2 负责使用 Ideal Target、原子 Render Cover、连续运动调度和 Retained Cache；T024 已完成 Render transaction 与稳定 coarse cover，T025 已完成运动中连续调度和公平队列，T026 继续处理预加载配额。
+- zoom/pan 的当前 V2 补丁链已冻结。后续瓦片路线必须先通过 T028 定义可信开源基准、源码映射、旧实现隔离墙、可复用边界和逐帧诊断验收，再创建新的实施任务。
 - pan 与 bearing/pitch 旋转在释放后具有基于帧时间的有界惯性；wheel zoom 合并为连续帧更新。
 - pitch 增大时，远处 Polygon/Line 使用统一 TSL 效果渐隐到浅色背景；D029 进一步要求 fogEnd 完全融合，loadCutoff 外停止 Tile 选择、请求、构建和渲染，由 T022 实施。
 
@@ -80,7 +80,7 @@ Non-Goals：
 - `getRenderer` 仅作为 Inspector/高级集成 escape hatch，所有权仍属于 Map3D。
 - 当前公开 `scene/camera` 不进入 0.1 稳定 API。
 
-精确结构、错误模型和约束见 `docs/architecture.md`；修改稳定公共 API 必须返回 Project Control。
+精确结构、错误模型和约束见 `docs/architecture.md`；修改稳定公共 API 必须返回决策会话。
 
 ## 测试与性能基线
 
@@ -95,7 +95,7 @@ Non-Goals：
 ## 已完成
 
 - T001：Monorepo、SDK/Playground、空场景和渲染后端骨架。
-- Project Control 已依序审阅 AGENTS、PROJECT、TASKS、KNOWLEDGE、architecture、decisions 和当前 research；2026-09-10 新增高倾角 Tile LOD/调度专题研究。
+- 决策会话已依序审阅 AGENTS、PROJECT、TASKS、KNOWLEDGE、architecture、decisions 和当前 research；2026-09-10 新增高倾角 Tile LOD/调度专题研究。
 - T002 已形成 D013-D021 候选决策、架构/验证文档和 T003-T010 Task 规格。
 - T003：公共空间类型、Web Mercator、TileKey、ViewState 归一化、浮动原点和 21 个 SDK 单元测试。
 - T004：MVT Source、Fetch/重试/取消、错误分类、MVT v2 解码、真实 KYE fixture 和 `pbf`/`@mapbox/vector-tile` ESM 依赖验证。
@@ -114,19 +114,18 @@ Non-Goals：
 
 ## 进行中
 
-- T023：独立 TileEngineV2 已切换为唯一生产调度/显示 authority，自动测试、构建和真实 Chromium 回归通过，但人工负责人验收不通过，当前 `VERIFYING`。
-- T026：Coverage 与 prefetch 预算解耦保持 BACKLOG，需在不提高总资源预算的前提下恢复预加载空间。
-- T027：待 T026 完成后执行逐帧诊断与真实 Chromium 人工验收。
-- T021：按空间的 best-available replacement 和 Render instance/material 稳定化已完成代码、自动验证和真实浏览器回归，但人工负责人明确不接受 pan/zoom 加载观感，当前 VERIFYING。
-- T018：旧 Runtime 的 coverage-first/motion-aware 路径保持 BLOCKED，不再追加补丁，待 T023 完成后由 Project Control 关闭或重新定义。
-- T022：fogStart/fogEnd/loadCutoff 保持 BACKLOG，必须接入 V2 后再实施。
+- T028：瓦片子系统重置与 AI 上下文隔离保持 BACKLOG，是当前唯一合法下一步。
+- T021：按空间的 best-available replacement 和 Render instance/material 稳定化已完成代码、自动验证和真实浏览器回归，但人工负责人明确不接受 pan/zoom 加载观感，当前 BLOCKED。
+- T023：独立 TileEngineV2 已切换为唯一生产调度/显示 authority，自动测试、构建和真实 Chromium 回归通过，但人工负责人验收不通过，当前 BLOCKED。
+- T026/T027：V2 预算补丁与最终验收链已由 D031 冻结，当前 BLOCKED。
+- T018/T022/T019：旧 Runtime motion-aware、fog-bounded coverage 和最终发布验证均等待 T028 后重新定义。
 
 ## 下一步
 
-1. 执行 T026，分离 Coverage 与 prefetch 预算配额。
-2. 执行 T027，使用逐帧诊断和真实 Chromium 人工操作重新验收；通过后关闭/更新 T023，并关闭或重新定义 T018。
-3. 执行 T022，实现高倾角 fogStart/fogEnd/loadCutoff。
-4. 执行 T019，复核 V2 的双后端、慢网、资源、long task 和最终加载体验并形成发布判断。
+1. 执行 T028，冻结失败 V2 补丁链，定义瓦片子系统重置方案和 AI 上下文隔离墙。
+2. 基于 T028 新建 MapLibre 基准、源码映射、旧实现隔离和新瓦片实现任务。
+3. 新瓦片路线经人工负责人确认后，重新规划 T022 fog-bounded coverage。
+4. T022 完成后，再由 T019 执行双后端、慢网、资源、long task 和最终加载体验发布验证。
 5. 如最终发布指定另一台目标设备，在该设备重复真实浏览器矩阵。
 
 ## 已确认架构约束
@@ -155,6 +154,8 @@ D029 已确认高倾角 fogStart/fogEnd/loadCutoff 定义有效 Coverage 边界�
 
 D030 已确认停止扩展旧 Tile Runtime 的调度/显示路径，建立独立 `TileEngineV2`；只借鉴 MapLibre/deck.gl 的已验证规则，不引入完整第三方 Runtime，现有 Three.js GPU 上传、WebGPU/WebGL2、Worker protocol 和 Map3D 0.1 公共 API 保持不变。
 
+D031 已确认 T021/T023/T025 的人工体验失败覆盖自动证据，冻结 T026/T027 的 V2 补丁链，并以 T028 作为瓦片子系统重置与 AI 上下文隔离入口。
+
 ## 已知风险
 
 - KYE 服务鉴权、CORS、缓存、节点降级和长期版本策略尚未完整验证。
@@ -168,6 +169,6 @@ D030 已确认停止扩展旧 Tile Runtime 的调度/显示路径，建立独立
 - T014 已实现 pointer release 惯性、rAF delta-time 阻尼、wheel 帧合并和 reduced-motion 禁用释放惯性；自动验证与双后端浏览器验证通过，且 2026-09-10 已获人工负责人接受。
 - T015 已实现按 pitch、camera target distance 和 ground footprint 推导的 Polygon/Line 共享 TSL 远景渐隐；自动验证、双后端 pitch 0/20/40/60 截图、临时禁用对照和 dispose 验证通过，且 2026-09-10 已获人工负责人接受。
 - T016 后北京 city z10 clean harness 的 WebGPU/WebGL2 最大 CPU resource 分别为 `134,170,325` 和 `134,195,458` bytes，低于 128 MiB 上限但仅余 `47,403` 和 `22,270` bytes；资源阻断已解除，但 cache 余量极小。T010 Chrome trace 复现 60 秒交互 long task，并将方向定位到渲染帧更新、Worker 回调和 WebGL2 worker message 主线程处理；当前为非阻断性能风险。如最终发布需要另一台指定设备，仍需重复真实浏览器矩阵。
-- T017 已修复原单层级硬截断问题，T020 已消除 Ready Tile 立即释放和 warm ancestor 重复请求；T021 已在旧路径补齐 Display Coverage 空间 replacement 不变量并通过自动/浏览器回归，但人工负责人明确不接受 pan/zoom 加载观感。T023 已将这些不变量迁移到唯一 TileEngineV2 生产路径，当前仍需人工确认最终加载体验，不再重新实施旧 T018 路径。
-- T021/T023 人工验收已明确不通过：加载延迟、运动期间缺少预加载感、Tile 逐块出现和白闪仍存在。T024 已修复 V2 Render Cover 逐 Tile 提交和初始 fallback 缺口，T025 已修复运动调度和公平队列；预加载预算与最终人工观感仍由 T026/T027 继续验证。
+- T017 已修复原单层级硬截断问题，T020 已消除 Ready Tile 立即释放和 warm ancestor 重复请求；T021 已在旧路径补齐 Display Coverage 空间 replacement 不变量并通过自动/浏览器回归，但人工负责人明确不接受 pan/zoom 加载观感。T023 已将这些不变量迁移到唯一 TileEngineV2 生产路径，T024/T025 又完成了局部补丁，但人工负责人仍不接受最终体验。
+- T021/T023/T025 人工验收已明确不通过：加载延迟、运动期间缺少预加载感、停止后请求波次、中心向外逐块出现、白闪、低帧率和 pan 卡顿仍存在。D031 已冻结 T026/T027 补丁链，后续必须先执行 T028。
 - 当前 horizon fade 最大强度不会完全融合到背景，且不减少 Coverage 或请求；D029 已批准 fog-bounded coverage，但 T022 完成前高倾角 Tile 数量和远景渐隐仍不代表目标效果。

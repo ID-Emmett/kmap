@@ -36,7 +36,7 @@
 - 必须记录浏览器、OS、CPU、GPU、内存、DPR、viewport、backend、commit 和采样方法。
 - 网络与 renderer 指标分离；公网波动不能伪装成 CPU/GPU 结论。
 - 未复现或仅推测的问题不得写入 `KNOWLEDGE.md`。
-- 性能门槛若需改变，返回 Project Control，不在本 Task 直接改决策。
+- 性能门槛若需改变，返回决策会话，不在本 Task 直接改决策。
 
 ## Acceptance Criteria
 
@@ -65,7 +65,7 @@ DONE
 
 ## Findings
 
-2026-09-10 启动 T010。T011-T015 均已完成实现、自动验证、浏览器专项证据和人工体验接受；当前进入 Review / Performance 会话，按 `docs/verification-baseline.md` 对 MVP 候选版本执行浏览器兼容性、连续体验、生命周期、网络异常和性能发布判断。
+2026-09-10 启动 T010。T011-T015 均已完成实现、自动验证、浏览器专项证据和人工体验接受；当前进入实施会话，按 `docs/verification-baseline.md` 对 MVP 候选版本执行浏览器兼容性、连续体验、生命周期、网络异常和性能发布判断。
 
 目标参考环境：按人工负责人“开始执行 T010”的指令，本轮先以当前 Windows 工作站和当前稳定 Chromium 作为目标参考环境采集证据；如最终发布需要另一台指定设备，需在该设备重复本 Task 的真实浏览器矩阵。
 
@@ -95,7 +95,7 @@ T016 后 Worker/upload：固定 Tile 40 次样本的 worker total P95 为 8.6 ms
 
 long task 诊断收尾：新增 `docs/evidence/T010-longtask-trace-runner.mjs` 和 `docs/evidence/T010-longtask-trace.json`，在当前 Chrome `152.0.7977.76`、1920x1080、DPR 1、T016 clean harness 下对 WebGPU/WebGL2 各执行 60 秒交互并采集 Chrome trace。PerformanceObserver 仍可复现 50 ms 以上 window long task：WebGPU 8 次、最大 203 ms；WebGL2 9 次、最大 146 ms。trace 分类显示高耗时事件主要来自 `CrRendererMain` 的 `RunMicrotasks`、`FireAnimationFrame`/Three.js renderer `update`，以及 `DedicatedWorker thread` 的 `worker/runtime.ts` timer 回调；WebGL2 另有 `slot.worker.onmessage` 主线程回调 102 ms 样本。诊断运行日志为 0，最终 queued/fetching/decoding/building/workers 均归零，WebGPU/WebGL2 trace 运行最大 CPU resource 分别为 `134,213,700` 和 `134,191,637` bytes，均低于 `134,217,728` bytes。
 
-long task 解释：现有 trace 没有显示 MVT decode/Polygon triangulation 在主线程执行；较长 Worker 回调发生在 `DedicatedWorker thread`，不违反“解码/构建不得在主线程制造 Long Task”的架构边界。WebGL2 的 `slot.worker.onmessage` 主线程长回调和 Three.js `update` 长帧保留为非阻断性能风险；若后续发布目标要求“零 long task”或更严格输入抖动，应由 Project Control 新建优化任务，而不是在 T010 静默降低门槛。
+long task 解释：现有 trace 没有显示 MVT decode/Polygon triangulation 在主线程执行；较长 Worker 回调发生在 `DedicatedWorker thread`，不违反“解码/构建不得在主线程制造 Long Task”的架构边界。WebGL2 的 `slot.worker.onmessage` 主线程长回调和 Three.js `update` 长帧保留为非阻断性能风险；若后续发布目标要求“零 long task”或更严格输入抖动，应由决策会话新建优化任务，而不是在 T010 静默降低门槛。
 
 最终发布判断：T010 对当前 Windows 目标工作站的 MVP 浏览器与性能基线判定为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`，任务状态更新为 `DONE`。WebGPU、强制 WebGL2 和无 WebGPU 自动 fallback 均有真实证据；视觉、连续加载、阻尼、远景渐隐、生命周期、网络异常、worker/upload、frame/input response、resource budget 均满足已确认门槛。CPU cache 余量极小和 long task 样本需要后续持续观察，但不再阻断当前 MVP 基线发布判断。
 

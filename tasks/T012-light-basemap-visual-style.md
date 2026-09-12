@@ -32,7 +32,7 @@
 
 - SDK 保持通用，KYE URL 和官方视觉 recipe 仍由 Playground 显式配置。
 - 新硬编码颜色和分类映射必须在视觉基线/Task Findings 中记录来源与含义。
-- 只使用已批准的 fill/line、zoom、filters 能力；若需要表达式或公共 API 扩展，返回 Project Control。
+- 只使用已批准的 fill/line、zoom、filters 能力；若需要表达式或公共 API 扩展，返回决策会话。
 - 自定义材质变化仍使用 TSL / Node Material，Three.js 版本不变。
 
 ## Acceptance Criteria

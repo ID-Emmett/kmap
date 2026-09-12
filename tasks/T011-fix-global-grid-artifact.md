@@ -32,7 +32,7 @@
 ## Constraints
 
 - 先形成可复现证据和根因，再选择修复；不得把推测写入 `KNOWLEDGE.md`。
-- 必须保持 canonical/render Tile、Worker payload和 `Map3D` 公共 API 不变；若根因要求改变这些契约，返回 Project Control。
+- 必须保持 canonical/render Tile、Worker payload和 `Map3D` 公共 API 不变；若根因要求改变这些契约，返回决策会话。
 - Feature 仍不创建独立 Object3D，跨 Tile 合批仍不进入 MVP。
 - 临时 Tile bounds/debug color 只能存在于测试或验收过程，不进入默认 Playground UI。
 

@@ -20,7 +20,7 @@
 - 不降低 T010 资源门槛，不通过隐藏道路、降低 city zoom、减少 visible coverage 或提高默认 cache 预算来通过验收。
 - 不改变 T012 已接受的 Playground 浅色视觉方向和道路层级。
 - 不实现跨 Tile 合批、完整 Mapbox Style v8、dash/pattern/round join、文字、Picking 或新诊断面板。
-- 不引入新的运行时依赖；如实现确需依赖，必须返回 Project Control 说明职责、替代方案和影响。
+- 不引入新的运行时依赖；如实现确需依赖，必须返回决策会话说明职责、替代方案和影响。
 
 ## Inputs
 
@@ -68,9 +68,9 @@ DONE
 
 ## Findings
 
-2026-09-10 Project Control 确认优先新建 T016，通过 Line casing/fill 几何复用处理 T010 资源预算阻断，不修改 T010 初始 128 MiB CPU cache 门槛。
+2026-09-10 决策会话确认优先新建 T016，通过 Line casing/fill 几何复用处理 T010 资源预算阻断，不修改 T010 初始 128 MiB CPU cache 门槛。
 
-2026-09-10 开始 T016 Implementation，会话按任务 Scope 先实现同 Tile 内重复 Line 样式 pass 的 geometry/topology 共享，再复核自动测试和 T010 资源证据。
+2026-09-10 开始 T016 实施会话按任务 Scope 先实现同 Tile 内重复 Line 样式 pass 的 geometry/topology 共享，再复核自动测试和 T010 资源证据。
 
 2026-09-10 已完成实现：Line batch 使用只包含 sourceLayer、filters、zoom 可见性、canonical Tile 和 topology 版本的 `geometryKey`；相同 key 的 pass 复用 Worker TypedArray，主线程按 key 复用 BufferGeometry，材质、线宽、opacity、renderOrder 和 draw pass 仍按 public layer 独立保留。共享 feature mapping、stats 去重、transferable 去重和幂等 geometry dispose 已覆盖。
 

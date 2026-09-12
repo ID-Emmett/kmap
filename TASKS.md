@@ -4,55 +4,60 @@
 
 状态：`BACKLOG`、`IN_PROGRESS`、`BLOCKED`、`VERIFYING`、`DONE`。
 
-| ID | Task | Status | Session | Depends On |
+会话类型只允许：`决策会话`、`实施会话`。调试、验证、性能分析、架构迁移是任务性质，不是独立会话身份。
+
+| ID | Task | Status | Session Type | Depends On |
 | --- | --- | --- | --- | --- |
-| T001 | Bootstrap nova Monorepo | DONE | Bootstrap | - |
-| T002 | Define MVP Project Control Baseline | DONE | Project Control | T001 |
-| T003 | Implement Core Spatial Contracts | DONE | Implementation | T002 |
-| T004 | Implement KYE Tile Fetch and MVT Decode | DONE | Implementation | T003 |
-| T005 | Implement Worker Polygon Batch Pipeline | DONE | Implementation | T004 |
-| T006 | Render Fixed KYE Polygon Vertical Slice | DONE | Implementation | T005 |
-| T007 | Implement Camera and Visible Tile Coverage | DONE | Implementation | T003 |
-| T008 | Implement Tile Runtime Cache and Lifecycle | DONE | Implementation | T004, T007 |
-| T009 | Integrate Line Batches and Dynamic MVP Runtime | DONE | Implementation | T005, T006, T008 |
-| T010 | Verify MVP Browser and Performance Baseline | DONE | Review / Performance | T009, T011, T012, T013, T014, T015 |
-| T011 | Diagnose and Fix Regular Grid Watermark Artifact | DONE | Implementation / Debug | T009 |
-| T012 | Implement Light Basemap Visual Baseline | DONE | Implementation | T011 |
-| T013 | Implement Progressive Tile Replacement | DONE | Implementation | T011 |
-| T014 | Implement Inertial Map Interaction | DONE | Implementation | T013 |
-| T015 | Implement Pitched Horizon Fade | DONE | Implementation | T012, T013 |
-| T016 | Reuse Line Geometry for Repeated Style Passes | DONE | Implementation / Performance | T010 |
-| T017 | Implement Mixed-LOD Frustum Tile Selection | DONE | Implementation | T007, T008, T013, T015, T016 |
-| T018 | Implement Motion-Aware Tile Scheduling | BLOCKED | Implementation / Performance | T014, T017 |
-| T019 | Verify Pitched Tile Loading and LOD Baseline | BACKLOG | Review / Performance | T022, T027 |
-| T020 | Fix Retained Tile Cache and Request Thrash | DONE | Implementation / Debug | T008, T013, T017 |
-| T021 | Implement Spatial Best-Available Tile Replacement | VERIFYING | Implementation | T020 |
-| T022 | Implement Fog-Bounded Pitched Coverage | BACKLOG | Implementation / Performance | T015, T017, T023, T024, T025, T026, T027 |
-| T023 | Replace Custom Tile Runtime with TileEngineV2 | VERIFYING | Project Control / Architecture Migration | T008, T009, T017, T020, T021 |
-| T024 | TileEngineV2 Render Transaction and Stable Cover | DONE | Implementation | T023 |
-| T025 | TileEngineV2 Continuous Motion Scheduling | DONE | Implementation / Performance | T023, T024 |
-| T026 | TileEngineV2 Coverage and Prefetch Budget Separation | BACKLOG | Implementation / Performance | T023, T025 |
-| T027 | TileEngineV2 Diagnostic and Manual Acceptance | BACKLOG | Review / Performance | T024, T025, T026 |
+| T001 | Bootstrap nova Monorepo | DONE | 实施会话 | - |
+| T002 | Define MVP Decision Baseline | DONE | 决策会话 | T001 |
+| T003 | Implement Core Spatial Contracts | DONE | 实施会话 | T002 |
+| T004 | Implement KYE Tile Fetch and MVT Decode | DONE | 实施会话 | T003 |
+| T005 | Implement Worker Polygon Batch Pipeline | DONE | 实施会话 | T004 |
+| T006 | Render Fixed KYE Polygon Vertical Slice | DONE | 实施会话 | T005 |
+| T007 | Implement Camera and Visible Tile Coverage | DONE | 实施会话 | T003 |
+| T008 | Implement Tile Runtime Cache and Lifecycle | DONE | 实施会话 | T004, T007 |
+| T009 | Integrate Line Batches and Dynamic MVP Runtime | DONE | 实施会话 | T005, T006, T008 |
+| T010 | Verify MVP Browser and Performance Baseline | DONE | 实施会话 | T009, T011, T012, T013, T014, T015 |
+| T011 | Diagnose and Fix Regular Grid Watermark Artifact | DONE | 实施会话 | T009 |
+| T012 | Implement Light Basemap Visual Baseline | DONE | 实施会话 | T011 |
+| T013 | Implement Progressive Tile Replacement | DONE | 实施会话 | T011 |
+| T014 | Implement Inertial Map Interaction | DONE | 实施会话 | T013 |
+| T015 | Implement Pitched Horizon Fade | DONE | 实施会话 | T012, T013 |
+| T016 | Reuse Line Geometry for Repeated Style Passes | DONE | 实施会话 | T010 |
+| T017 | Implement Mixed-LOD Frustum Tile Selection | DONE | 实施会话 | T007, T008, T013, T015, T016 |
+| T018 | Implement Motion-Aware Tile Scheduling | BLOCKED | 实施会话 | T014, T017 |
+| T019 | Verify Pitched Tile Loading and LOD Baseline | BLOCKED | 实施会话 | T022, T028 |
+| T020 | Fix Retained Tile Cache and Request Thrash | DONE | 实施会话 | T008, T013, T017 |
+| T021 | Implement Spatial Best-Available Tile Replacement | BLOCKED | 实施会话 | T020 |
+| T022 | Implement Fog-Bounded Pitched Coverage | BLOCKED | 实施会话 | T015, T017, T028 |
+| T023 | Replace Custom Tile Runtime with TileEngineV2 | BLOCKED | 实施会话 | T008, T009, T017, T020, T021 |
+| T024 | TileEngineV2 Render Transaction and Stable Cover | DONE | 实施会话 | T023 |
+| T025 | TileEngineV2 Continuous Motion Scheduling | DONE | 实施会话 | T023, T024 |
+| T026 | TileEngineV2 Coverage and Prefetch Budget Separation | BLOCKED | 实施会话 | T023, T025 |
+| T027 | TileEngineV2 Diagnostic and Manual Acceptance | BLOCKED | 实施会话 | T024, T025, T026 |
+| T028 | Tile Subsystem Reset and AI Context Isolation | BACKLOG | 决策会话 | T021, T023, T025 |
 
 ## 当前任务
 
-T021 的代码实现、自动验证和真实浏览器脚本已完成，但人工负责人明确验收不通过：pan/zoom 仍慢、停止后才集中出现、缺少有效预加载、Tile 逐块显示并伴随白闪。T021 保持 `VERIFYING`，其问题记录作为 T023 输入，不再继续给旧 Runtime 打补丁。T018 仍为 `BLOCKED`，其旧生产调度路径由 T023 替代；T022 和 T019 暂停到 V2 稳定后重新规划。
+T021 的代码实现、自动验证和真实浏览器脚本已完成，但人工负责人明确验收不通过：pan/zoom 仍慢、停止后才集中出现、缺少有效预加载、Tile 逐块显示并伴随白闪。T021 改为 `BLOCKED`，其问题记录只作为失败证据和后续重置输入，不再继续给旧 Runtime 打补丁。T018 仍为 `BLOCKED`，旧生产调度路径不再恢复实施。
 
-当前架构迁移任务为 T023：独立建立 `TileEngineV2`，借鉴 MapLibre/deck.gl 的已验证规则并保留现有 Three.js GPU 上传链路。虽然 T021 仍为 `VERIFYING`，T023 使用其已完成代码和失败证据作为输入，不等待 T021 被标记 `DONE`；V2 已接入 `Map3D` 唯一生产路径，但人工负责人验收已明确不通过。T024 已完成 Render transaction、初始 parent fallback 和空间完整 Render Cover 提交；T025 已完成运动中连续 refinement 调度与公平队列；T023 保持 `VERIFYING`，后续按 T026→T027 顺序修复和重新验收，不回到旧 Runtime 追加补丁。
+T023 `TileEngineV2` 已接入 `Map3D` 唯一生产路径，并完成 T024 Render transaction 与 T025 运动调度补丁，但人工负责人在 T025 后仍明确反馈体验极差、帧率低、pan 卡顿、加载时序滞后、停止后请求波次、中心向外逐块加载和白闪。T023、T026、T027 均改为 `BLOCKED`；不得继续按原 V2 补丁链推进。
 
 执行顺序固定为：
 
-1. T024 已完成真实 Render transaction、初始 coarse cover 和空间原子 replacement，先解决逐 Tile 提交与白闪。
-2. T025 已移除 idle-only refinement 闸门，建立运动中连续加载与公平队列，解决停止后集中请求。
-3. T026 分离 Coverage 与 prefetch 配额，在不提高总资源预算的前提下恢复预加载空间。
-4. T027 运行逐帧诊断和真实 Chromium 人工验收；通过后关闭/更新 T023，并重新定义被其替代的 T018。
-5. T022 接入 V2 的 fogStart/fogEnd/loadCutoff，再由 T019 完成最终发布验证。
-6. T019 执行 V2 的双后端、慢网、资源、long task 和最终加载体验发布验证。
+1. 执行 T028，形成瓦片子系统重置、旧实现隔离、可信开源基准和后续任务上下文包。
+2. T028 完成并由人工负责人确认后，再新建 MapLibre 基准、源码映射、旧实现隔离和新瓦片实现任务。
+3. T022 只能在新的稳定瓦片路线通过后重新规划；不得接回已失败的 V2 补丁链。
+4. T019 只能在新瓦片路线与 T022 重新完成后执行最终发布验证。
+5. T024/T025 保留为已完成证据，不构成继续 T026/T027 的理由。
 
 ## 任务规则
 
 - 每个实施会话只执行一个明确 Task。
 - 任务范围、Non-Goals、输入、约束、验收和测试计划以任务文件为准。
-- Project Control 负责新增、拆分、排序和批准后续 Implementation Tasks。
+- 决策会话负责新增、拆分、排序和批准后续实施任务。
+- 新建或继续执行的实施任务必须包含 `Task Context Packet`，并明确 Allowed/Forbidden Files。
+- 非 DONE 的实施任务缺少 `Task Context Packet` 时不得执行；必须先由决策会话补齐或重新定义。
 - 未经确认，不直接进入地图功能实现。
-- T003-T025 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。
+- 当前默认下一步以 `docs/project-state.md` 和本文件一致结论为准。
+- T003-T028 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。

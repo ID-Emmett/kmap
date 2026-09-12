@@ -4,6 +4,61 @@
 
 在真实目标浏览器中验证 T017 mixed LOD、T020 retained cache、T023 TileEngineV2 与 T022 fog-bounded coverage 的正确性、加载连续性、资源预算和交互性能，形成 V2 的高倾角 Tile Runtime 发布判断。T018/T021 的失败证据作为迁移输入，不把旧 Runtime A/B 对比作为体验结论。
 
+## Task Context Packet
+
+### Must Read
+
+- `AGENTS.md`
+- `docs/project-state.md`
+- `TASKS.md`（只读 T019、T022、T028）
+- `tasks/T019-verify-pitched-tile-loading.md`
+- `KNOWLEDGE.md`
+- `docs/knowledge/tile-runtime.md`
+- `docs/knowledge/performance.md`
+- `docs/knowledge/environment.md`
+- `docs/architecture/index.md`
+- `docs/architecture/tile-system.md`
+- `docs/decisions/index.md`
+- `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
+- `docs/evidence/index.md`
+- `docs/ai-session-log.md`
+
+### Read If Needed
+
+- `docs/verification-baseline.md`：需要重新定义发布验证矩阵时读取。
+- `docs/experience-baseline.md`：需要核对人工体验验收项时读取。
+- `docs/evidence/T010-longtask-trace.json`、`docs/evidence/T016-browser-regression.json`：需要核对性能基线时读取。
+
+### Allowed Files
+
+- `tasks/T019-verify-pitched-tile-loading.md`
+- `TASKS.md`
+- `PROJECT.md`
+- `KNOWLEDGE.md`
+- `docs/project-state.md`
+- `docs/knowledge/performance.md`
+- `docs/knowledge/environment.md`
+- `docs/evidence/index.md`
+- `docs/ai-session-log.md`
+- `docs/ai-sessions/YYYY-MM-DD.md`
+
+### Forbidden Files
+
+- `packages/map3d/src/**`
+- `docs/evidence/` 全量目录
+- `docs/knowledge/full.md` 默认全文
+
+### Required Evidence
+
+- 当前 BLOCKED 状态下仅允许治理检查：`pnpm ai:check` 与 `git diff --check`。
+- 解除阻断后必须重新指定真实浏览器矩阵、逐帧 timeline 和人工验收记录。
+
+### Stop Conditions
+
+- T028 未完成或新瓦片路线未确认。
+- T022 未重新规划并完成。
+- 需要修改源码或降低发布验收门槛。
+
 ## Scope
 
 - 固化用户截图视角或等价 ViewState、超宽 viewport、pitch/bearing 矩阵和低/中/高 zoom 场景。
@@ -18,7 +73,7 @@
 
 ## Non-Goals
 
-- 不在 Review 会话中顺带修改 T017/T018 算法、降低门槛或提高预算。
+- 不在实施会话中顺带修改 T017/T018 算法、降低门槛或提高预算。
 - 不扩大到 Firefox、Safari、移动端、Terrain、Globe、文字、3D 建筑或完整 Style v8。
 - 不用 horizon fade 掩盖 fogEnd 之前的 Coverage 空洞；fogEnd 之后按 D029 定义为可主动停止加载的非有效显示区域。
 - 不以单张截图或 FPS 数字替代逐帧 Coverage 与加载指标。
@@ -35,9 +90,9 @@
 
 - 必须记录 OS、浏览器、CPU、GPU、DPR、viewport、backend、commit 和网络模型。
 - Coverage correctness、雾效有效边界、网络等待、Worker、GPU upload 和 renderer frame 指标必须分离。
-- 资源预算继续使用已确认的 128 MiB CPU、256 MiB GPU 和 256 canonical entries，除非 Project Control 另行批准。
+- 资源预算继续使用已确认的 128 MiB CPU、256 MiB GPU 和 256 canonical entries，除非决策会话另行批准。
 - 所有未复现、仅推测或仅视觉感知的问题不得写入 `KNOWLEDGE.md`。
-- 发现阻断问题时返回对应 Implementation Task，不在本 Task 静默修复。
+- 发现阻断问题时返回对应 实施任务，不在本 Task 静默修复。
 
 ## Acceptance Criteria
 
@@ -61,7 +116,7 @@
 
 ## Status
 
-BACKLOG
+BLOCKED
 
 ## Findings
 
@@ -70,4 +125,4 @@ BACKLOG
 ## Open Issues
 
 - 正式发布目标设备若不同于 T010 工作站，需要在指定设备重复完整矩阵。
-- T023 未完成或 T022 未完成时，本 Task 不得开始；T018/T021 的旧路径人工验收失败不构成再次实施旧 Runtime 的前置条件。
+- T028 未完成或新瓦片路线未确认时，本 Task 不得开始；T018/T021/T023 的旧路径与 V2 人工验收失败不构成再次实施旧 Runtime 或 V2 补丁链的前置条件。

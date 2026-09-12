@@ -6,6 +6,65 @@
 
 本任务针对 T021 人工验收暴露的架构级问题：连续 pan/zoom 时加载延迟、运动期间缺少有效预加载、Tile 逐块出现、停止后才集中显示以及白闪/背景空洞。目标是一次性建立可解释、可维护且没有旧新调度双轨的 Tile Engine 边界。
 
+## Task Context Packet
+
+### Must Read
+
+- `AGENTS.md`
+- `docs/project-state.md`
+- `TASKS.md`（只读 T021、T023、T024、T025、T026、T027、T028）
+- `tasks/T023-tile-engine-v2.md`
+- `KNOWLEDGE.md`
+- `docs/knowledge/tile-runtime.md`
+- `docs/knowledge/performance.md`
+- `docs/architecture/index.md`
+- `docs/architecture/tile-system.md`
+- `docs/decisions/index.md`
+- `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
+- `docs/evidence/index.md`
+- `docs/ai-session-log.md`
+
+### Read If Needed
+
+- `docs/ai-sessions/2026-09-12.md`：需要追溯人工体验失败和冻结 V2 路线时读取。
+- `docs/evidence/T023-*`、`docs/evidence/T024-browser-regression.json`、`docs/evidence/T025-browser-regression.json`：只在解释自动证据局限时按文件读取。
+- `tasks/T024-tile-engine-v2-render-transaction.md`、`tasks/T025-tile-engine-v2-motion-scheduling.md`：只在复盘 V2 已完成补丁时读取。
+
+### Allowed Files
+
+- `tasks/T023-tile-engine-v2.md`
+- `TASKS.md`
+- `PROJECT.md`
+- `KNOWLEDGE.md`
+- `docs/project-state.md`
+- `docs/knowledge/tile-runtime.md`
+- `docs/knowledge/performance.md`
+- `docs/ai-session-log.md`
+- `docs/ai-sessions/YYYY-MM-DD.md`
+
+### Forbidden Files
+
+- `packages/map3d/src/runtime/tileEngineV2*.ts`
+- `packages/map3d/src/runtime/tileRuntime*.ts`
+- `packages/map3d/src/runtime/displayCoverage*.ts`
+- `packages/map3d/src/spatial/tileMotionScheduler.ts`
+- `packages/map3d/src/spatial/tileCoverage*.ts`
+- `packages/map3d/src/spatial/mixedLodTile*.ts`
+- `packages/map3d/src/rendering/**`
+- `docs/evidence/` 全量目录
+- `docs/knowledge/full.md` 默认全文
+
+### Required Evidence
+
+- 当前 BLOCKED 状态下仅允许治理检查：`pnpm ai:check` 与 `git diff --check`。
+- 若要重新打开本任务，必须由决策会话解释为何不执行 T028，并重写上下文包。
+
+### Stop Conditions
+
+- 需要继续修改 `TileEngineV2`。
+- 需要以自动测试或截图覆盖人工体验失败。
+- 需要继续 T026/T027 补丁链。
+
 ## Scope
 
 - 建立独立的 `TileEngineV2` 内部模块和生命周期，不继续给旧 `TileMotionScheduler`、`DisplayCoverageCoordinator` 或旧 Runtime 调度/显示路径追加补丁。
@@ -53,7 +112,7 @@
 - 同一 canonical key 只能有一个在途 Fetch/Worker generation；多个 world wrap 继续共享 canonical 数据并拥有独立 Render instance transform。
 - GPU upload 完成前不得进入 Render Cover；Render Cover 提交必须在同一 rAF/cohort 边界完成，避免逐 Tile 视觉抖动。
 - WebGPU/WebGL2 继续使用相同 Three.js/TSL/Node Material 路径；不新增独立 GLSL/WGSL 或后处理。
-- 默认 CPU 128 MiB、GPU 256 MiB、256 canonical entries 和现有并发上限不因“修复”自动提高；若确需改变，必须返回 Project Control 形成新决策。
+- 默认 CPU 128 MiB、GPU 256 MiB、256 canonical entries 和现有并发上限不因“修复”自动提高；若确需改变，必须返回决策会话形成新决策。
 - 任何新增依赖必须单独说明职责、许可证、bundle 影响和替代方案；MapLibre/deck.gl 不作为直接依赖。
 - 源文件以 500 行为上限目标，状态机、集合、调度、提交和诊断按单一职责拆分。
 
@@ -81,7 +140,7 @@
 
 ## Status
 
-VERIFYING
+BLOCKED
 
 ## Findings
 
@@ -96,12 +155,12 @@ VERIFYING
 - 2026-09-12：真实 Chromium 已验证 WebGPU、强制 WebGL2、真实 KYE、1500 ms 延迟、高 pitch 和连续平移；V2 在运动期间保持 best-available mixed-LOD 覆盖（代表性状态 `visible=128`，z13/z14/z15 混合），控制台 warning/error 为 0，dispose 后 Tile/resource/worker 统计归零。该证据用于进入人工验收，不替代人工负责人实际 pan/zoom 观看。
 - 2026-09-12：人工负责人验收不通过。实际体验仍为 pan/zoom 加载滞后、运动停止后继续请求并从中心向外补齐、高层级 refinement 集中出现、初始化水波式逐块加载和白闪；该结论覆盖 V2 的核心验收标准，T023 不得标记 `DONE`。
 - 2026-09-12：代码审计确认失败具有确定性根因：`TILE_ENGINE_V2_REFINEMENT_DEBOUNCE_MS=180` 将 refinement 闸门推迟到最后一次运动后；`commitCohort()` 仍同步调用 `#synchronizeCoverage()`，没有 rAF/上传收集窗口；请求与显示均按 `screenDistance`、8 Fetch/4 Worker 产生中心优先扩散；初始无 active/outgoing 时不请求 fallback；`tileCoverage.ts` 将 visible 与 prefetch 共用 `maxTiles=128`，visible 接近上限时预加载预算近似归零。
-- 2026-09-12：问题不是继续调整淡入时间、并发数或排序即可可靠解决。后续拆分为 T024（Render transaction/稳定 coarse cover）、T025（运动中连续调度与公平性）、T026（Coverage/Prefetch 预算解耦）和 T027（真实浏览器人工验收与诊断门槛），完成后才能重新评估 T022/T019。
+- 2026-09-12：T024/T025 完成后人工负责人仍报告体验极差、低帧率和 pan 卡顿。D031 已确认冻结 T026/T027 补丁链，后续先执行 T028 瓦片子系统重置与 AI 上下文隔离。
 
 ## Open Issues
 
-- 人工负责人仍需在真实浏览器中亲自验收连续 pan/zoom 的加载观感；当前不能仅凭自动测试、截图或脚本将 T023 标记 `DONE`。
-- 本次人工验收已明确不通过；必须先完成 T024、T025、T026，并由 T027 重新验收，不能把当前 V2 视为发布质量。
-- `TILE_ENGINE_V2_REFINEMENT_DEBOUNCE_MS`、同步伪 cohort 提交、中心优先排序和 visible/prefetch 共用预算共同造成停止后 refinement 波及和逐块显示；这些约束在后续任务完成前保持为已知阻断。
-- 旧 `spatial/tileMotionScheduler.ts`、`runtime/displayCoverage.ts` 和 `runtime/tileRuntimeDisplay.ts` 仍保留在仓库中供兼容测试/审计使用；它们不进入 `Map3D` 生产路径。是否删除或归档由后续 Project Control 单独决定。
-- T022 fog-bounded Coverage 必须在 T024-T027 完成并确认 V2 生产路径稳定后接入；T019 发布验证需重新规划为 V2 的最终发布门槛。
+- 人工负责人已在真实浏览器中明确不接受连续 pan/zoom 的加载观感；当前不能仅凭自动测试、截图或脚本将 T023 标记 `DONE`。
+- T023 保持 `BLOCKED`；T024/T025 作为失败路线中的局部证据保留，不再导向 T026/T027。
+- `TILE_ENGINE_V2_REFINEMENT_DEBOUNCE_MS`、同步伪 cohort 提交、中心优先排序和 visible/prefetch 共用预算等旧阻断只作为 T028 的失败输入，不再作为继续打补丁的实施清单。
+- 旧 `spatial/tileMotionScheduler.ts`、`runtime/displayCoverage.ts` 和 `runtime/tileRuntimeDisplay.ts` 仍保留在仓库中供兼容测试/审计使用；它们不进入 `Map3D` 生产路径。是否删除或归档由后续决策会话单独决定。
+- T022/T019 必须在 T028 完成并确认新瓦片路线后重新规划。

@@ -35,7 +35,7 @@
 - 慢速精确操作不得因最低速度或 smoothing 产生持续漂移。
 - pitch/纬度 clamp 后停止对应速度分量，bearing 继续使用既有归一化。
 - Map3D dispose 后不得保留 rAF、pointer capture、listener 或 viewchange。
-- 公共 ViewState 语义和 Map3D API 保持不变；需要新增公共 API 时返回 Project Control。
+- 公共 ViewState 语义和 Map3D API 保持不变；需要新增公共 API 时返回决策会话。
 
 ## Acceptance Criteria
 

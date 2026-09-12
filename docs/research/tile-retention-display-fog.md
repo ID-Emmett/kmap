@@ -4,7 +4,7 @@
 
 ## 研究目标
 
-在 T017 mixed LOD 和 T018 motion-aware 调度实现后，诊断连续 pan 中出现的 Tile 闪烁、重复加载、中心向两侧逐步显示和高倾角远景 Tile 数量过多问题，为 Project Control 拆分后续任务提供事实输入。
+在 T017 mixed LOD 和 T018 motion-aware 调度实现后，诊断连续 pan 中出现的 Tile 闪烁、重复加载、中心向两侧逐步显示和高倾角远景 Tile 数量过多问题，为决策会话拆分后续任务提供事实输入。
 
 ## 浏览器诊断
 
@@ -35,7 +35,7 @@
 - Cesium 3D Tiles 的 screen-space error 与 dynamic screen-space error 说明远景/地平线方向可使用更积极的细节降低：<https://cesium.com/learn/cesiumjs/ref-doc/Cesium3DTileset.html>。
 - 上述 Runtime 均与 Nova 的 Three.js、TSL、Worker 和 Tile ownership 强耦合边界不同，不建议直接引入完整引擎；应移植不变量和调度思想。
 
-## Project Control 结论
+## 决策会话结论
 
 - T017 mixed-LOD selector 保持 DONE；本次问题主要位于 Cache/Display/Render 生命周期。
 - T018 的 motion-aware 实现自动证据保留，但人工体验验收失败；T020/T021 的旧路径修复完成后仍未通过人工观感，2026-09-11 由 D030/T023 改为建立独立 TileEngineV2，不再回到旧 Runtime 重新打补丁。

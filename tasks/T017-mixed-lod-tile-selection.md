@@ -41,7 +41,7 @@
 - near/far LOD 必须由 Camera 与投影误差推导，不使用只适配北京或固定 viewport 的屏幕分带常数。
 - visible coverage 优先于 refinement 和 prefetch；数量不足时降低细节，不制造空洞。
 - 混合 LOD 必须保持 canonical 请求去重、world wrap consumer 共享和 byte-aware Cache 语义。
-- 如需改变公共 API、Layer zoom 语义或 D015-D019/D023/D025/D027，返回 Project Control。
+- 如需改变公共 API、Layer zoom 语义或 D015-D019/D023/D025/D027，返回决策会话。
 
 ## Acceptance Criteria
 
@@ -69,7 +69,7 @@ DONE
 
 ## Findings
 
-- 2026-09-10：Implementation 会话已启动，正在复核 D027、现有单层级 Coverage、T013 Display Coverage 与相关测试边界。
+- 2026-09-10：实施会话已启动，正在复核 D027、现有单层级 Coverage、T013 Display Coverage 与相关测试边界。
 - 2026-09-10：新增 `mixedLodTileSelector.ts` 与 `mixedLodTileGeometry.ts`，使用 Camera Frustum/Tile AABB、projected tile size 和 best-first 四叉树 refinement 生成完整、非重叠的 mixed canonical zoom Target Coverage；预算通过停止细分或父级合并满足。
 - 2026-09-10：默认 refine/coarsen 阈值确定为 320/224 CSS px，相邻 LOD 最大 zoom 差为 1；上一帧 Target Coverage 用于迟滞。source bounds、日期线 wrap、Y 边界、min/max zoom、overzoom 与 prefetch 均已适配。
 - 2026-09-10：MapOrigin、ground footprint 与 horizon fade 改用 `referenceZoom`，与 mixed canonical data zoom 解耦；Runtime 增加 `coverage`、`refinement`、`prefetch` 静态 priority role，并保持 canonical 请求去重、cache 与 Display Coverage 语义。

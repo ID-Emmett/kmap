@@ -4,6 +4,60 @@
 
 将 Display Coverage 从全局 Target signature 驱动的淡入淡出改为按空间区域保证的 best-available replacement，使 pan、zoom 和 mixed-LOD refinement 在慢网下始终具有连续 Render Cover，并消除反复淡入、露底和 Render instance/material 抖动。
 
+## Task Context Packet
+
+### Must Read
+
+- `AGENTS.md`
+- `docs/project-state.md`
+- `TASKS.md`（只读 T021、T023、T028）
+- `tasks/T021-spatial-tile-replacement.md`
+- `KNOWLEDGE.md`
+- `docs/knowledge/tile-runtime.md`
+- `docs/architecture/index.md`
+- `docs/architecture/tile-system.md`
+- `docs/decisions/index.md`
+- `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
+- `docs/evidence/index.md`
+- `docs/ai-session-log.md`
+
+### Read If Needed
+
+- `docs/ai-sessions/2026-09-12.md`：需要追溯人工验收失败原话和路线变更时读取。
+- `docs/evidence/T021-browser-regression.json`：只在复盘自动证据与人工结论冲突时读取。
+- `tasks/T023-tile-engine-v2.md`：只在说明 T021 被 V2 迁移吸收且仍失败时读取。
+
+### Allowed Files
+
+- `tasks/T021-spatial-tile-replacement.md`
+- `TASKS.md`
+- `PROJECT.md`
+- `docs/project-state.md`
+- `docs/knowledge/tile-runtime.md`
+- `docs/ai-session-log.md`
+- `docs/ai-sessions/YYYY-MM-DD.md`
+
+### Forbidden Files
+
+- `packages/map3d/src/runtime/displayCoverage*.ts`
+- `packages/map3d/src/runtime/tileRuntimeDisplay.ts`
+- `packages/map3d/src/runtime/tileRuntime.ts`
+- `packages/map3d/src/runtime/tileEngineV2*.ts`
+- `packages/map3d/src/rendering/**`
+- `docs/evidence/` 全量目录
+- `docs/knowledge/full.md` 默认全文
+
+### Required Evidence
+
+- 当前 BLOCKED 状态下仅允许治理检查：`pnpm ai:check` 与 `git diff --check`。
+- 若要重新打开本任务，必须由决策会话重写上下文包并说明为何不走 T028。
+
+### Stop Conditions
+
+- 需要继续修改旧 Display Coverage 或旧 Tile Runtime。
+- 需要以 T021 自动证据覆盖人工验收失败。
+- 需要恢复 T026/T027 补丁路线。
+
 ## Scope
 
 - 为 Target Tile、ready ancestor/descendants 和 outgoing Tile 建立明确的空间覆盖关系。
@@ -56,7 +110,7 @@
 
 ## Status
 
-VERIFYING
+BLOCKED
 
 ## Findings
 
@@ -69,9 +123,9 @@ VERIFYING
 - 2026-09-11：自动验证通过：`pnpm --filter @nova/map3d typecheck`、`pnpm --filter @nova/map3d test`（33 个测试文件、169 项测试）、`pnpm check` 和 `git diff --check`。
 - 2026-09-11：真实浏览器回归通过：Codex Chromium 1280×720、DPR 1.5 下，WebGPU 与强制 WebGL2 在 1500 ms 延迟的 same-zoom pan、rapid return、rapid zoom、bearing 35/pitch 60 和 dispose 场景控制台 warning/error 为 0；reduced-motion 与离线失败 fallback/恢复场景通过。证据见 `docs/evidence/T021-browser-regression.json` 和 `docs/evidence/T021-*.png`。
 - 2026-09-11：人工负责人验收不通过：实际 pan/zoom 仍明显延迟，停止交互后才看到 Tile 出现，缺少预加载的连续感，Tile 逐块补齐且仍有白闪；自动脚本/截图不能替代该阻断观感结论。
-- 2026-09-11：Project Control 根据上述结果确认问题跨越旧 Runtime 的调度、Target/Display 提交、缓存保留和资源复用边界；D030/T023 改为建立独立 `TileEngineV2`，不继续在本任务代码上叠加补丁。
+- 2026-09-11：决策会话根据上述结果确认问题跨越旧 Runtime 的调度、Target/Display 提交、缓存保留和资源复用边界；D030/T023 改为建立独立 `TileEngineV2`，不继续在本任务代码上叠加补丁。
 
 ## Open Issues
 
-- 人工 pan/zoom 观感已明确不接受，T021 保持 `VERIFYING`，不能标记为 `DONE`。
-- T023 完成后需要重新确认哪些 T021 空间 replacement 代码可复用、哪些旧 Display Coverage authority 必须隔离或移除；在此之前不得宣称加载体验达到发布质量。
+- 人工 pan/zoom 观感已明确不接受，T021 保持 `BLOCKED`，不能标记为 `DONE`。
+- T021 只保留为失败证据和旧路径隔离输入；后续必须先执行 T028，不得继续在本任务代码上补丁推进。

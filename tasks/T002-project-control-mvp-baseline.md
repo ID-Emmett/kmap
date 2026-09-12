@@ -1,8 +1,8 @@
-# T002 Define MVP Project Control Baseline
+# T002 Define MVP Decision Baseline
 
 ## Goal
 
-由 Project Control 会话确认 Nova MVP 的架构、数据结构、公共 API、任务拆分和验收基线。
+由决策会话确认 Nova MVP 的架构、数据结构、公共 API、任务拆分和验收基线。
 
 ## Scope
 
@@ -36,7 +36,7 @@
 
 - MVP 范围、架构、公共 API 和关键数据结构均形成当前有效文档。
 - 所有待决策项有明确结论或保留为显式 BLOCKED。
-- 第一批 Implementation Tasks 可由新会话独立执行和验收。
+- 第一批实施任务 可由新会话独立执行和验收。
 - PROJECT、TASKS、architecture、decisions 同步更新。
 
 ## Test Plan
@@ -52,7 +52,7 @@ DONE
 
 ## Findings
 
-- 已按 Project Control 顺序读取 `AGENTS.md`、`PROJECT.md`、`TASKS.md`、`KNOWLEDGE.md`、`docs/architecture.md`、`docs/decisions.md` 和 `docs/research/` 全部 10 份资料。
+- 已按决策会话顺序读取 `AGENTS.md`、`PROJECT.md`、`TASKS.md`、`KNOWLEDGE.md`、`docs/architecture.md`、`docs/decisions.md` 和 `docs/research/` 全部 10 份资料。
 - 当前代码确认仍是 Bootstrap 空场景：没有 KYE 请求、MVT、Tile、LOD、Geometry、Layer style 或地图 Camera 语义。
 - MVP 候选范围收窄为真实 KYE 主 MVT 的动态 Polygon/Line Tile Runtime；文字、完整 Style v8、3D 建筑、Picking、Raster 和业务 Overlay 移出 MVP。
 - 坐标候选：公共 WGS84 ViewState；CPU Float64 Web Mercator meters；GPU Tile 局部 Float32；Three.js X 东/Y 上/Z 南；MapOrigin 随数据 Tile 重定位。

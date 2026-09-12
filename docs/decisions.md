@@ -1,8 +1,8 @@
 # Nova Technical Decisions
 
-更新日期：2026-09-10
+更新日期：2026-09-12
 
-本文件保存当前有效的重大技术决策。讨论过程和废弃内容由 Git history 保存。
+本文件保存重大技术决策归档。低 token 决策入口见 `docs/decisions/index.md`；新增重大决策优先写入 `docs/decisions/Dxxx-*.md` 分片并在索引登记。讨论过程和废弃内容由 Git history 与 AI Session Log 保存。
 
 ## D001 — 使用 pnpm Monorepo 与 Vite
 
@@ -50,7 +50,7 @@
 
 - 状态：Accepted
 - 决策：Tile 承担可见性、请求、解码、批次、缓存和销毁等关键生命周期边界。
-- 说明：具体状态机和跨 Tile 共享策略待 Project Control 确认。
+- 说明：具体状态机和跨 Tile 共享策略待决策会话确认。
 
 ## D009 — TypeScript 模块化设计
 
@@ -71,7 +71,7 @@
 
 - 状态：Accepted for Bootstrap
 - 决策：当前 `Map3D` 只公开初始化、视口、renderer 接入、后端识别和销毁能力。
-- 约束：地图数据、图层、相机语义和业务 API 必须由 Project Control 确认后实现。
+- 约束：地图数据、图层、相机语义和业务 API 必须由决策会话确认后实现。
 
 ## T002 MVP Baseline
 
@@ -115,7 +115,7 @@
 - 决策：Batch 粒度为 Tile × public layer × geometry type × material key × render pass；禁止 Feature 级 Object3D。
 - Polygon：识别 outer/hole ring 并三角化；Line 使用屏幕空间宽度三角带，MVP 只保证 bevel join 和 butt cap。
 - Feature 映射：批次保留 Uint32 feature id 或等价范围表，为后续 Picking 保留数据契约，但 MVP 不开放 Picking API。
-- 跨 Tile 合批：MVP 禁止，只有性能证据证明必要时再由 Project Control 决策。
+- 跨 Tile 合批：MVP 禁止，只有性能证据证明必要时再由决策会话决策。
 
 ## D018 — Map3D 根所有权与显式 GPU 销毁
 
@@ -147,7 +147,7 @@
 ## D021 — 使用成熟 MVT 与三角化依赖
 
 - 状态：Accepted
-- 决策：Implementation 默认评估并使用 `pbf`、`@mapbox/vector-tile` 和 `earcut`，分别承担 protobuf、MVT v2 和 Polygon hole 三角化。
+- 决策：实施会话默认评估并使用 `pbf`、`@mapbox/vector-tile` 和 `earcut`，分别承担 protobuf、MVT v2 和 Polygon hole 三角化。
 - 替代方案：自研 decoder/triangulation，或导入 Three.js 非公开 Earcut 路径。
 - 影响：增加三个小型运行依赖和 Worker bundle 体积，但显著降低协议与几何算法风险；对应 Task 必须核对精确版本、许可证、类型、ESM/Worker 构建和 bundle 结果。
 - 实施：T004 已安装并验证 `pbf` 5.1.2 与 `@mapbox/vector-tile` 3.0.0；均为 BSD-3-Clause、ESM 并内置 TypeScript 类型。T005 已安装并验证 `earcut` 3.2.3；其为 ISC、ESM、内置 TypeScript 类型，并可构建进不含 Three.js 的独立 Worker bundle。
@@ -244,12 +244,23 @@
 
 ## D030 — 采用独立 TileEngineV2 替换旧 Tile Runtime 生产路径
 
-- 状态：Accepted
+- 状态：Superseded by D031
 - 确认日期：2026-09-11
 - 背景：T021 的自动测试和真实浏览器脚本通过，但人工负责人确认连续 pan/zoom 仍然慢，Tile 在停止交互后才集中出现，运动期间没有可感知的有效预加载，Tile 以先后顺序逐块显示，并且仍有白闪。代码审计显示问题横跨运动调度、Target/Display 提交时序、fallback 空间覆盖、Retained Cache 生命周期和 Render instance/material 复用，继续给旧 Runtime 打补丁不能提供清晰的架构边界或可维护的行为保证。
 - 决策：建立独立的 `TileEngineV2`，作为后续唯一的生产调度与显示 authority。V2 明确分离 `Target Coverage`、`Render Cover` 和 `Retained Cache`，采用 best-available coarse cover、parent/child 空间 replacement cohort、同帧提交、same-zoom/cache hit 直接显示、coverage-first 请求优先级、预算内预取和确定性的 generation/cancel/failure/dispose 规则。
 - 借鉴边界：只借鉴 MapLibre/deck.gl 已验证的状态机、best-available、parent/child retain、请求调度和缓存规则；不直接引入完整 MapLibre/deck.gl/Cesium Runtime，不新增其 Runtime 依赖。
-- 保留边界：继续使用现有 `CanonicalTileKey`/`RenderTileKey`、KYE XYZ/MVT Source、Worker protocol v1、Polygon/Line batch、MapOrigin、Layer recipe、Three.js GPU upload、WebGPU/WebGL2、Material Registry、Map3D 0.1 公共 API 和资源 ownership。除非后续 Project Control 单独确认，V2 不改变这些公共契约。
+- 保留边界：继续使用现有 `CanonicalTileKey`/`RenderTileKey`、KYE XYZ/MVT Source、Worker protocol v1、Polygon/Line batch、MapOrigin、Layer recipe、Three.js GPU upload、WebGPU/WebGL2、Material Registry、Map3D 0.1 公共 API 和资源 ownership。除非后续决策会话单独确认，V2 不改变这些公共契约。
 - 迁移规则：旧 `TileMotionScheduler`、旧 Display Coverage 调度/显示 authority 不再继续追加功能补丁，也不得与 V2 双轨消费同一 Map3D 实例。迁移期间旧代码最多作为隔离的参考/回滚记录；切换完成后生产路径必须只有 V2。
 - 验收规则：不以旧 Runtime 与 V2 的 A/B 对比决定问题是否存在；以绝对行为、可追溯调度/提交诊断、自动测试和真实浏览器人工 pan/zoom 观感作为阻断验收。T022 fog-bounded Coverage 和 T019 发布验证在 V2 稳定后重新接入/规划。
 - 对应任务：`tasks/T023-tile-engine-v2.md`。
+
+## D031 — 冻结 V2 补丁链并建立瓦片子系统重置与 AI 上下文隔离
+
+- 状态：Accepted
+- 确认日期：2026-09-12
+- 背景：T021、T023 和 T025 均出现自动测试与真实浏览器脚本通过但人工体验失败。人工负责人明确反馈初始化水波式加载、pan/zoom 加载滞后、停止后请求波次、逐块显示、白闪、低帧率和 pan 卡顿仍存在。
+- 决策：冻结 T026/T027 的 V2 补丁链，不再把它们作为默认下一步；T021/T023 的人工失败结论升级为正式阻断状态；新增 T028 作为瓦片子系统重置与 AI 上下文隔离入口。
+- 保留边界：KYE XYZ/MVT Source、Worker protocol v1、Polygon/Line geometry build、Three.js GPU upload、WebGPU/WebGL2、Map3D 0.1 公共 API 和资源 ownership 继续作为默认保留边界，除非后续决策单独改变。
+- AI 隔离：新瓦片实施任务必须使用 `Task Context Packet`，显式隔离旧 Runtime、旧 Display Coverage、旧 Motion Scheduler 和 TileEngineV2 补丁链；任何需要突破隔离墙的实现行为都必须返回决策会话。
+- 对应分片：`docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`。
+- 对应任务：`tasks/T028-tile-subsystem-reset-context-isolation.md`。

@@ -4,6 +4,58 @@
 
 在高倾角视角下将远景雾效与 mixed-LOD selector 使用同一有效可见距离，使远景先降低 LOD、再完整融合到背景，并在完全雾化区域之后停止 Tile 选择、请求、构建和渲染。
 
+## Task Context Packet
+
+### Must Read
+
+- `AGENTS.md`
+- `docs/project-state.md`
+- `TASKS.md`（只读 T022、T019、T028）
+- `tasks/T022-fog-bounded-pitched-coverage.md`
+- `KNOWLEDGE.md`
+- `docs/knowledge/rendering.md`
+- `docs/knowledge/tile-runtime.md`
+- `docs/architecture/index.md`
+- `docs/architecture/tile-system.md`
+- `docs/decisions/index.md`
+- `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
+- `docs/evidence/index.md`
+- `docs/ai-session-log.md`
+
+### Read If Needed
+
+- `docs/verification-baseline.md`：需要定义浏览器矩阵时读取。
+- `docs/experience-baseline.md`：需要核对远景渐隐和人工体验边界时读取。
+- `docs/research/tile-retention-display-fog.md`：需要核对 fog/loadCutoff 背景时读取。
+
+### Allowed Files
+
+- `tasks/T022-fog-bounded-pitched-coverage.md`
+- `TASKS.md`
+- `PROJECT.md`
+- `docs/project-state.md`
+- `docs/knowledge/rendering.md`
+- `docs/knowledge/tile-runtime.md`
+- `docs/ai-session-log.md`
+- `docs/ai-sessions/YYYY-MM-DD.md`
+
+### Forbidden Files
+
+- `packages/map3d/src/**`
+- `docs/evidence/` 全量目录
+- `docs/knowledge/full.md` 默认全文
+
+### Required Evidence
+
+- 当前 BLOCKED 状态下仅允许治理检查：`pnpm ai:check` 与 `git diff --check`。
+- 解除阻断后必须重新指定新瓦片路线、fog/loadCutoff 指标、逐帧 coverage 证据和人工验收。
+
+### Stop Conditions
+
+- T028 未完成或新瓦片路线未确认。
+- 需要把 fog cutoff 接回已失败 V2 补丁链。
+- 需要修改源码或降低 fogEnd 前 Coverage 正确性。
+
 ## Scope
 
 - 定义内部共享的 fogStart、fogEnd、loadCutoff 和 guard band；参数随 pitch、zoom、Camera frame 和 viewport 自动推导。
@@ -57,7 +109,7 @@
 
 ## Status
 
-BACKLOG
+BLOCKED
 
 ## Findings
 
@@ -67,4 +119,4 @@ BACKLOG
 ## Open Issues
 
 - fogStart/fogEnd/loadCutoff 的最终默认曲线必须由实现会话形成多视口 before/after 证据并由人工负责人验收，不在 Task 规格中预设固定北京 z15 米数。
-- 本任务必须在 T023 V2 生产路径稳定后开始；不得把 fog cutoff 接回已被弃用的旧 Runtime 调度 authority。
+- 本任务必须在 T028 完成并确认新瓦片路线后重新规划；不得把 fog cutoff 接回已失败的 V2 补丁链或旧 Runtime 调度 authority。
