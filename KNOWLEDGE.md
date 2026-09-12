@@ -31,7 +31,7 @@
 - T011-T015 的规则网格伪影、浅色底图、渐进式替换、惯性交互和倾斜远景渐隐已通过人工体验验收。
 - T016 已通过 Line geometry 复用解除 T010 city z10 资源阻断，但 128 MiB CPU cache 余量极小，仍是风险。
 - T021/T023/T025 自动和浏览器脚本证据不能替代人工体验结论；人工负责人已明确报告 Tile 加载滞后、停止后波次、逐块出现和白闪仍存在。
-- D031 已冻结 T026/T027 的 V2 补丁链；后续瓦片工作必须先执行 T028，并按任务上下文包隔离旧路径影响。
+- D031 已冻结 T026/T027 的 V2 补丁链；D032 已确认 `TileStreamingEngine` 全新路线，后续瓦片工作默认执行 T029。
 - `docs/project-state.md`、`docs/architecture/index.md`、`docs/decisions/index.md` 和 `pnpm ai:check` 已作为低 token 与强约束治理入口。
 
 ## 维护规则

@@ -10,7 +10,7 @@
 
 - `AGENTS.md`
 - `docs/project-state.md`
-- `TASKS.md`（只读 T022、T019、T028）
+- `TASKS.md`（只读 T022、T019、T029）
 - `tasks/T022-fog-bounded-pitched-coverage.md`
 - `KNOWLEDGE.md`
 - `docs/knowledge/rendering.md`
@@ -19,6 +19,7 @@
 - `docs/architecture/tile-system.md`
 - `docs/decisions/index.md`
 - `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
+- `docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`
 - `docs/evidence/index.md`
 - `docs/ai-session-log.md`
 
@@ -52,7 +53,7 @@
 
 ### Stop Conditions
 
-- T028 未完成或新瓦片路线未确认。
+- T029 未完成或人工验收未接受。
 - 需要把 fog cutoff 接回已失败 V2 补丁链。
 - 需要修改源码或降低 fogEnd 前 Coverage 正确性。
 
@@ -68,15 +69,15 @@
 ## Non-Goals
 
 - 不实现天空、Terrain、Globe、建筑高度雾、后处理或体积雾。
-- 不降低 fogEnd 前的 Coverage 正确性，不用雾掩盖 T020/T021 未解决的请求和替换缺陷。
+- 不降低 fogEnd 前的 Coverage 正确性，不用雾掩盖瓦片请求、替换或显示缺陷。
 - 不通过简单缩短 Camera far plane 或任意按 Tile 数量截断 Coverage。
 - 不提高 Cache、Fetch 或 Worker 默认预算。
 - 不引入完整 Mapbox/MapLibre/deck.gl/Cesium Runtime。
 
 ## Inputs
 
-- T015 horizon fade、T017 mixed-LOD selector、T018 motion snapshot 和 T021 spatial replacement。
-- T023 TileEngineV2 的 Render Cover、请求调度和有效 Coverage 接入边界。
+- T015 horizon fade、T017 mixed-LOD selector 和 T029 TileStreamingEngine。
+- T029 的 Render Cover、请求调度、缓存、upload budget 和有效 Coverage 接入边界。
 - D029 高倾角雾效有效 Coverage 边界。
 - `packages/map3d/src/rendering/horizonFade.ts`、`materialRegistry.ts`、`spatial/tileCoverage.ts` 和 mixed LOD geometry。
 - Mapbox Fog 减少远景 Tile 加载和 Cesium dynamic SSE 的行业参考。
@@ -119,4 +120,4 @@ BLOCKED
 ## Open Issues
 
 - fogStart/fogEnd/loadCutoff 的最终默认曲线必须由实现会话形成多视口 before/after 证据并由人工负责人验收，不在 Task 规格中预设固定北京 z15 米数。
-- 本任务必须在 T028 完成并确认新瓦片路线后重新规划；不得把 fog cutoff 接回已失败的 V2 补丁链或旧 Runtime 调度 authority。
+- 本任务必须在 T029 完成并人工接受后重新规划；不得把 fog cutoff 接回已失败的 V2 补丁链或旧 Runtime 调度 authority。

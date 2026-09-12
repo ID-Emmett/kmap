@@ -16,13 +16,12 @@
 | --- | --- | --- |
 | 当前状态与约束 | `docs/project-state.md` | 所有会话默认读取 |
 | 完整架构归档 | `docs/architecture.md` | 需要公共 API、坐标、Worker、Runtime、渲染完整边界时按章节读取 |
-| 瓦片系统 | `docs/architecture/tile-system.md` | 涉及 Tile Runtime、TileEngineV2、V3/重置或旧路径隔离时读取 |
+| 瓦片系统 | `docs/architecture/tile-system.md` | 涉及 Tile Runtime、TileEngineV2、TileStreamingEngine 或旧路径隔离时读取 |
 | 验证与性能 | `docs/verification-baseline.md` | 涉及浏览器矩阵、性能门槛、发布判断时读取 |
 | 体验边界 | `docs/experience-baseline.md` | 涉及 pan/zoom、渐进加载、远景渐隐或人工体验时读取 |
 
 ## 当前架构风险
 
 - TileEngineV2 已经形成自动证据，但人工体验失败；T026/T027 补丁链已冻结，不能作为默认下一步。
-- 后续瓦片实现必须先完成 T028，定义旧代码隔离边界、可复用接口和新实现上下文包。
+- T028 已完成重置输出；后续瓦片实现默认进入 T029 `TileStreamingEngine` 垂直切片。
 - 架构事实必须来自 decisions、任务完成记录、测试、evidence 或人工验收；会话记录中的讨论不得直接升级为事实。
-

@@ -2,12 +2,12 @@
 
 更新日期：2026-09-12
 
-状态：T002 已确认架构基线；D031 已冻结 TileEngineV2 补丁链并要求通过 T028 重置瓦片子系统。低 token 架构入口见 `docs/architecture/index.md`。本文定义架构与实施边界，不代表未列入已完成 Task 的地图功能已经实现。
+状态：T002 已确认架构基线；D031 已冻结 TileEngineV2 补丁链；D032 已确认 `TileStreamingEngine` 全新重建路线。低 token 架构入口见 `docs/architecture/index.md`。本文定义架构与实施边界，不代表未列入已完成 Task 的地图功能已经实现。
 
 ## 证据边界
 
 - 已验证输入：KYE 主瓦片为标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096；部分专用空瓦片返回 HTTP 204。
-- 代码现状：`@nova/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、world-wrap render instance、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024/T025 已补齐 V2 rAF Render transaction 和运动调度补丁，但人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链。
+- 代码现状：`@nova/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、world-wrap render instance、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024/T025 已补齐 V2 rAF Render transaction 和运动调度补丁，但人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链；T028 已完成重置输出；T029 将实施 `TileStreamingEngine`。
 - 架构决策：本文件中的坐标、Tile、Worker、Batch、公共 API 和性能目标属于 T002 设计结论，不写入 `KNOWLEDGE.md`，直到实现和真实环境验证形成证据。
 - 未验证项继续保持未验证：服务节点正式负载均衡规则、完整字段 schema、跨地域建筑数据、Raster DPR 语义、Glyph/Sprite 许可与目标设备性能。
 
@@ -78,11 +78,11 @@ Application / Playground
 - Tile Runtime 只通过接口调用 Source、Worker Pool、Render Adapter 和 Cache，不形成万能 Manager。
 - Feature 不创建独立 `Object3D`；Tile 可以拥有一个容器，容器下按渲染批次创建有限数量对象。
 
-## TileEngineV2 迁移边界
+## TileStreamingEngine 重建边界
 
-D030 曾确认旧 Tile Runtime 的调度与 Display Coverage 生产路径不再继续叠加补丁，并由 T023 建立 `TileEngineV2` 作为生产 authority。T024/T025 又补齐 rAF transaction 与运动调度，但人工体验仍失败。D031 已确认：T026/T027 补丁链冻结，T028 完成前不得继续扩大 `TileEngineV2`。
+D030 曾确认旧 Tile Runtime 的调度与 Display Coverage 生产路径不再继续叠加补丁，并由 T023 建立 `TileEngineV2` 作为生产 authority。T024/T025 又补齐 rAF transaction 与运动调度，但人工体验仍失败。D031 已确认 T026/T027 补丁链冻结；D032 已确认后续进入 `TileStreamingEngine` 全新重建路线。
 
-后续瓦片路线的当前入口见 `docs/architecture/tile-system.md`。默认保留边界仍是 `CanonicalTileKey`/`RenderTileKey`、KYE Source、Worker protocol v1、Polygon/Line batch、MapOrigin、Layer recipe、Three.js GPU upload、WebGPU/WebGL2、Material Registry、Map3D 0.1 公共 API 和资源 ownership。旧 Runtime、旧 Display Coverage、旧 `TileMotionScheduler` 和 `TileEngineV2` 补丁链只能在任务上下文包明确允许时读取或处理。
+后续瓦片路线的当前入口见 `docs/architecture/tile-system.md`。默认保留边界仍是 `CanonicalTileKey`/`RenderTileKey`、KYE Source、Worker protocol v1、Polygon/Line batch、MapOrigin、Layer recipe、Three.js GPU upload、WebGPU/WebGL2、Material Registry、Map3D 0.1 公共 API 和资源 ownership。旧 Runtime、旧 Display Coverage、旧 `TileMotionScheduler` 和 `TileEngineV2` 补丁链只能为删除、断开生产路径或 import guard 读取或处理。
 
 ## 坐标与相机
 
@@ -172,7 +172,7 @@ queued/fetching/decoding/building/ready/empty/failed → disposed
 - MapOrigin、ground footprint 和 horizon fade 使用独立 `referenceZoom`；mixed canonical zoom 只决定 Tile 数据与 Layer zoom 语义，不改变 Camera frame、far plane 或公共 ViewState。
 - 旧 Runtime 曾按 coverage-critical > visible refinement > motion-direction prefetch > ordinary prefetch 实现 T018 的 240 ms motion 预测窗口、最多 24 个 leading-edge prefetch、180 ms refinement debounce 和 240/600 ms 取消迟滞；自动证据通过但人工加载观感未通过。T023 已将这些要求重新落入独立 V2，旧实现不能继续视为生产质量。
 - Zoom/pan 使用独立 Display Coverage：exact 未 ready 时保留/请求最近 ancestor，或使用可覆盖的 ready descendants/outgoing Tile；exact 完成 GPU upload 后先进入 pending transaction，在帧边界形成空间完整 Render Cover 后短淡入，fallback 在过渡完成后释放。
-- D028 要求 Ideal Target Coverage、Render Cover 和 Retained Cache 独立。T020 已完成 terminal record 的预算内离屏保留、cache hit 和 warm ancestor request suppression；T021 已完成旧路径的空间 replacement cohort、same-zoom/cache hit 直接显示与稳定 Render instance/material 生命周期代码，但人工 pan/zoom 加载观感未通过。T023 已将这些不变量重新落入独立 TileEngineV2，T024 已补齐 V2 rAF cohort commit 和初始 parent fallback，T025 已补齐 V2 运动中 continuous refinement 与公平队列，旧路径不再继续叠加调度/显示补丁。
+- D028 要求 Ideal Target Coverage、Render Cover 和 Retained Cache 独立。T020 已完成 terminal record 的预算内离屏保留、cache hit 和 warm ancestor request suppression；T021 已完成旧路径的空间 replacement cohort、same-zoom/cache hit 直接显示与稳定 Render instance/material 生命周期代码，但人工 pan/zoom 加载观感未通过。T023/T024/T025 的 V2 证据作为失败路线保留；D032 要求 T029 在 `TileStreamingEngine` 中按通用不变量重新建立垂直切片。
 - source maxZoom 以上复用 maxZoom canonical Tile；MVP 只实现保持连续覆盖所需的最近父子 fallback，不实现多层级长期共存或几何 morph。
 
 ### 请求与失败策略
@@ -518,12 +518,11 @@ T007 + T008 + T013 + T015 + T016
         │     └── T021 Spatial best-available replacement (old path; human acceptance failed)
         └── T023 TileEngineV2 migration (human acceptance failed; blocked by D031)
               └── T028 Tile subsystem reset and AI context isolation
-                    ├── Future MapLibre/source mapping/legacy isolation tasks
-                    └── Future tile implementation route
+                    └── T029 TileStreamingEngine vertical slice
                           └── T022 Fog-bounded pitched coverage
                                 └── T019 Pitched tile loading and LOD verification
 
-T018/T021/T023/T026/T027 remain BLOCKED for the failed V2/old Runtime route; T024/T025 remain DONE as evidence only.
+T018/T021/T023/T026/T027 remain BLOCKED for the failed V2/old Runtime route; T024/T025 remain DONE as evidence only; T029 is the next implementation entry.
 ```
 
 所有 实施任务 必须保持公共契约和本文件边界；需要改变 MVP 范围、坐标语义、Tile 状态、Worker 协议或公共 API 时，返回决策会话确认。

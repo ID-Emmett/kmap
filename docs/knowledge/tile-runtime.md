@@ -27,14 +27,21 @@
 - T023 已把生产路径切换到 V2，并分离 Target Coverage、Render Cover、Retained Cache、请求生命周期、调度和 display/cohort 模块；自动测试、构建和真实 Chromium 回归通过。
 - T024 已加入 rAF/等价帧边界 Render transaction、初始 parent fallback 请求和空间完整 Render Cover 提交。
 - T025 已移除 V2 refinement idle-only debounce，加入 coverageRank、deadline/age starvation 和 requestQueue 诊断，证明慢网 pan/zoom 期间确实会启动请求。
-- T024/T025 是失败路线中的局部证据，不再构成继续 T026/T027 的默认理由；后续瓦片路线必须先执行 T028。
+- T024/T025 是失败路线中的局部证据，不再构成继续 T026/T027 的默认理由；后续瓦片路线默认执行 T029。
 - 证据：`tasks/T023-tile-engine-v2.md`、`tasks/T024-tile-engine-v2-render-transaction.md`、`tasks/T025-tile-engine-v2-motion-scheduling.md`、`docs/evidence/T024-browser-regression.json`、`docs/evidence/T025-browser-regression.json`。
+
+## TileStreamingEngine 路线
+
+- D032 已确认 `TileStreamingEngine` 为全新瓦片系统路线，不作为 TileEngineV2 升级、补丁或 V3 续作。
+- T029 是下一步实施任务，负责删除或隔离旧生产瓦片路径，并建立新的垂直切片。
+- 新路线默认复用 KYE XYZ/MVT Source、Worker protocol v1、Polygon/Line geometry build、Three.js GPU upload、WebGPU/WebGL2 后端、Map3D 0.1 公共 API 和资源 ownership。
+- 证据：`docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`、`tasks/T029-implement-tile-streaming-engine.md`。
 
 ## 人工验收失败事实
 
 - T021/T023/T025 的自动测试和真实浏览器脚本不能替代人工体验结论。
 - 人工负责人已明确报告：pan/zoom 加载慢、运动期间缺少预加载感、停止后继续出现请求波次、Tile 逐块出现、初始化中心向外水波式加载、白闪仍存在，且页面帧率和 pan 卡顿严重。
-- 当前结论：不得继续在旧 Tile Runtime 或未隔离的 V2 补丁上无约束推进；T026/T027 已冻结，后续瓦片任务必须先通过 T028 建立上下文隔离和重置路线。
+- 当前结论：不得继续在旧 Tile Runtime 或未隔离的 V2 补丁上无约束推进；T026/T027 已冻结，后续瓦片任务必须执行 T029。
 - 证据：`docs/ai-sessions/2026-09-12.md`、`TASKS.md`、`PROJECT.md`。
 
 ## 旧路径隔离

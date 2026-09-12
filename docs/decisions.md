@@ -264,3 +264,15 @@
 - AI 隔离：新瓦片实施任务必须使用 `Task Context Packet`，显式隔离旧 Runtime、旧 Display Coverage、旧 Motion Scheduler 和 TileEngineV2 补丁链；任何需要突破隔离墙的实现行为都必须返回决策会话。
 - 对应分片：`docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`。
 - 对应任务：`tasks/T028-tile-subsystem-reset-context-isolation.md`。
+
+## D032 — TileStreamingEngine 全新瓦片系统重建
+
+- 状态：Accepted
+- 确认日期：2026-09-12
+- 背景：D031 已冻结 TileEngineV2 补丁链，后续路线需要避免从旧运行时、旧显示覆盖、旧运动调度和 V2 补丁语义继续派生实现。
+- 决策：新系统命名为 `TileStreamingEngine`；它是全新瓦片系统，不是 TileEngineV2 的升级、补丁或 V3 续作。
+- 实施：T029 作为下一步实施任务，一次性交付可运行垂直切片，并删除或隔离旧瓦片生产路径。
+- 架构：新引擎内部显式分离 TilePyramid、TileCoverSelector、TileRequestScheduler、TileCache、TileUploadBudget、TileRenderCover 和 TileDiagnostics。
+- 验收：按完整 Render Cover、best-available fallback、原子替换、有界请求、有界 Worker、有界 upload、空间公平调度、缓存复用和资源预算等通用不变量验收。
+- 对应分片：`docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`。
+- 对应任务：`tasks/T029-implement-tile-streaming-engine.md`。

@@ -18,13 +18,14 @@
 | D013-D021 | Accepted | MVP 范围、空间语义、Worker、Batch、API、验证、MVT 依赖 | 仅 MVP/API/Worker 问题 |
 | D022-D029 | Accepted | 视觉基线、渐进替换、惯性、远景渐隐、Line 复用、mixed LOD、Retained Cache、fog-boundary | 仅渲染/瓦片体验问题 |
 | D030 | Superseded by D031 | TileEngineV2 替换旧 Runtime 生产路径 | 仅作为失败路线和保留边界证据 |
-| D031 | Accepted | 冻结 V2 补丁链，建立瓦片子系统重置与 AI 上下文隔离 | 瓦片任务默认读取 |
+| D031 | Accepted | 冻结 V2 补丁链，建立瓦片子系统重置与 AI 上下文隔离 | 瓦片失败路线默认读取 |
+| D032 | Accepted | TileStreamingEngine 全新瓦片系统重建 | T029 默认读取 |
 
 ## 分片
 
 - `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
+- `docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`
 
 ## 归档入口
 
-- `docs/decisions.md`：D001-D031 的当前文本归档；后续应逐步把新增重大决策写入独立分片，避免默认读取长文。
-
+- `docs/decisions.md`：D001-D032 的当前文本归档；后续应逐步把新增重大决策写入独立分片，避免默认读取长文。

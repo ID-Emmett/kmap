@@ -14,6 +14,10 @@
 - `Task Context Packet` 用 `Must Read`、`Read If Needed`、`Allowed Files`、`Forbidden Files`、`Required Evidence` 和 `Stop Conditions` 控制读取、修改和验收边界。
 - 默认不得通读 `docs/knowledge/full.md`、`docs/evidence/` 全目录、旧任务全集或与当前任务无关的历史会话记录。
 
+## 文档污染控制
+
+- 正式规范文档只写当前有效状态、批准边界、执行规则、验收标准和证据索引；禁止讨论过程、阶段判断、废弃细节、对话解释和无证据推测。
+
 ## 会话记录
 
 - `docs/ai-session-log.md` 是轻量入口和索引。
@@ -24,4 +28,3 @@
 
 - `pnpm ai:check` 用于检查低 token 入口、任务上下文包、状态一致性、索引文件和会话记录是否满足治理要求。
 - 该检查不能代替代码测试、浏览器验证或人工验收；它只验证 AI 工程治理结构是否保持可执行。
-

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -16,6 +16,7 @@ const requiredFiles = [
   'docs/architecture/tile-system.md',
   'docs/decisions/index.md',
   'docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md',
+  'docs/decisions/D032-tile-streaming-engine-clean-rebuild.md',
   'docs/evidence/index.md',
   'docs/knowledge/ai-governance.md',
   'docs/knowledge/tile-runtime.md',
@@ -50,6 +51,7 @@ const taskFileById = new Map([
   ['T026', 'tasks/T026-tile-engine-v2-coverage-prefetch-budget.md'],
   ['T027', 'tasks/T027-tile-engine-v2-manual-acceptance.md'],
   ['T028', 'tasks/T028-tile-subsystem-reset-context-isolation.md'],
+  ['T029', 'tasks/T029-implement-tile-streaming-engine.md'],
 ]);
 
 const errors = [];
@@ -61,6 +63,21 @@ function read(relativePath) {
 
 function exists(relativePath) {
   return existsSync(path.join(root, relativePath));
+}
+
+function listMarkdownFiles(relativePath) {
+  const fullPath = path.join(root, relativePath);
+  if (!existsSync(fullPath)) {
+    return [];
+  }
+  if (statSync(fullPath).isFile()) {
+    return relativePath.endsWith('.md') ? [relativePath] : [];
+  }
+  const files = [];
+  for (const entry of readdirSync(fullPath)) {
+    files.push(...listMarkdownFiles(path.join(relativePath, entry).replaceAll(path.sep, '/')));
+  }
+  return files;
 }
 
 function lineCount(text) {
@@ -79,10 +96,56 @@ if (exists('docs/project-state.md')) {
   if (lines > 160) {
     errors.push(`docs/project-state.md 过长：${lines} 行，目标不超过 160 行`);
   }
-  for (const token of ['T028', 'T026', 'T027', 'D031', 'docs/architecture/index.md', 'docs/decisions/index.md']) {
+  for (const token of ['T028', 'T029', 'T026', 'T027', 'D031', 'D032', 'docs/architecture/index.md', 'docs/decisions/index.md']) {
     if (!text.includes(token)) {
       errors.push(`docs/project-state.md 缺少关键入口或状态：${token}`);
     }
+  }
+}
+
+const documentationPolicyFiles = [
+  'AGENTS.md',
+  'docs/knowledge/ai-governance.md',
+  'docs/task-context-packet-template.md',
+];
+
+for (const file of documentationPolicyFiles) {
+  if (!exists(file)) {
+    continue;
+  }
+  const text = read(file);
+  for (const token of ['正式规范文档', '证据索引', '讨论过程', '废弃细节']) {
+    if (!text.includes(token)) {
+      errors.push(`${file} 缺少正式文档污染控制规则：${token}`);
+    }
+  }
+}
+
+const formalDocumentationTargets = [
+  'AGENTS.md',
+  'PROJECT.md',
+  'TASKS.md',
+  'KNOWLEDGE.md',
+  'docs/project-state.md',
+  'docs/session-types.md',
+  'docs/task-context-packet-template.md',
+  'docs/architecture',
+  'docs/decisions',
+  'docs/knowledge',
+  'docs/research',
+  'docs/evidence',
+  'tasks',
+];
+const documentationPollutionPattern = /我建议|我认为|我觉得|你提到|你说|用户说|用户认为|我们讨论|先探讨|这次先|阶段性判断|废弃方案细节|对话式解释/;
+
+for (const target of formalDocumentationTargets) {
+  for (const file of listMarkdownFiles(target)) {
+    const text = read(file);
+    text.split(/\r?\n/).forEach((line, index) => {
+      if (documentationPollutionPattern.test(line)) {
+        errors.push(`${file}:${index + 1} 正式文档疑似包含过程/对话污染：${line.trim()}`);
+      }
+    });
   }
 }
 
@@ -149,7 +212,8 @@ for (const [id, expected] of [
   ['T023', 'BLOCKED'],
   ['T026', 'BLOCKED'],
   ['T027', 'BLOCKED'],
-  ['T028', 'BACKLOG'],
+  ['T028', 'DONE'],
+  ['T029', 'BACKLOG'],
 ]) {
   if (statusById.get(id) !== expected) {
     errors.push(`当前路线状态错误：${id} 应为 ${expected}，实际为 ${statusById.get(id) ?? '缺失'}`);
@@ -159,8 +223,8 @@ for (const [id, expected] of [
 if (/执行 T026，分离 Coverage 与 prefetch/.test(tasksText) || /T026→T027/.test(tasksText)) {
   errors.push('TASKS.md 仍包含 T026→T027 作为默认下一步的旧路线。');
 }
-if (!/执行 T028/.test(tasksText)) {
-  errors.push('TASKS.md 未把 T028 写为当前默认下一步。');
+if (!/执行 T029/.test(tasksText)) {
+  errors.push('TASKS.md 未把 T029 写为当前默认下一步。');
 }
 
 const projectState = exists('docs/project-state.md') ? read('docs/project-state.md') : '';
@@ -168,7 +232,8 @@ for (const [id, expected] of [
   ['T023', 'BLOCKED'],
   ['T026', 'BLOCKED'],
   ['T027', 'BLOCKED'],
-  ['T028', 'BACKLOG'],
+  ['T028', 'DONE'],
+  ['T029', 'BACKLOG'],
 ]) {
   const rowPattern = new RegExp(`\\|\\s*${id}\\s*\\|\\s*${expected}\\s*\\|`);
   if (!rowPattern.test(projectState)) {
@@ -184,12 +249,18 @@ if (exists('docs/decisions/index.md')) {
   if (!/D031\s*\|\s*Accepted/.test(decisionsIndex)) {
     errors.push('docs/decisions/index.md 未登记 D031 Accepted。');
   }
+  if (!/D032\s*\|\s*Accepted/.test(decisionsIndex)) {
+    errors.push('docs/decisions/index.md 未登记 D032 Accepted。');
+  }
 }
 
 if (exists('docs/decisions.md')) {
   const decisions = read('docs/decisions.md');
   if (!decisions.includes('## D031')) {
     errors.push('docs/decisions.md 缺少 D031 摘要。');
+  }
+  if (!decisions.includes('## D032')) {
+    errors.push('docs/decisions.md 缺少 D032 摘要。');
   }
   if (!/## D030[\s\S]*?- 状态：Superseded by D031/.test(decisions)) {
     errors.push('docs/decisions.md 未标记 D030 为 Superseded by D031。');
@@ -221,7 +292,8 @@ console.log('AI governance check passed.');
 console.log(`- Required governance files: ${requiredFiles.length}`);
 console.log(`- Parsed tasks: ${taskRows.length}`);
 console.log(`- Open implementation tasks with context packets: ${implementationOpenTasks.length}`);
-console.log('- Current route gate: T028 is the only default next step; T026/T027 are blocked.');
+console.log('- Current route gate: T029 is the only default next step; T026/T027 are blocked.');
+console.log('- Formal documentation gate: policy anchors and pollution scan active.');
 if (warnings.length > 0) {
   console.log('Warnings:');
   for (const warning of warnings) {
