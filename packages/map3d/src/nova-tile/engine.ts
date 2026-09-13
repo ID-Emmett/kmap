@@ -48,6 +48,8 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
   readonly #resources: TileResourceRegistry<Resource> | undefined;
   readonly #diagnostics: TileDiagnostics | undefined;
   readonly #records = new Map<string, IntegratedRecord<Payload, Resource>>();
+  /** 失败重试冷却按 canonical key 保留，跨 plan epoch 生效。 */
+  readonly #retryAt = new Map<string, number>();
   readonly #desired = new Map<string, RenderTileKey>();
   readonly #pending = new Set<Promise<unknown>>();
   readonly #diagnosticEvents: Array<() => void> = [];
@@ -225,6 +227,7 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
     this.#pipeline?.dispose();
     this.#resources?.clear();
     this.#records.clear();
+    this.#retryAt.clear();
     this.#desired.clear();
     for (const resolve of this.#idleWaiters) resolve();
     this.#idleWaiters.clear();
@@ -247,6 +250,10 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
       this.#desired.set(renderTileKeyToString(renderKey), renderKey);
       const record = this.#ensureRecord(candidate.key, renderKey, now);
       if (record.record.lifecycleState === 'ready' || record.record.lifecycleState === 'empty' || record.record.lifecycleState === 'committed' || record.record.lifecycleState === 'retained') return undefined;
+      const retryAt = this.#retryAt.get(canonicalTileKeyToString(candidate.key));
+      if (retryAt !== undefined && retryAt > now) return undefined;
+      if (record.record.lifecycleState === 'failed' && record.retryAt !== undefined && record.retryAt > now) return undefined;
+      if (record.record.lifecycleState === 'failed' || record.record.lifecycleState === 'retryable') transitionNovaTileRecord(record.record, 'planned', now);
       return {
         key: candidate.key,
         role: (candidate.region === 'near' ? 'visible-critical' : candidate.region === 'middle' ? 'visible-refinement' : 'motion-lookahead') as RequestRole,
@@ -316,6 +323,9 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
       entry.attempts += 1;
       if (entry.record.lifecycleState === 'planned' || entry.record.lifecycleState === 'retryable') transitionNovaTileRecord(entry.record, 'fetching', now);
       this.#diagnosticEvents.push(() => this.#diagnostics?.recordRequest({ type: 'start', key: currentTask.key, reason: currentTask.role, phase: this.#lastPhase, at: now }));
+      const pipelineStartedAt = this.#clock.now();
+      const workerJobId = entry.attempts;
+      this.#diagnosticEvents.push(() => this.#diagnostics?.recordWorker({ type: 'start', jobId: workerJobId, key: currentTask.key, at: pipelineStartedAt }));
       const promise = this.#pipeline.run({
         key: currentTask.key,
         url: this.#tileUrl(currentTask.key),
@@ -324,7 +334,7 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
         generation: this.#generation,
         signal: entry.controller.signal,
         current: () => ({ planEpoch: this.#planEpoch, generation: this.#generation }),
-      }).then((result) => { this.#acceptPipelineResult(entry, result, now); }).catch((error: unknown) => { this.#rejectPipelineResult(entry, error, now); }).finally(() => {
+      }).then((result) => { this.#acceptPipelineResult(entry, result, this.#clock.now(), pipelineStartedAt, workerJobId); }).catch((error: unknown) => { this.#rejectPipelineResult(entry, error, this.#clock.now(), pipelineStartedAt, workerJobId); }).finally(() => {
         this.#scheduler?.finish(currentTask.id);
         this.#refreshRenderCover(this.#clock.now());
         this.#resolveIdleIfReady();
@@ -334,47 +344,69 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
     }
   }
 
-  #acceptPipelineResult(entry: IntegratedRecord<Payload, Resource>, result: NovaTilePipelineResult<Payload>, now: number): void {
+  #acceptPipelineResult(entry: IntegratedRecord<Payload, Resource>, result: NovaTilePipelineResult<Payload>, now: number, pipelineStartedAt = now, workerJobId = entry.attempts): void {
     if (result.planEpoch !== this.#planEpoch || result.generation !== this.#generation || entry.record.planEpoch !== this.#planEpoch) {
       if (entry.record.lifecycleState !== 'stale' && entry.record.lifecycleState !== 'evicted') transitionNovaTileRecord(entry.record, 'stale', now);
       return;
     }
+    this.#retryAt.delete(canonicalTileKeyToString(entry.record.key));
     if (result.type === 'empty') {
       transitionNovaTileRecord(entry.record, 'empty', now);
       this.#cache?.set({ key: entry.record.key, generation: entry.record.generation, state: 'empty', cpuBytes: 0, gpuBytes: 0, role: 'resident', pinned: true, lastAccessedAt: now });
-      this.#diagnosticEvents.push(() => this.#diagnostics?.recordRequest({ type: 'finish', key: entry.record.key, reason: 'visible-critical', phase: this.#lastPhase, at: now, durationMs: 0 }));
+      this.#diagnosticEvents.push(() => {
+        this.#diagnostics?.recordWorker({ type: 'finish', jobId: workerJobId, key: entry.record.key, at: now, durationMs: Math.max(0, now - pipelineStartedAt) });
+        this.#diagnostics?.recordRequestFinish({ type: 'finish', key: entry.record.key, reason: 'visible-critical', phase: this.#lastPhase, at: now, durationMs: Math.max(0, now - pipelineStartedAt) });
+      });
       return;
     }
+    this.#diagnosticEvents.push(() => {
+      this.#diagnostics?.recordWorker({ type: 'finish', jobId: workerJobId, key: entry.record.key, at: now, durationMs: result.workerDurationMs });
+      this.#diagnostics?.recordRequestFinish({ type: 'finish', key: entry.record.key, reason: 'visible-critical', phase: this.#lastPhase, at: now, durationMs: Math.max(0, now - pipelineStartedAt), bytes: this.#options.uploadBytes?.(result.payload) ?? 1 });
+    });
     entry.record.payload = result.payload;
     transitionNovaTileRecord(entry.record, 'decoded', now);
     transitionNovaTileRecord(entry.record, 'built', now);
     transitionNovaTileRecord(entry.record, 'uploadQueued', now);
     entry.uploadQueued = true;
     this.#uploadQueue?.enqueue({ id: entry.resourceId, key: entry.record.key, bytes: this.#options.uploadBytes?.(result.payload) ?? 1, priority: 'exact-visible', upload: async () => {
+      const uploadStartedAt = this.#clock.now();
+      this.#diagnosticEvents.push(() => this.#diagnostics?.recordUpload({ type: 'start', key: entry.record.key, at: uploadStartedAt, bytes: this.#options.uploadBytes?.(result.payload) ?? 1 }));
       try {
         const uploaded = await (this.#options.upload?.(entry.record.key, result.payload) ?? ({ cpuBytes: 1, gpuBytes: 1 } as NovaTileUploadResult<Resource>));
         this.#completeUpload(entry, uploaded);
+        this.#diagnosticEvents.push(() => this.#diagnostics?.recordUpload({ type: 'finish', key: entry.record.key, at: this.#clock.now(), bytes: uploaded.gpuBytes ?? 1, durationMs: Math.max(0, this.#clock.now() - uploadStartedAt) }));
         return uploaded;
       } catch (error) {
         entry.uploadQueued = false;
         if (entry.record.lifecycleState === 'uploadQueued') transitionNovaTileRecord(entry.record, 'failed', this.#clock.now());
         entry.record.error = error;
         this.#cache?.remove(entry.record.key);
+        this.#diagnosticEvents.push(() => this.#diagnostics?.recordUpload({ type: 'error', key: entry.record.key, at: this.#clock.now(), bytes: this.#options.uploadBytes?.(result.payload) ?? 1, durationMs: Math.max(0, this.#clock.now() - uploadStartedAt) }));
         throw error;
       }
     } });
     this.#cache?.set({ key: entry.record.key, generation: entry.record.generation, state: 'ready', payload: result.payload, cpuBytes: this.#options.uploadBytes?.(result.payload) ?? 1, gpuBytes: 0, role: 'resident', pinned: true, lastAccessedAt: now });
   }
 
-  #rejectPipelineResult(entry: IntegratedRecord<Payload, Resource>, error: unknown, now: number): void {
+  #rejectPipelineResult(entry: IntegratedRecord<Payload, Resource>, error: unknown, now: number, pipelineStartedAt = now, workerJobId = entry.attempts): void {
     // 集成边界将异常归类为失败或取消，并保持记录可观察。
     if (error instanceof DOMException && error.name === 'AbortError') {
       if (entry.record.lifecycleState !== 'stale' && entry.record.lifecycleState !== 'evicted' && entry.record.lifecycleState !== 'cancelled') transitionNovaTileRecord(entry.record, 'cancelled', now);
+      this.#diagnosticEvents.push(() => {
+        this.#diagnostics?.recordWorker({ type: 'cancel', jobId: workerJobId, key: entry.record.key, at: now, durationMs: Math.max(0, now - pipelineStartedAt) });
+        this.#diagnostics?.recordRequestFinish({ type: 'cancel', key: entry.record.key, reason: 'visible-critical', phase: this.#lastPhase, at: now, durationMs: Math.max(0, now - pipelineStartedAt) });
+      });
       return;
     }
     if (entry.record.lifecycleState !== 'failed' && entry.record.lifecycleState !== 'stale' && entry.record.lifecycleState !== 'evicted') transitionNovaTileRecord(entry.record, 'failed', now);
     entry.record.error = error;
+    entry.retryAt = now + 1_000;
+    this.#retryAt.set(canonicalTileKeyToString(entry.record.key), entry.retryAt);
     this.#cache?.set({ key: entry.record.key, generation: entry.record.generation, state: 'negative', cpuBytes: 0, gpuBytes: 0, role: 'resident', pinned: true, lastAccessedAt: now, error });
+    this.#diagnosticEvents.push(() => {
+      this.#diagnostics?.recordWorker({ type: 'error', jobId: workerJobId, key: entry.record.key, at: now, durationMs: Math.max(0, now - pipelineStartedAt), errorCode: error instanceof Error ? error.name : 'UNKNOWN' });
+      this.#diagnostics?.recordRequestFinish({ type: 'finish', key: entry.record.key, reason: 'visible-critical', phase: this.#lastPhase, at: now, durationMs: Math.max(0, now - pipelineStartedAt) });
+    });
   }
 
   #pumpUploads(): void {
@@ -396,8 +428,6 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
     entry.resource = result;
     if (entry.record.lifecycleState === 'uploadQueued') transitionNovaTileRecord(entry.record, 'ready', this.#clock.now());
     this.#resources?.register({ id: entry.resourceId, tileKey: entry.record.key, ...(result.resource === undefined ? {} : { resource: result.resource }), cpuBytes: result.cpuBytes ?? 1, gpuBytes: result.gpuBytes ?? 1, ...(result.dispose === undefined ? {} : { dispose: result.dispose }) });
-    this.#diagnosticEvents.push(() => this.#diagnostics?.recordRequest({ type: 'finish', key: entry.record.key, reason: 'visible-critical', phase: this.#lastPhase, at: this.#clock.now(), durationMs: 0, bytes: result.gpuBytes ?? 1 }));
-    this.#diagnosticEvents.push(() => this.#diagnostics?.recordUpload({ type: 'finish', key: entry.record.key, at: this.#clock.now(), bytes: result.gpuBytes ?? 1 }));
   }
 
   #refreshRenderCover(now: number): void {
@@ -457,6 +487,8 @@ export class NovaTileEngine<Payload = unknown, WorkerInput = unknown, Resource =
 
   #isIdle(): boolean {
     if (this.#pending.size > 0 || [...this.#records.values()].some((entry) => entry.uploadQueued || isNovaTileInFlight(entry.record.lifecycleState))) return false;
+    const scheduler = this.#scheduler?.getStats(this.#clock.now());
+    if (scheduler !== undefined && (scheduler.queued > 0 || scheduler.active > 0)) return false;
     return true;
   }
 

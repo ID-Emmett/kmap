@@ -53,6 +53,7 @@ export interface IntegratedRecord<Payload, Resource> {
   readonly controller: AbortController;
   readonly resourceId: string;
   attempts: number;
+  retryAt?: number;
   uploadQueued: boolean;
   resource?: NovaTileUploadResult<Resource>;
 }

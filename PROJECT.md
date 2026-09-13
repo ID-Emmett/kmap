@@ -14,7 +14,7 @@ Nova 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立�
 
 T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯通，T011-T015 已完成视觉与连续体验阻断项修复并经人工接受。
 
-T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。当前瓦片路线进入 NTE 契约、空间覆盖、LOD、调度、管线、缓存、渲染、资源、诊断、验证、切换和发布阶段。
+T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。T031～T041 已完成 NTE 契约、空间覆盖、LOD、调度、管线、缓存、渲染、资源、诊断、集成和双后端慢网验证，当前进入 T042 人工体验验收。
 
 ## 当前事实基线
 
@@ -86,7 +86,7 @@ Non-Goals：
 
 - 自动：Unit、固定真实 KYE fixture integration、package integration、`pnpm check`。
 - 人工：Windows 目标工作站当前稳定 Chromium WebGPU、强制 WebGL2、无 WebGPU 自动 fallback。
-- 初始目标：Worker 单 Tile P95 ≤25 ms；WebGPU frame P95 ≤20 ms；WebGL2 frame P95 ≤25 ms；upload P95 ≤8 ms。
+- 初始目标：Worker 单 Tile P95 ≤25 ms；WebGPU frame P95 ≤20 ms；WebGL2 frame P95 ≤25 ms；upload P95 ≤8 ms。T041 复跑中 frame P95 双后端均为 6 ms；WebGPU Worker/Upload P95 为 256.3/8.6 ms，WebGL2 为 46.5/6.2 ms，超标项保留到 T042/T044 性能复核。
 - 初始 cache：CPU 128 MiB、GPU 256 MiB、256 canonical entries，按实际 byte 估算并由 T010 验证。
 - 网络冷启动单独记录；当前不为外部 KYE 服务预设 SLO。
 
@@ -113,11 +113,12 @@ Non-Goals：
 - T025：TileEngineV2 已移除 idle-only refinement debounce，增加 coverageRank 距离带轮询、deadline/age starvation 队列公平性和 requestQueue/notBefore 诊断；自动、`pnpm check` 和真实 Chrome WebGPU/WebGL2 1500 ms pointer pan / wheel zoom / reduced-motion 回归通过。
 - T028：瓦片子系统重置与 AI 上下文隔离已完成。
 - T030：NovaTileEngine 方案、架构规范和任务依赖已冻结。
+- T031～T041：NTE 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存、Render Cover、上传预算、资源登记、诊断 Timeline、集成测试和真实 Chromium 双后端/慢网验证已完成；T041 功能断言和 dispose 资源归零通过。
 
 ## 进行中
 
-- T031：NTE 契约与独立命名空间，当前默认实施任务。
-- T032～T044：NTE 空间、LOD、调度、管线、缓存、渲染、资源、诊断、测试、浏览器、人工、切换和发布任务。
+- T042：NTE 人工体验验收，当前默认实施任务。
+- T043～T044：NTE 生产切换、运行时删除、删除后回归和发布验证任务。
 
 ## 历史任务记录
 
@@ -128,11 +129,9 @@ Non-Goals：
 
 ## 下一步
 
-1. 执行 T031，建立 NTE 契约和独立命名空间。
-2. 并行执行 T032、T034、T035、T036，再执行 T033、T037、T038、T039。
-3. 执行 T040 集成测试、T041 双后端验证和 T042 人工体验验收。
-4. 执行 T043 生产切换与运行时删除。
-5. 执行 T044 删除后回归与发布验证。
+1. 执行 T042，完成 NTE 双后端人工体验验收。
+2. 执行 T043 生产切换与运行时删除。
+3. 执行 T044 删除后回归与发布验证。
 
 ## 已确认架构约束
 

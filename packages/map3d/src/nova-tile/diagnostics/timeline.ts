@@ -17,12 +17,11 @@ export function summarizeTileFrames(frames: readonly TileFrameDiagnostics[]): Ti
   const first = frames[0]!;
   const last = frames[frames.length - 1]!;
   const requests = frames.flatMap((frame) => [...frame.requestStarts, ...frame.requestFinishes]);
-  const starts = frames.flatMap((frame) => frame.requestStarts);
   const cache = frames.flatMap((frame) => frame.cacheEvents);
   const hits = cache.filter((event) => event.type === 'hit').length;
   const misses = cache.filter((event) => event.type === 'miss').length;
-  const duplicates = starts.filter((event) => event.type === 'duplicate').length;
-  const cancels = starts.filter((event) => event.type === 'cancel').length;
+  const duplicates = requests.filter((event) => event.type === 'duplicate').length;
+  const cancels = requests.filter((event) => event.type === 'cancel').length;
   const workerDurations = frames.flatMap((frame) => frame.workerEvents.filter((event) => event.type === 'finish' && event.durationMs !== undefined).map((event) => event.durationMs as number));
   const uploadDurations = frames.flatMap((frame) => frame.uploadEvents.filter((event) => event.type === 'finish' && event.durationMs !== undefined).map((event) => event.durationMs as number));
   const completeFrame = frames.find((frame) => frame.coverageComplete);

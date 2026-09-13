@@ -1,6 +1,13 @@
 # Nova Knowledge — Performance
 
-更新日期：2026-09-12
+更新日期：2026-09-13
+
+## T041 NovaTileEngine 双后端复跑
+
+- 真实 Chromium 153.0.0.0（Windows/Win32，viewport 764×485，DPR 1）中，WebGPU 与强制 WebGL2 的初始化、交互、pitch、慢网、失败冷却、60 秒交互和 dispose runner 断言均通过。
+- 复跑 timeline 的 Frame P95 双后端均为 6ms；WebGPU Worker/Upload P95 为 256.3/8.6ms，WebGL2 为 46.5/6.2ms。Worker 及 WebGPU Upload 超出 D033 目标，作为 T042/T044 性能复核项保留。
+- 两后端 CPU/GPU 峰值约 98,808 bytes；60 秒交互持续 60.48～60.52 秒；dispose 后资源 registry entries、CPU/GPU bytes 均为 0。
+- 证据：`docs/evidence/T041-browser-verification.json`、`docs/evidence/T041-webgpu-timeline.json`、`docs/evidence/T041-webgl2-timeline.json`。
 
 ## T010 浏览器与性能基线
 

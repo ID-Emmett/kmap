@@ -5,7 +5,7 @@ import { TileWorkerBridge, type WorkerAdapter, type WorkerJobResult } from '../w
 
 export type NovaTilePipelineResult<Payload> =
   | { readonly type: 'empty'; readonly key: CanonicalTileKey; readonly planEpoch: PlanEpoch; readonly generation: TileGeneration; readonly attempts: number }
-  | { readonly type: 'ready'; readonly key: CanonicalTileKey; readonly planEpoch: PlanEpoch; readonly generation: TileGeneration; readonly attempts: number; readonly payload: Payload };
+  | { readonly type: 'ready'; readonly key: CanonicalTileKey; readonly planEpoch: PlanEpoch; readonly generation: TileGeneration; readonly attempts: number; readonly payload: Payload; readonly workerDurationMs: number };
 
 /** Fetch → Worker 的单 canonical key 数据管线；并发调用共享同一 Promise。 */
 export class NovaTilePipeline<Input, Payload> {
@@ -38,7 +38,8 @@ export class NovaTilePipeline<Input, Payload> {
       ? { key: input.key, data: fetched.data, input: input.dataInput, planEpoch: input.planEpoch, generation: input.generation }
       : { key: input.key, data: fetched.data, input: input.dataInput, planEpoch: input.planEpoch, generation: input.generation, signal: input.signal };
     const job = this.#worker.enqueue(workerInput, input.current);
+    const workerStartedAt = performance.now();
     const result: WorkerJobResult<Payload> = await job.result;
-    return Object.freeze({ type: 'ready' as const, key: result.key, planEpoch: result.planEpoch, generation: result.generation, attempts: fetched.attempts, payload: result.payload });
+    return Object.freeze({ type: 'ready' as const, key: result.key, planEpoch: result.planEpoch, generation: result.generation, attempts: fetched.attempts, payload: result.payload, workerDurationMs: Math.max(0, performance.now() - workerStartedAt) });
   }
 }
