@@ -61,12 +61,16 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/diagnostics/` 建立逐帧 TileDiagnostics、事件类型、Timeline schema v1、JSON 序列化/解析和性能资源聚合。
+- 每帧记录 planEpoch、Target/Committed Cover、coverageComplete、blankArea、请求、缓存、Worker、上传、Commit、CPU/GPU bytes、frameTime 和 long task。
+- 聚合 Bootstrap/Refinement、cache hit、duplicate/cancel、Worker/Upload/Frame P95、资源峰值和 long-task 统计。
+- 新增 `novaTileDiagnostics.test.ts` 的 4 个测试，覆盖事件采集、60 秒 3600 帧 timeline、schema 校验、P95 和非法输入。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。

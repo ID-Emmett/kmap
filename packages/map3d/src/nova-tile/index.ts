@@ -57,3 +57,6 @@ export { TileUploadQueue } from './upload/index.js';
 export type { UploadPriority, UploadQueueOptions, UploadQueueStats, UploadRequest, UploadReservation } from './upload/index.js';
 export { TileResourceRegistry } from './resources/index.js';
 export type { ResourceCacheRole, ResourcePressureListener, ResourceRegistryOptions, ResourceRegistryStats, TileResourceEntry } from './resources/index.js';
+
+export { TileDiagnostics, createTileTimeline, parseTileTimeline, percentile95, serializeTileTimeline, summarizeTileFrames } from './diagnostics/index.js';
+export type { CacheEvent, CommitEvent, LongTaskEvent, RequestEvent, TileCoverSummary, TileDiagnosticsOptions, TileDiagnosticsSummary, TileFrameDiagnostics, TileTimeline, UploadEvent, WorkerEvent } from './diagnostics/index.js';
