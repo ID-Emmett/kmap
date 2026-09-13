@@ -243,7 +243,7 @@ for (const [id, expected] of [
   ['T039', 'DONE'],
   ['T040', 'DONE'],
   ['T041', 'DONE'],
-  ['T042', 'BACKLOG'],
+  ['T042', 'BLOCKED'],
   ['T043', 'BACKLOG'],
   ['T044', 'BACKLOG'],
 ]) {
@@ -255,8 +255,8 @@ for (const [id, expected] of [
 if (/执行 T026，分离 Coverage 与 prefetch/.test(tasksText) || /T026→T027/.test(tasksText)) {
   errors.push('TASKS.md 仍包含 T026→T027 作为默认下一步的旧路线。');
 }
-if (!/T031～T041/.test(tasksText) || !/\|\s*T042\s*\|\s*NovaTileEngine Manual Acceptance\s*\|\s*BACKLOG/.test(tasksText)) {
-  errors.push('TASKS.md 未登记 T031～T041 完成及 T042 下一步任务。');
+if (!/T031～T041/.test(tasksText) || !/\|\s*T042\s*\|\s*NovaTileEngine Manual Acceptance\s*\|\s*BLOCKED/.test(tasksText)) {
+  errors.push('TASKS.md 未登记 T031～T041 完成及 T042 当前阻断状态。');
 }
 
 const projectState = exists('docs/project-state.md') ? read('docs/project-state.md') : '';
@@ -278,6 +278,7 @@ for (const [id, expected] of [
   ['T036', 'DONE'],
   ['T040', 'DONE'],
   ['T041', 'DONE'],
+  ['T042', 'BLOCKED'],
 ]) {
   const rowPattern = new RegExp(`\\|\\s*${id}\\s*\\|\\s*${expected}\\s*\\|`);
   if (!rowPattern.test(projectState)) {
@@ -342,7 +343,7 @@ console.log('AI governance check passed.');
 console.log(`- Required governance files: ${requiredFiles.length}`);
 console.log(`- Parsed tasks: ${taskRows.length}`);
 console.log(`- Open implementation tasks with context packets: ${implementationOpenTasks.length}`);
-console.log('- Current route gate: T031-T041 are complete; T042 is next; T026/T027 are blocked.');
+console.log('- Current route gate: T031-T041 are complete; T042 is blocked pending T043 production cutover; T026/T027 are blocked.');
 console.log('- Formal documentation gate: policy anchors and pollution scan active.');
 if (warnings.length > 0) {
   console.log('Warnings:');
