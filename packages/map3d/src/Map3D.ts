@@ -24,11 +24,6 @@ import {
   createMapDisposedError,
   normalizeMapRuntimeError,
 } from './runtime/errors.js';
-import { TileEngineV2 } from './runtime/tileEngineV2.js';
-import {
-  PolygonTileWorkerAdapter,
-  VectorTileSourceAdapter,
-} from './runtime/tileRuntimeAdapters.js';
 import { ViewStateStore } from './runtime/viewStateStore.js';
 import { normalizeVectorTileSourceOptions } from './source/vectorTileSource.js';
 import { lngLatToTilePosition } from './spatial/mercator.js';
@@ -46,9 +41,14 @@ import type {
   ViewportSize,
   ViewState,
 } from './types.js';
-import type { TileRuntimeStats } from './runtime/tileRuntimeTypes.js';
 import { TileWorkerPool } from './worker/pool.js';
 import { ThreeTileRenderAdapter } from './rendering/tileRenderAdapter.js';
+import { TileStreamingEngine } from './streaming/tileStreamingEngine.js';
+import type { TileStreamingStats } from './streaming/types.js';
+import {
+  StreamingTileWorkerAdapter,
+  StreamingVectorSourceAdapter,
+} from './streaming/adapters.js';
 
 const DEFAULT_BACKGROUND_COLOR = 0x07111c;
 const FRAME_SAMPLE_LIMIT = 120;
@@ -72,7 +72,7 @@ export class Map3D {
   #viewport = normalizeViewport({ width: 1, height: 1, pixelRatio: 1 });
   readonly #maxPixelRatio: number | undefined;
   #workerPool: TileWorkerPool | undefined;
-  #tileEngine: TileEngineV2<TileBuildPayloadV1> | undefined;
+  #tileEngine: TileStreamingEngine<TileBuildPayloadV1> | undefined;
   #renderAdapter: ThreeTileRenderAdapter | undefined;
   #initializePromise: Promise<void> | undefined;
   #initialized = false;
@@ -345,18 +345,21 @@ export class Map3D {
       this.start();
       const workerPool = new TileWorkerPool();
       this.#workerPool = workerPool;
-      const sourceAdapter = new VectorTileSourceAdapter(this.#source);
-      const workerAdapter = new PolygonTileWorkerAdapter(workerPool, this.#layers);
+      const sourceAdapter = new StreamingVectorSourceAdapter(this.#source);
+      const workerAdapter = new StreamingTileWorkerAdapter(workerPool, this.#layers);
       const renderAdapter = new ThreeTileRenderAdapter(
         this.#scene,
         this.#materials,
         this.#origin,
       );
       this.#renderAdapter = renderAdapter;
-      const tileEngine = new TileEngineV2<TileBuildPayloadV1>({
+      const tileEngine = new TileStreamingEngine<TileBuildPayloadV1>({
         source: sourceAdapter,
         worker: workerAdapter,
         render: renderAdapter,
+        sourceId: this.#source.id,
+        sourceMinZoom: this.#source.minZoom,
+        sourceMaxZoom: this.#source.maxZoom,
         reducedMotion: this.#reducedMotion,
         minFallbackZoom: this.#source.minZoom,
         ...(this.#cacheOptions.maxTileEntries === undefined
@@ -438,7 +441,7 @@ export class Map3D {
   }
 
   #setRuntimeSchedule(
-    runtime: TileEngineV2<TileBuildPayloadV1>,
+    runtime: TileStreamingEngine<TileBuildPayloadV1>,
     view: ViewState,
   ): void {
     runtime.setViewContext(
@@ -452,7 +455,7 @@ export class Map3D {
 
   readonly #cacheOptions: NonNullable<Map3DOptions['cache']>;
 
-  #wireRuntimeEvents(runtime: TileEngineV2<TileBuildPayloadV1>): void {
+  #wireRuntimeEvents(runtime: TileStreamingEngine<TileBuildPayloadV1>): void {
     runtime.on('stats', (stats) => {
       this.#events.emit('stats', toMapRuntimeStats(this.getBackend(), stats, this.#frameLastMs, this.#frameSamples));
     });
@@ -481,7 +484,7 @@ function createLayerRecipe(
 
 function toMapRuntimeStats(
   backend: RenderBackend,
-  stats: TileRuntimeStats,
+  stats: TileStreamingStats,
   frameLastMs: number,
   frameSamples: readonly number[],
 ): MapRuntimeStats {

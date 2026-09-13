@@ -1,6 +1,6 @@
 # Nova Architecture — Tile System
 
-更新日期：2026-09-12
+更新日期：2026-09-13
 
 本文件是瓦片系统架构的主题分片。它用于减少实施会话读取 `docs/architecture.md` 全文的 token 成本。
 
@@ -30,3 +30,11 @@
 - 自动测试、headless 浏览器、截图和控制台无错误只能作为辅助证据。
 - pan/zoom、初始化加载、停止后请求波次、白闪和卡顿必须由真实浏览器人工操作验收。
 - 任何“指标通过但人工体验失败”的情况都以人工体验为阻断事实，返回决策会话重新拆分任务。
+
+## NovaTileEngine 当前入口
+
+- 系统名称：`NovaTileEngine`（NTE）。
+- 当前架构规范：`docs/architecture/nova-tile-engine.md`。
+- 当前决策：`docs/decisions/D033-nova-tile-engine-plan.md`。
+- 当前默认任务：T031。
+- 当前任务链：T031～T044。

@@ -157,12 +157,17 @@
 
 ## Status
 
-BACKLOG
+BLOCKED
 
 ## Findings
 
-无。任务尚未开始。
+- 新增 `packages/map3d/src/streaming/` 内 TilePyramid、TileCoverSelector、TileRequestScheduler、TileCache、TileUploadBudget、TileRenderCover、TileDiagnostics 和 TileStreamingEngine。
+- `Map3D` 生产路径已从 TileEngineV2 切换到 TileStreamingEngine；新 streaming 模块没有 legacy runtime import。
+- 新引擎通过 `streaming/adapters.ts` 直接连接 KYE Source 和 Worker protocol v1，避免旧 `runtime/tileRuntimeAdapters.ts` 进入生产路径。
+- `pnpm --filter @nova/map3d test -- tileStreamingEngine`、`pnpm --filter @nova/map3d test`、`pnpm check` 和 `pnpm ai:check` 已通过。
+- timeline schema 和自动验证摘要记录在 `docs/evidence/T029-tile-streaming-engine-timeline.json`。
 
 ## Open Issues
 
-- T029 通过前，T022 fog-bounded coverage 与 T019 最终发布验证保持阻塞。
+- 真实 Chromium WebGPU/WebGL2 与人工交互验收未完成：当前 Codex browser surface 返回 `unsupported Codex auth method: apikey`。未取得真实浏览器证据前不得标记 DONE。
+- T022 fog-bounded coverage 与 T019 最终发布验证继续阻塞。

@@ -30,18 +30,18 @@
 - T024/T025 是失败路线中的局部证据，不再构成继续 T026/T027 的默认理由；后续瓦片路线默认执行 T029。
 - 证据：`tasks/T023-tile-engine-v2.md`、`tasks/T024-tile-engine-v2-render-transaction.md`、`tasks/T025-tile-engine-v2-motion-scheduling.md`、`docs/evidence/T024-browser-regression.json`、`docs/evidence/T025-browser-regression.json`。
 
-## TileStreamingEngine 路线
+## NovaTileEngine 路线
 
-- D032 已确认 `TileStreamingEngine` 为全新瓦片系统路线，不作为 TileEngineV2 升级、补丁或 V3 续作。
-- T029 是下一步实施任务，负责删除或隔离旧生产瓦片路径，并建立新的垂直切片。
-- 新路线默认复用 KYE XYZ/MVT Source、Worker protocol v1、Polygon/Line geometry build、Three.js GPU upload、WebGPU/WebGL2 后端、Map3D 0.1 公共 API 和资源 ownership。
-- 证据：`docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`、`tasks/T029-implement-tile-streaming-engine.md`。
+- D033 已确认 `NovaTileEngine` 的当前契约、模块、预算、验收和 T030-T044 任务链。
+- T031 是当前实施入口。
+- 规范：`docs/architecture/nova-tile-engine.md`。
+- 决策：`docs/decisions/D033-nova-tile-engine-plan.md`。
 
 ## 人工验收失败事实
 
 - T021/T023/T025 的自动测试和真实浏览器脚本不能替代人工体验结论。
 - 人工负责人已明确报告：pan/zoom 加载慢、运动期间缺少预加载感、停止后继续出现请求波次、Tile 逐块出现、初始化中心向外水波式加载、白闪仍存在，且页面帧率和 pan 卡顿严重。
-- 当前结论：不得继续在旧 Tile Runtime 或未隔离的 V2 补丁上无约束推进；T026/T027 已冻结，后续瓦片任务必须执行 T029。
+- 当前结论：NTE 任务链按 T031-T044 顺序执行。
 - 证据：`docs/ai-sessions/2026-09-12.md`、`TASKS.md`、`PROJECT.md`。
 
 ## 旧路径隔离

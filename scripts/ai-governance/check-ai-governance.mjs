@@ -14,9 +14,11 @@ const requiredFiles = [
   'docs/task-context-packet-template.md',
   'docs/architecture/index.md',
   'docs/architecture/tile-system.md',
+  'docs/architecture/nova-tile-engine.md',
   'docs/decisions/index.md',
   'docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md',
   'docs/decisions/D032-tile-streaming-engine-clean-rebuild.md',
+  'docs/decisions/D033-nova-tile-engine-plan.md',
   'docs/evidence/index.md',
   'docs/knowledge/ai-governance.md',
   'docs/knowledge/tile-runtime.md',
@@ -52,6 +54,21 @@ const taskFileById = new Map([
   ['T027', 'tasks/T027-tile-engine-v2-manual-acceptance.md'],
   ['T028', 'tasks/T028-tile-subsystem-reset-context-isolation.md'],
   ['T029', 'tasks/T029-implement-tile-streaming-engine.md'],
+  ['T030', 'tasks/T030-novatileengine-plan.md'],
+  ['T031', 'tasks/T031-novatileengine-contract.md'],
+  ['T032', 'tasks/T032-novatileengine-pyramid-footprint.md'],
+  ['T033', 'tasks/T033-novatileengine-lod-cover.md'],
+  ['T034', 'tasks/T034-novatileengine-scheduler.md'],
+  ['T035', 'tasks/T035-novatileengine-pipeline.md'],
+  ['T036', 'tasks/T036-novatileengine-cache.md'],
+  ['T037', 'tasks/T037-novatileengine-render-cover.md'],
+  ['T038', 'tasks/T038-novatileengine-upload-resources.md'],
+  ['T039', 'tasks/T039-novatileengine-diagnostics.md'],
+  ['T040', 'tasks/T040-novatileengine-integration-tests.md'],
+  ['T041', 'tasks/T041-novatileengine-browser-verification.md'],
+  ['T042', 'tasks/T042-novatileengine-manual-acceptance.md'],
+  ['T043', 'tasks/T043-novatileengine-cutover-delete.md'],
+  ['T044', 'tasks/T044-novatileengine-release-verification.md'],
 ]);
 
 const errors = [];
@@ -96,7 +113,7 @@ if (exists('docs/project-state.md')) {
   if (lines > 160) {
     errors.push(`docs/project-state.md 过长：${lines} 行，目标不超过 160 行`);
   }
-  for (const token of ['T028', 'T029', 'T026', 'T027', 'D031', 'D032', 'docs/architecture/index.md', 'docs/decisions/index.md']) {
+for (const token of ['T030', 'T031', 'T028', 'T029', 'T026', 'T027', 'D031', 'D032', 'D033', 'docs/architecture/index.md', 'docs/decisions/index.md']) {
     if (!text.includes(token)) {
       errors.push(`docs/project-state.md 缺少关键入口或状态：${token}`);
     }
@@ -213,7 +230,22 @@ for (const [id, expected] of [
   ['T026', 'BLOCKED'],
   ['T027', 'BLOCKED'],
   ['T028', 'DONE'],
-  ['T029', 'BACKLOG'],
+  ['T029', 'BLOCKED'],
+  ['T030', 'DONE'],
+  ['T031', 'BACKLOG'],
+  ['T032', 'BACKLOG'],
+  ['T033', 'BACKLOG'],
+  ['T034', 'BACKLOG'],
+  ['T035', 'BACKLOG'],
+  ['T036', 'BACKLOG'],
+  ['T037', 'BACKLOG'],
+  ['T038', 'BACKLOG'],
+  ['T039', 'BACKLOG'],
+  ['T040', 'BACKLOG'],
+  ['T041', 'BACKLOG'],
+  ['T042', 'BACKLOG'],
+  ['T043', 'BACKLOG'],
+  ['T044', 'BACKLOG'],
 ]) {
   if (statusById.get(id) !== expected) {
     errors.push(`当前路线状态错误：${id} 应为 ${expected}，实际为 ${statusById.get(id) ?? '缺失'}`);
@@ -223,8 +255,8 @@ for (const [id, expected] of [
 if (/执行 T026，分离 Coverage 与 prefetch/.test(tasksText) || /T026→T027/.test(tasksText)) {
   errors.push('TASKS.md 仍包含 T026→T027 作为默认下一步的旧路线。');
 }
-if (!/执行 T029/.test(tasksText)) {
-  errors.push('TASKS.md 未把 T029 写为当前默认下一步。');
+if (!/当前默认实施任务为 T031/.test(tasksText)) {
+  errors.push('TASKS.md 未把 T031 写为当前默认下一步。');
 }
 
 const projectState = exists('docs/project-state.md') ? read('docs/project-state.md') : '';
@@ -233,7 +265,9 @@ for (const [id, expected] of [
   ['T026', 'BLOCKED'],
   ['T027', 'BLOCKED'],
   ['T028', 'DONE'],
-  ['T029', 'BACKLOG'],
+  ['T029', 'BLOCKED'],
+  ['T030', 'DONE'],
+  ['T031', 'BACKLOG'],
 ]) {
   const rowPattern = new RegExp(`\\|\\s*${id}\\s*\\|\\s*${expected}\\s*\\|`);
   if (!rowPattern.test(projectState)) {
@@ -252,6 +286,9 @@ if (exists('docs/decisions/index.md')) {
   if (!/D032\s*\|\s*Accepted/.test(decisionsIndex)) {
     errors.push('docs/decisions/index.md 未登记 D032 Accepted。');
   }
+  if (!/D033\s*\|\s*Accepted/.test(decisionsIndex)) {
+    errors.push('docs/decisions/index.md 未登记 D033 Accepted。');
+  }
 }
 
 if (exists('docs/decisions.md')) {
@@ -261,6 +298,9 @@ if (exists('docs/decisions.md')) {
   }
   if (!decisions.includes('## D032')) {
     errors.push('docs/decisions.md 缺少 D032 摘要。');
+  }
+  if (!decisions.includes('## D033')) {
+    errors.push('docs/decisions.md 缺少 D033 摘要。');
   }
   if (!/## D030[\s\S]*?- 状态：Superseded by D031/.test(decisions)) {
     errors.push('docs/decisions.md 未标记 D030 为 Superseded by D031。');
@@ -292,7 +332,7 @@ console.log('AI governance check passed.');
 console.log(`- Required governance files: ${requiredFiles.length}`);
 console.log(`- Parsed tasks: ${taskRows.length}`);
 console.log(`- Open implementation tasks with context packets: ${implementationOpenTasks.length}`);
-console.log('- Current route gate: T029 is the only default next step; T026/T027 are blocked.');
+console.log('- Current route gate: T031 is the only default next step; T026/T027 are blocked.');
 console.log('- Formal documentation gate: policy anchors and pollution scan active.');
 if (warnings.length > 0) {
   console.log('Warnings:');

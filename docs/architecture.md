@@ -1,8 +1,8 @@
 # Nova Architecture Baseline
 
-更新日期：2026-09-12
+更新日期：2026-09-13
 
-状态：T002 已确认架构基线；D031 已冻结 TileEngineV2 补丁链；D032 已确认 `TileStreamingEngine` 全新重建路线。低 token 架构入口见 `docs/architecture/index.md`。本文定义架构与实施边界，不代表未列入已完成 Task 的地图功能已经实现。
+状态：D033 已确认 `NovaTileEngine` 方案和 T030-T044 任务链。低 token 架构入口见 `docs/architecture/index.md`。本文定义架构与实施边界，不代表未列入已完成 Task 的地图功能已经实现。
 
 ## 证据边界
 
@@ -78,11 +78,13 @@ Application / Playground
 - Tile Runtime 只通过接口调用 Source、Worker Pool、Render Adapter 和 Cache，不形成万能 Manager。
 - Feature 不创建独立 `Object3D`；Tile 可以拥有一个容器，容器下按渲染批次创建有限数量对象。
 
-## TileStreamingEngine 重建边界
+## NovaTileEngine 当前架构
 
-D030 曾确认旧 Tile Runtime 的调度与 Display Coverage 生产路径不再继续叠加补丁，并由 T023 建立 `TileEngineV2` 作为生产 authority。T024/T025 又补齐 rAF transaction 与运动调度，但人工体验仍失败。D031 已确认 T026/T027 补丁链冻结；D032 已确认后续进入 `TileStreamingEngine` 全新重建路线。
+`NovaTileEngine`（NTE）是当前瓦片系统方案，完整规范见 `docs/architecture/nova-tile-engine.md`。NTE 由 TileAddress、TilePyramid、GroundFootprint、TileCoverPlanner、MotionPredictor、TileRequestScheduler、TileFetchPipeline、TileWorkerBridge、TileCache、TileUploadQueue、TileRenderCover、TileResourceRegistry、TileDiagnostics 和 NovaTileEngine 组成。
 
-后续瓦片路线的当前入口见 `docs/architecture/tile-system.md`。默认保留边界仍是 `CanonicalTileKey`/`RenderTileKey`、KYE Source、Worker protocol v1、Polygon/Line batch、MapOrigin、Layer recipe、Three.js GPU upload、WebGPU/WebGL2、Material Registry、Map3D 0.1 公共 API 和资源 ownership。旧 Runtime、旧 Display Coverage、旧 `TileMotionScheduler` 和 `TileEngineV2` 补丁链只能为删除、断开生产路径或 import guard 读取或处理。
+NTE 使用完整 Bootstrap Cover、SSE mixed LOD、运动预测预取、分层 Cache、Coverage Cohort 原子提交、Upload backpressure 和逐帧 timeline。公共 Map3D 0.1、KYE XYZ/MVT v2、Worker protocol v1、Polygon/Line batch、Three.js WebGPU/WebGL2 和当前资源预算保持有效。
+
+NTE 任务链为 T031-T044。T043 负责生产切换与运行时删除，T044 负责删除后回归和发布验证。
 
 ## 坐标与相机
 
@@ -512,17 +514,22 @@ T012 + T013 + T014 + T015
         └── T016 Line geometry reuse for repeated style passes
               └── T010 rerun / release decision
 
-T007 + T008 + T013 + T015 + T016
-  └── T017 Mixed-LOD frustum tile selection
-        ├── T020 Retained tile cache and request thrash
-        │     └── T021 Spatial best-available replacement (old path; human acceptance failed)
-        └── T023 TileEngineV2 migration (human acceptance failed; blocked by D031)
-              └── T028 Tile subsystem reset and AI context isolation
-                    └── T029 TileStreamingEngine vertical slice
-                          └── T022 Fog-bounded pitched coverage
-                                └── T019 Pitched tile loading and LOD verification
-
-T018/T021/T023/T026/T027 remain BLOCKED for the failed V2/old Runtime route; T024/T025 remain DONE as evidence only; T029 is the next implementation entry.
+T028
+  └── T030 NovaTileEngine plan and task freeze
+        └── T031 Contract and isolated namespace
+              ├── T032 Pyramid and Footprint
+              │     └── T033 Mixed LOD and pitch cover
+              ├── T034 Motion prediction and request scheduler
+              ├── T035 Fetch and Worker pipeline
+              └── T036 Layered cache and persistence
+                    └── T037 Render Cover and Cohort Commit
+                          └── T038 Upload Budget and Resource Registry
+                                └── T039 Diagnostics and Timeline
+                                      └── T040 Integration tests
+                                            └── T041 Browser verification
+                                                  └── T042 Manual acceptance
+                                                        └── T043 Cutover and deletion
+                                                              └── T044 Release verification
 ```
 
-所有 实施任务 必须保持公共契约和本文件边界；需要改变 MVP 范围、坐标语义、Tile 状态、Worker 协议或公共 API 时，返回决策会话确认。
+所有实施任务必须保持公共契约和本文件边界；需要改变 MVP 范围、坐标语义、Tile 状态、Worker 协议或公共 API 时，返回决策会话确认。

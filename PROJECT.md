@@ -1,6 +1,6 @@
 # Nova Project Status
 
-更新日期：2026-09-12
+更新日期：2026-09-13
 
 ## 项目背景
 
@@ -14,7 +14,7 @@ Nova 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立�
 
 T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯通，T011-T015 已完成视觉与连续体验阻断项修复并经人工接受。
 
-决策会话已建立 T011 规则网格水印伪影诊断/修复、T012 浅色底图、T013 渐进式 Tile 替换、T014 阻尼交互和 T015 倾斜远景渐隐。T016 已完成 Line casing/fill 几何复用并解除 T010 资源阻断；T017 已按 D027 完成 mixed-LOD Coverage，T020 已完成预算内 Retained Cache 和 warm ancestor request thrash 修复。T021 Spatial Replacement 与 T023 TileEngineV2 的自动测试和真实 Chromium 脚本曾通过，但人工负责人明确不接受 pan/zoom 加载观感；T024/T025 的 V2 render transaction 与 motion scheduling 补丁完成后，人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链；T028 已完成重置输出；D032 已确认 `TileStreamingEngine` 全新重建路线，当前下一步为 T029。
+T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。当前瓦片路线进入 NTE 契约、空间覆盖、LOD、调度、管线、缓存、渲染、资源、诊断、验证、切换和发布阶段。
 
 ## 当前事实基线
 
@@ -29,7 +29,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 - 固定 `z15/26978/12416` Polygon 场景在当前 Chromium 的 WebGPU 与强制 WebGL2 中通过可视验证；三个 batch 对应 276 features、2,139 vertices、4,755 indices 和 53,244 bytes TypedArray/GPU estimate。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
 - 当前可见集使用 Camera Frustum/Tile AABB、projected tile size 和 best-first 四叉树 refinement 生成 mixed canonical zoom Target Coverage；默认 128 Tile 数量预算通过停止细分或父级合并满足，支持日期线 world wrap、source bounds、Y 边界和 maxZoom overzoom，并与 MapOrigin/horizon fade 的 `referenceZoom` 解耦。
-- 当前 TileEngineV2 按 canonical key 共享多个 render wrap consumer，默认限制 8 个 Fetch、4 个 Worker job、256 entries、128 MiB CPU 和 256 MiB GPU。T020/T025 已形成 Retained Cache、空间 replacement、rAF transaction 和运动调度证据；但 T021/T023/T025 的人工体验均未达到可接受状态。D031/D032 已确认这些证据只能作为失败路线输入，不再作为继续 T026/T027 或新引擎模板的依据。
+- NTE 使用 Canonical key 共享 Fetch、Decode、Build、Cache 和 GPU 数据；运行配额为 8～12 Fetch、2～4 Worker、256 entries、128 MiB CPU 和 256 MiB GPU。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
 ## MVP 基线
@@ -57,7 +57,7 @@ KYE Tile
 - Worker 协议、transferable buffers、Feature 映射和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。
-- zoom/pan 的当前 V2 补丁链已冻结。后续瓦片路线进入 T029 `TileStreamingEngine` 垂直切片；T029 必须隔离旧生产路径，复用低层已验证边界，并按通用瓦片引擎不变量验收。
+- NTE 采用完整 Bootstrap Cover、SSE mixed LOD、运动预测预取、分层 Cache、Cohort Render Commit 和逐帧资源预算。
 - pan 与 bearing/pitch 旋转在释放后具有基于帧时间的有界惯性；wheel zoom 合并为连续帧更新。
 - pitch 增大时，远处 Polygon/Line 使用统一 TSL 效果渐隐到浅色背景；D029 进一步要求 fogEnd 完全融合，loadCutoff 外停止 Tile 选择、请求、构建和渲染，由 T022 实施。
 
@@ -111,11 +111,16 @@ Non-Goals：
 - T020：Ready/empty/failed Retained Cache、LRU access 刷新、warm ancestor 抑制、请求原因诊断和双后端 A → B → A canonical request histogram 已完成；静止 30 秒无新请求。
 - T024：TileEngineV2 Render transaction、rAF commit gate、初始 parent fallback 请求、空间完整 Render Cover 提交和 parent/child 原子 replacement 已完成；自动、`pnpm check` 和真实 Chrome 双后端/延迟/reduced-motion/offline/dispose 回归通过。
 - T025：TileEngineV2 已移除 idle-only refinement debounce，增加 coverageRank 距离带轮询、deadline/age starvation 队列公平性和 requestQueue/notBefore 诊断；自动、`pnpm check` 和真实 Chrome WebGPU/WebGL2 1500 ms pointer pan / wheel zoom / reduced-motion 回归通过。
-- T028：瓦片子系统重置与 AI 上下文隔离已完成，D032 和 T029 已建立。
+- T028：瓦片子系统重置与 AI 上下文隔离已完成。
+- T030：NovaTileEngine 方案、架构规范和任务依赖已冻结。
 
 ## 进行中
 
-- T029：`TileStreamingEngine` 垂直切片保持 BACKLOG，是当前唯一合法下一步。
+- T031：NTE 契约与独立命名空间，当前默认实施任务。
+- T032～T044：NTE 空间、LOD、调度、管线、缓存、渲染、资源、诊断、测试、浏览器、人工、切换和发布任务。
+
+## 历史任务记录
+
 - T021：按空间的 best-available replacement 和 Render instance/material 稳定化已完成代码、自动验证和真实浏览器回归，但人工负责人明确不接受 pan/zoom 加载观感，当前 BLOCKED。
 - T023：独立 TileEngineV2 已切换为唯一生产调度/显示 authority，自动测试、构建和真实 Chromium 回归通过，但人工负责人验收不通过，当前 BLOCKED。
 - T026/T027：V2 预算补丁与最终验收链已由 D031 冻结，当前 BLOCKED。
@@ -123,10 +128,11 @@ Non-Goals：
 
 ## 下一步
 
-1. 执行 T029，删除或隔离旧生产瓦片路径，建立 `TileStreamingEngine` 垂直切片。
-2. T029 通过自动不变量测试、真实 Chromium WebGPU/WebGL2 验证和人工交互验收后，重新规划 T022 fog-bounded coverage。
-3. T022 完成后，再由 T019 执行双后端、慢网、资源、long task 和最终加载体验发布验证。
-4. 如最终发布指定另一台目标设备，在该设备重复真实浏览器矩阵。
+1. 执行 T031，建立 NTE 契约和独立命名空间。
+2. 并行执行 T032、T034、T035、T036，再执行 T033、T037、T038、T039。
+3. 执行 T040 集成测试、T041 双后端验证和 T042 人工体验验收。
+4. 执行 T043 生产切换与运行时删除。
+5. 执行 T044 删除后回归与发布验证。
 
 ## 已确认架构约束
 
@@ -156,7 +162,7 @@ D030 已确认停止扩展旧 Tile Runtime 的调度/显示路径，建立独立
 
 D031 已确认 T021/T023/T025 的人工体验失败覆盖自动证据，冻结 T026/T027 的 V2 补丁链，并以 T028 作为瓦片子系统重置与 AI 上下文隔离入口。
 
-D032 已确认 `TileStreamingEngine` 为全新瓦片系统路线；T029 负责删除或隔离旧生产瓦片路径，并建立 TilePyramid、TileCoverSelector、TileRequestScheduler、TileCache、TileUploadBudget、TileRenderCover 和 TileDiagnostics 垂直切片。
+D032 已确认 `TileStreamingEngine` 路线；D033 已确认 `NovaTileEngine` 当前契约、模块、预算、验收和 T030～T044 任务链。
 
 ## 已知风险
 

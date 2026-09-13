@@ -1,6 +1,6 @@
 # Nova Decisions Index
 
-更新日期：2026-09-12
+更新日期：2026-09-13
 
 本文件是重大决策的低 token 入口。默认读取本索引；只有当前任务明确关联某个决策时，再读取 `docs/decisions.md` 中的对应条目或 `docs/decisions/Dxxx-*.md` 分片。
 
@@ -20,12 +20,14 @@
 | D030 | Superseded by D031 | TileEngineV2 替换旧 Runtime 生产路径 | 仅作为失败路线和保留边界证据 |
 | D031 | Accepted | 冻结 V2 补丁链，建立瓦片子系统重置与 AI 上下文隔离 | 瓦片失败路线默认读取 |
 | D032 | Accepted | TileStreamingEngine 全新瓦片系统重建 | T029 默认读取 |
+| D033 | Accepted | NovaTileEngine 任务化重建方案 | T031 默认读取 |
 
 ## 分片
 
 - `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
 - `docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`
+- `docs/decisions/D033-nova-tile-engine-plan.md`
 
 ## 归档入口
 
-- `docs/decisions.md`：D001-D032 的当前文本归档；后续应逐步把新增重大决策写入独立分片，避免默认读取长文。
+- `docs/decisions.md`：D001-D033 的当前文本归档；后续应逐步把新增重大决策写入独立分片，避免默认读取长文。

@@ -276,3 +276,15 @@
 - 验收：按完整 Render Cover、best-available fallback、原子替换、有界请求、有界 Worker、有界 upload、空间公平调度、缓存复用和资源预算等通用不变量验收。
 - 对应分片：`docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`。
 - 对应任务：`tasks/T029-implement-tile-streaming-engine.md`。
+
+## D033 — NovaTileEngine 任务化重建方案
+
+- 状态：Accepted
+- 确认日期：2026-09-13
+- 决策：系统名称为 `NovaTileEngine`（NTE），采用 TileAddress、TilePyramid、GroundFootprint、TileCoverPlanner、MotionPredictor、TileRequestScheduler、TileFetchPipeline、TileWorkerBridge、TileCache、TileUploadQueue、TileRenderCover、TileResourceRegistry、TileDiagnostics 和 NovaTileEngine 模块。
+- 契约：使用当前 Map3D 0.1 公共接口、WGS84/Web Mercator、XYZ/MVT v2、gzip、HTTP 204、Worker protocol v1、Polygon/Line batch、Three.js WebGPU/WebGL2。
+- 运行：初始化先提交完整 Bootstrap Cover，再执行 Exact Refinement 和 Motion Lookahead；混合 LOD 使用 SSE、迟滞、相邻层级差值 `≤1` 和完整 Ground Footprint。
+- 预算：Fetch、Worker、Upload、Commit 采用帧级预算；CPU Cache 128MiB、GPU Cache 256MiB、Canonical Entries 256、Worker P95 `≤25ms`、WebGPU Frame P95 `≤20ms`、WebGL2 Frame P95 `≤25ms`、Upload P95 `≤8ms`。
+- 验收：双后端真实 Chromium、慢网、60 秒交互、dispose、自动测试、timeline 和人工体验共同构成发布证据。
+- 任务：T031～T044 按契约、覆盖、调度、管线、缓存、渲染、资源、诊断、集成、浏览器、人工、切换和发布顺序执行。
+- 对应分片：`docs/decisions/D033-nova-tile-engine-plan.md`。

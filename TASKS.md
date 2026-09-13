@@ -1,6 +1,6 @@
 # Nova Tasks
 
-更新日期：2026-09-12
+更新日期：2026-09-13
 
 状态：`BACKLOG`、`IN_PROGRESS`、`BLOCKED`、`VERIFYING`、`DONE`。
 
@@ -36,24 +36,44 @@
 | T026 | TileEngineV2 Coverage and Prefetch Budget Separation | BLOCKED | 实施会话 | T023, T025 |
 | T027 | TileEngineV2 Diagnostic and Manual Acceptance | BLOCKED | 实施会话 | T024, T025, T026 |
 | T028 | Tile Subsystem Reset and AI Context Isolation | DONE | 决策会话 | T021, T023, T025 |
-| T029 | Implement TileStreamingEngine Vertical Slice | BACKLOG | 实施会话 | T028 |
+| T029 | Implement TileStreamingEngine Vertical Slice | BLOCKED | 实施会话 | T028 |
+| T030 | NovaTileEngine Plan and Task Freeze | DONE | 决策会话 | T028 |
+| T031 | NovaTileEngine Contract and Isolated Namespace | BACKLOG | 实施会话 | T030 |
+| T032 | TilePyramid and GroundFootprint | BACKLOG | 实施会话 | T031 |
+| T033 | Mixed LOD and Pitch Cover | BACKLOG | 实施会话 | T032 |
+| T034 | Motion Prediction and Request Scheduler | BACKLOG | 实施会话 | T031 |
+| T035 | Fetch and Worker Pipeline | BACKLOG | 实施会话 | T031 |
+| T036 | Layered Cache and Persistence | BACKLOG | 实施会话 | T031 |
+| T037 | Render Cover and Cohort Commit | BACKLOG | 实施会话 | T032, T033 |
+| T038 | Upload Budget and Resource Registry | BACKLOG | 实施会话 | T035, T037 |
+| T039 | TileDiagnostics and Timeline | BACKLOG | 实施会话 | T034, T035, T036, T037, T038 |
+| T040 | NovaTileEngine Integration Tests | BACKLOG | 实施会话 | T031-T039 |
+| T041 | Dual Backend and Slow Network Verification | BACKLOG | 实施会话 | T040 |
+| T042 | NovaTileEngine Manual Acceptance | BACKLOG | 实施会话 | T041 |
+| T043 | Production Cutover and Runtime Deletion | BACKLOG | 实施会话 | T042 |
+| T044 | Post-Deletion Regression and Release Verification | BACKLOG | 实施会话 | T043 |
 
 ## 当前任务
 
-T021 的代码实现、自动验证和真实浏览器脚本已完成，但人工负责人明确验收不通过：pan/zoom 仍慢、停止后才集中出现、缺少有效预加载、Tile 逐块显示并伴随白闪。T021 改为 `BLOCKED`，其问题记录只作为失败证据和后续重置输入，不再继续给旧 Runtime 打补丁。T018 仍为 `BLOCKED`，旧生产调度路径不再恢复实施。
+T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。当前默认实施任务为 T031。
 
-T023 `TileEngineV2` 已接入 `Map3D` 唯一生产路径，并完成 T024 Render transaction 与 T025 运动调度补丁，但人工负责人在 T025 后仍明确反馈体验极差、帧率低、pan 卡顿、加载时序滞后、停止后请求波次、中心向外逐块加载和白闪。T023、T026、T027 均为 `BLOCKED`；不得继续按原 V2 补丁链推进。
+NTE 任务链由契约、空间覆盖、LOD、运动预测、调度、数据管线、缓存、渲染提交、资源预算、诊断、集成测试、双后端验证、人工验收、生产切换和发布验证组成。
 
-T028 已完成瓦片子系统重置与上下文隔离决策输出。D032 确认新系统命名为 `TileStreamingEngine`，并将 T029 设为下一步实施任务。T029 不是 TileEngineV2 升级任务，而是删除或隔离旧生产瓦片路径并建立新引擎垂直切片。
+执行顺序：
 
-执行顺序固定为：
+1. T031 建立契约和独立命名空间。
+2. T032、T034、T035、T036 在 T031 完成后并行实施。
+3. T033 在 T032 完成后实施。
+4. T037 汇聚空间覆盖和 LOD 结果，建立 Render Cover。
+5. T038 建立上传预算和资源登记。
+6. T039 建立逐帧诊断和 timeline。
+7. T040 完成 NTE 集成测试。
+8. T041 完成真实 Chromium WebGPU/WebGL2 与慢网验证。
+9. T042 完成人工体验验收。
+10. T043 完成生产切换和运行时删除。
+11. T044 完成删除后回归和发布判断。
 
-1. 执行 T029，删除或隔离旧生产瓦片路径，建立 `TileStreamingEngine` 垂直切片。
-2. T029 必须先实现 TilePyramid、TileCoverSelector、TileRequestScheduler、TileCache、TileUploadBudget、TileRenderCover 和 TileDiagnostics。
-3. T029 必须通过通用不变量测试、真实 Chromium WebGPU/WebGL2 验证和人工交互验收。
-4. T022 只能在 T029 人工接受后重新规划；不得接回已失败的 V2 补丁链。
-5. T019 只能在新瓦片路线与 T022 重新完成后执行最终发布验证。
-6. T024/T025 保留为已完成证据，不构成继续 T026/T027 的理由。
+每个 NTE 实施任务的 Context Packet 只包含当前规范、当前任务、当前测试和当前 evidence。T043 单独承载生产切换与运行时清理。
 
 ## 任务规则
 
@@ -64,4 +84,4 @@ T028 已完成瓦片子系统重置与上下文隔离决策输出。D032 确认�
 - 非 DONE 的实施任务缺少 `Task Context Packet` 时不得执行；必须先由决策会话补齐或重新定义。
 - 未经确认，不直接进入地图功能实现。
 - 当前默认下一步以 `docs/project-state.md` 和本文件一致结论为准。
-- T003-T029 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。
+- T003-T044 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。
