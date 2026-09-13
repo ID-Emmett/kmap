@@ -31,7 +31,8 @@
 - T011-T015 的规则网格伪影、浅色底图、渐进式替换、惯性交互和倾斜远景渐隐已通过人工体验验收。
 - T016 已通过 Line geometry 复用解除 T010 city z10 资源阻断，但 128 MiB CPU cache 余量极小，仍是风险。
 - T021/T023/T025 自动和浏览器脚本证据不能替代人工体验结论；人工负责人已明确报告 Tile 加载滞后、停止后波次、逐块出现和白闪仍存在。
-- D031 已冻结既有补丁路线；D033 已确认 `NovaTileEngine` 方案，T030～T044 组成新的任务链，T031 为默认实施入口。
+- D031 已冻结既有补丁路线；D033 已确认 `NovaTileEngine` 方案，T030～T044 组成原任务链；T045 是针对 T042 首屏覆盖阻断新增的 LOD 修复任务。
+- T042 生产双后端复跑确认 `MixedLODPlanner` 在 `minZoom=0`、初始 `zoom=15` 时仅计划 z=0 根 Tile，首屏为空；T045 已建立为 LOD 初始覆盖细化修复任务。
 - `docs/project-state.md`、`docs/architecture/index.md`、`docs/decisions/index.md` 和 `pnpm ai:check` 已作为低 token 与强约束治理入口。
 
 ## 维护规则

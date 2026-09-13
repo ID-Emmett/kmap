@@ -1,6 +1,6 @@
 # Nova Knowledge — Tile Runtime
 
-更新日期：2026-09-12
+更新日期：2026-09-14
 
 ## 空间契约
 
@@ -33,15 +33,18 @@
 ## NovaTileEngine 路线
 
 - D033 已确认 `NovaTileEngine` 的当前契约、模块、预算、验收和 T030-T044 任务链。
-- T031 是当前实施入口。
+- T031-T041 已完成；T043 已完成生产入口切换和旧运行时清理。
+- T042 生产人工验收复跑确认首屏空白：生产 `minZoom=0`、初始 `zoom=15` 时，`MixedLODPlanner` 只产生 z=0 根 Tile，默认 SSE 细化阈值未触发。
+- T045 已建立为初始覆盖细化修复任务，限定修改 `nova-tile/lod/**` 和对应 LOD 回归测试；修复完成后重跑 T042。
 - 规范：`docs/architecture/nova-tile-engine.md`。
 - 决策：`docs/decisions/D033-nova-tile-engine-plan.md`。
+- 证据：`docs/evidence/T042-production-browser.json`、`docs/evidence/T045-nte-initial-coverage-analysis.json`。
 
 ## 人工验收失败事实
 
 - T021/T023/T025 的自动测试和真实浏览器脚本不能替代人工体验结论。
 - 人工负责人已明确报告：pan/zoom 加载慢、运动期间缺少预加载感、停止后继续出现请求波次、Tile 逐块出现、初始化中心向外水波式加载、白闪仍存在，且页面帧率和 pan 卡顿严重。
-- 当前结论：NTE 任务链按 T031-T044 顺序执行。
+- 当前恢复顺序：T045 修复初始覆盖细化规划，随后重跑 T042，再执行 T044。
 - 证据：`docs/ai-sessions/2026-09-12.md`、`TASKS.md`、`PROJECT.md`。
 
 ## 旧路径隔离

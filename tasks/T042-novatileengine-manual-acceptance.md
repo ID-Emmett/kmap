@@ -67,12 +67,12 @@ BLOCKED
 
 ## Findings
 
-- 2026-09-13 生产入口探测：`http://127.0.0.1:5174/` 的 `apps/playground/src/main.ts` 创建 `Map3D`；`packages/map3d/src/Map3D.ts` 导入并实例化 `TileStreamingEngine`。
-- Chromium 153 WebGPU 与强制 WebGL2 探测均返回 `window.__novaMap3D.constructor.name = Map3D`；后端分别为 `webgpu`、`webgl2`；状态统计使用 `tiles.visible/ready` 与 `resources.batches/features` 结构。
-- T041 的 Chromium WebGPU/WebGL2、慢网、缓存、失败冷却、60 秒交互和 dispose 证据对应独立 NTE harness（`docs/evidence/T041-browser-harness.html`）；该证据范围是 NTE 隔离实现。
-- T042 生产人工轨迹的前置条件是 Playground 入口切换到 NovaTileEngine；当前生产验收结论为 BLOCKED。
+- 2026-09-13 生产 NTE 双后端复跑：真实 Chromium WebGPU 与强制 WebGL2 均进入 `ready`，但首屏截图为空；两端统计均为 `visible=1`、`ready=1`、`resources.batches=1`。
+- 当前生产 `MixedLODPlanner` 在 `zoom=15`、`minZoom=0` 场景仅计划单个 `z=0` 根 Tile；SSE 使用 `2 ** (key.z - targetZoom)`，根 Tile 得分约 `9.375`，低于默认细化阈值 `320px`。
+- T043 生产入口检查确认 `Map3D` 当前实例化 `NovaTileEngine`；T042 阻断点位于初始覆盖规划。
+- 证据：`docs/evidence/T042-production-browser.json`、`docs/evidence/T042-webgpu-initial.png`、`docs/evidence/T042-webgl2-initial.png`、`docs/evidence/T045-nte-initial-coverage-analysis.json`。
 
 ## Open Issues
 
-- T043 需要先完成 `Map3D` 生产入口切换到 `NovaTileEngine`，并删除 `TileStreamingEngine` 运行时及其专属引用。
-- T043 完成后重新执行 T042 的 WebGPU/WebGL2 人工轨迹，补齐初始化、pan、zoom、bearing、pitch 0/20/40/60、停止等待、缓存复用、dispose 的截图与操作记录。
+- 修复任务 T045 负责修正 `MixedLODPlanner` 的 Bootstrap 层级和细化评分方向；该修改超出 T042 的 Allowed Files（`packages/playground/**`），当前任务停止于阻断证据。
+- 修复后重新执行 T042 的 WebGPU/WebGL2 人工轨迹，补齐初始化、pan、zoom、bearing、pitch 0/20/40/60、停止等待、缓存复用、dispose 的截图与操作记录。

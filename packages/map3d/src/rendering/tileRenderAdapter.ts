@@ -2,24 +2,45 @@ import { Group, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
 import type { Scene } from 'three/webgpu';
 
 import type { TileBuildPayloadV1 } from '../geometry/types.js';
-import type { MapOrigin, RenderTileKey } from '../spatial/types.js';
+import type { MapOrigin } from '../spatial/types.js';
 import { getTileSpanMeters } from '../spatial/mercator.js';
 import { getTileAnchorRelativeToOrigin } from '../spatial/mapOrigin.js';
-import type {
-  TileRuntimeRenderAdapter,
-  TileRuntimeRenderInput,
-} from '../runtime/tileRuntimeTypes.js';
-import type {
-  TileResourceStats,
-  TileRuntimeResource,
-} from '../runtime/tileRecord.js';
 import { LineTileGpuRecord } from './lineTile.js';
 import { MaterialRegistry } from './materialRegistry.js';
 import { PolygonTileGpuRecord } from './polygonTile.js';
 
 /** 将 Worker payload 转换为 Scene 中的 Tile 级 Polygon/Line 资源。 */
-export class ThreeTileRenderAdapter
-implements TileRuntimeRenderAdapter<TileBuildPayloadV1> {
+export interface TileRenderResourceStats {
+  readonly batches: number;
+  readonly features: number;
+  readonly vertices: number;
+  readonly indices: number;
+  readonly objects: number;
+}
+
+export interface TileRenderResource {
+  readonly cpuBytes: number;
+  readonly gpuBytes: number;
+  readonly stats: TileRenderResourceStats;
+  readonly setRenderKeys?: (renderKeys: readonly LegacyRenderTileKey[]) => void;
+  readonly setDisplayOpacity?: (opacity: number) => void;
+  readonly dispose: () => void;
+}
+
+interface TileRenderInput {
+  readonly payload: TileBuildPayloadV1;
+  readonly key?: TileBuildPayloadV1['key'];
+  readonly generation?: number;
+  readonly signal?: AbortSignal;
+  readonly renderKeys?: readonly LegacyRenderTileKey[];
+}
+
+interface LegacyRenderTileKey {
+  readonly canonical: TileBuildPayloadV1['key'];
+  readonly wrap: number;
+}
+
+export class ThreeTileRenderAdapter {
   readonly #scene: Scene;
   readonly #materials: MaterialRegistry;
   readonly #resources = new Set<ThreeTileResource>();
@@ -36,9 +57,7 @@ implements TileRuntimeRenderAdapter<TileBuildPayloadV1> {
     this.#origin = origin;
   }
 
-  upload(
-    input: TileRuntimeRenderInput<TileBuildPayloadV1>,
-  ): TileRuntimeResource {
+  upload(input: TileRenderInput): TileRenderResource {
     if (this.#disposed) {
       throw new Error('Tile Render adapter 已销毁。');
     }
@@ -74,7 +93,7 @@ implements TileRuntimeRenderAdapter<TileBuildPayloadV1> {
   }
 }
 
-class ThreeTileResource implements TileRuntimeResource {
+class ThreeTileResource implements TileRenderResource {
   readonly container = new Group();
   readonly cpuBytes: number;
   readonly gpuBytes: number;
@@ -94,7 +113,7 @@ class ThreeTileResource implements TileRuntimeResource {
   #disposed = false;
 
   constructor(
-    renderKeys: readonly RenderTileKey[] | undefined,
+    renderKeys: readonly LegacyRenderTileKey[] | undefined,
     payload: TileBuildPayloadV1,
     origin: MapOrigin,
     materials: MaterialRegistry,
@@ -130,7 +149,7 @@ class ThreeTileResource implements TileRuntimeResource {
     this.setRenderKeys(renderKeys ?? [{ canonical: payload.key, wrap: 0 }]);
   }
 
-  get stats(): Readonly<TileResourceStats> {
+  get stats(): Readonly<TileRenderResourceStats> {
     return {
       batches: this.#batches,
       features: this.#features,
@@ -169,7 +188,7 @@ class ThreeTileResource implements TileRuntimeResource {
     }
   }
 
-  setRenderKeys(renderKeys: readonly RenderTileKey[]): void {
+  setRenderKeys(renderKeys: readonly LegacyRenderTileKey[]): void {
     if (this.#disposed) {
       return;
     }
@@ -291,11 +310,11 @@ function setRenderInstancePosition(
 }
 
 function uniqueRenderKeys(
-  renderKeys: readonly RenderTileKey[],
+  renderKeys: readonly LegacyRenderTileKey[],
   canonical: TileBuildPayloadV1['key'],
-): readonly RenderTileKey[] {
+): readonly LegacyRenderTileKey[] {
   const seen = new Set<number>();
-  const result: RenderTileKey[] = [];
+  const result: LegacyRenderTileKey[] = [];
   for (const renderKey of renderKeys) {
     if (
       renderKey.canonical.sourceId !== canonical.sourceId ||

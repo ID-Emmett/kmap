@@ -69,6 +69,7 @@ const taskFileById = new Map([
   ['T042', 'tasks/T042-novatileengine-manual-acceptance.md'],
   ['T043', 'tasks/T043-novatileengine-cutover-delete.md'],
   ['T044', 'tasks/T044-novatileengine-release-verification.md'],
+  ['T045', 'tasks/T045-novatileengine-initial-coverage-fix.md'],
 ]);
 
 const errors = [];
@@ -244,8 +245,9 @@ for (const [id, expected] of [
   ['T040', 'DONE'],
   ['T041', 'DONE'],
   ['T042', 'BLOCKED'],
-  ['T043', 'BACKLOG'],
+  ['T043', 'DONE'],
   ['T044', 'BACKLOG'],
+  ['T045', 'BACKLOG'],
 ]) {
   if (statusById.get(id) !== expected) {
     errors.push(`当前路线状态错误：${id} 应为 ${expected}，实际为 ${statusById.get(id) ?? '缺失'}`);
@@ -279,6 +281,7 @@ for (const [id, expected] of [
   ['T040', 'DONE'],
   ['T041', 'DONE'],
   ['T042', 'BLOCKED'],
+  ['T045', 'BACKLOG'],
 ]) {
   const rowPattern = new RegExp(`\\|\\s*${id}\\s*\\|\\s*${expected}\\s*\\|`);
   if (!rowPattern.test(projectState)) {
@@ -343,7 +346,7 @@ console.log('AI governance check passed.');
 console.log(`- Required governance files: ${requiredFiles.length}`);
 console.log(`- Parsed tasks: ${taskRows.length}`);
 console.log(`- Open implementation tasks with context packets: ${implementationOpenTasks.length}`);
-console.log('- Current route gate: T031-T041 are complete; T042 is blocked pending T043 production cutover; T026/T027 are blocked.');
+console.log('- Current route gate: T031-T041 are complete; T043 production cutover is complete; T045 repairs initial coverage before T042 manual acceptance reruns; T026/T027 are blocked.');
 console.log('- Formal documentation gate: policy anchors and pollution scan active.');
 if (warnings.length > 0) {
   console.log('Warnings:');

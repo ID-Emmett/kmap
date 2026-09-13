@@ -1,10 +1,7 @@
 import type { MapCameraFrame } from './mapCamera.js';
 import { mercatorPointToScene } from './mapCamera.js';
-import type { TilePoint } from '../spatial/tileCoverageGeometry.js';
-import {
-  WEB_MERCATOR_HALF_WORLD_SIZE,
-  WEB_MERCATOR_WORLD_SIZE,
-} from '../spatial/mercator.js';
+import type { GroundPoint } from '../nova-tile/coverage/index.js';
+import { WEB_MERCATOR_HALF_WORLD_SIZE, WEB_MERCATOR_WORLD_SIZE } from '../spatial/mercator.js';
 import type { MapOrigin, MercatorPoint } from '../spatial/types.js';
 import { normalizeViewState } from '../spatial/viewState.js';
 import type { ViewState } from '../types.js';
@@ -27,8 +24,9 @@ export interface HorizonFadeInput {
   view: ViewState;
   camera: MapCameraFrame;
   origin: MapOrigin;
-  footprint: readonly TilePoint[];
-  footprintZoom: number;
+  footprint: readonly GroundPoint[];
+  /** 兼容旧调用方的 Tile 坐标层级；生产 NTE 路径直接传 Mercator 米坐标。 */
+  footprintZoom?: number;
 }
 
 export const DISABLED_HORIZON_FADE: HorizonFadeParameters = Object.freeze({
@@ -79,7 +77,7 @@ function getFootprintDepthRange(
   let farDepth = targetDepth;
 
   for (const tilePoint of input.footprint) {
-    const mercator = tilePointToMercator(tilePoint, input.footprintZoom);
+    const mercator = input.footprintZoom === undefined ? tilePoint : tilePointToMercator(tilePoint, input.footprintZoom);
     const scene = mercatorPointToScene(mercator, input.origin);
     const depth =
       (scene.x - input.camera.position.x) * forward.x +
@@ -94,17 +92,11 @@ function getFootprintDepthRange(
   return Math.max(0, farDepth - targetDepth);
 }
 
-function tilePointToMercator(point: TilePoint, zoom: number): MercatorPoint {
+function tilePointToMercator(point: GroundPoint, zoom: number): MercatorPoint {
   const scale = 2 ** zoom;
-  return {
-    x:
-      (point.x / scale) * WEB_MERCATOR_WORLD_SIZE -
-      WEB_MERCATOR_HALF_WORLD_SIZE,
-    y:
-      WEB_MERCATOR_HALF_WORLD_SIZE -
-      (point.y / scale) * WEB_MERCATOR_WORLD_SIZE,
-  };
+  return { x: (point.x / scale) * WEB_MERCATOR_WORLD_SIZE - WEB_MERCATOR_HALF_WORLD_SIZE, y: WEB_MERCATOR_HALF_WORLD_SIZE - (point.y / scale) * WEB_MERCATOR_WORLD_SIZE };
 }
+
 
 function normalizeVector(vector: {
   x: number;

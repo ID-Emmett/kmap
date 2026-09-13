@@ -5,15 +5,9 @@ import {
   calculateHorizonFadeParameters,
 } from '../src/rendering/horizonFade.js';
 import { updateMapCamera } from '../src/rendering/mapCamera.js';
-import { calculateTileCoverage } from '../src/spatial/tileCoverage.js';
+import { createGroundFootprint } from '../src/nova-tile/coverage/index.js';
+import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
 import type { ViewState, ViewportSize } from '../src/types.js';
-
-const SOURCE = {
-  id: 'main',
-  tiles: ['https://tiles.example.test/{z}/{x}/{y}.pbf'],
-  minZoom: 0,
-  maxZoom: 15,
-} as const;
 
 const CENTER = { lng: 116.4074, lat: 39.9042 } as const;
 
@@ -72,15 +66,15 @@ function calculateSample({
     bearing: 15,
     pitch,
   };
-  const coverage = calculateTileCoverage(view, viewport, SOURCE);
+  const origin = selectMapOrigin(view.center, Math.floor(zoom));
+  const footprint = createGroundFootprint(view, viewport);
   const camera = new PerspectiveCamera();
-  const frame = updateMapCamera(camera, view, viewport, coverage.origin);
+  const frame = updateMapCamera(camera, view, viewport, origin);
   const params = calculateHorizonFadeParameters({
     view,
     camera: frame,
-    origin: coverage.origin,
-    footprint: coverage.footprint,
-    footprintZoom: coverage.referenceZoom,
+    origin,
+    footprint: footprint.points,
   });
 
   return { frame, params };

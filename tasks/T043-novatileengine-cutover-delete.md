@@ -70,12 +70,15 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- `Map3D` 生产入口已固定使用 `NovaTileEngine`，渲染、请求、Worker、缓存、资源登记和诊断均通过 NTE 编排。
+- 旧 streaming、旧 coverage/motion、旧 Tile Runtime 源码及专属测试已删除。
+- `ThreeTileRenderAdapter` 和 horizon fade 已移除对旧 runtime/coverage 类型的依赖。
+- `pnpm --filter @nova/map3d typecheck`、Map3D 全量测试通过；import 扫描未发现旧入口引用。
 
 ## Open Issues
 
-- 待实施验证。
+- 真实 Chromium WebGPU/WebGL2/KYE 人工验收由 T042 继续执行。

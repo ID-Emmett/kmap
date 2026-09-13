@@ -1,57 +1,37 @@
-import {
-  Color,
-  PerspectiveCamera,
-  Scene,
-  WebGPURenderer,
-} from 'three/webgpu';
-
-import {
-  createLineLayerRecipe,
-  createPolygonLayerRecipe,
-} from './geometry/types.js';
-import type {
-  TileBuildPayloadV1,
-  TileLayerRecipeV1,
-} from './geometry/types.js';
+import { Color, PerspectiveCamera, Scene, WebGPURenderer } from 'three/webgpu';
+import { createLineLayerRecipe, createPolygonLayerRecipe } from './geometry/types.js';
+import type { TileBuildPayloadV1, TileLayerRecipeV1 } from './geometry/types.js';
 import { MapInteractionController } from './interaction/mapInteractions.js';
 import type { InteractionMotionSnapshot } from './interaction/motionSnapshot.js';
 import { calculateHorizonFadeParameters } from './rendering/horizonFade.js';
 import { updateMapCamera } from './rendering/mapCamera.js';
 import { MaterialRegistry } from './rendering/materialRegistry.js';
+import { ThreeTileRenderAdapter } from './rendering/tileRenderAdapter.js';
+import type { TileRenderResource } from './rendering/tileRenderAdapter.js';
 import { normalizeViewport } from './rendering/viewport.js';
 import { TypedEventEmitter } from './runtime/events.js';
-import {
-  createMapDisposedError,
-  normalizeMapRuntimeError,
-} from './runtime/errors.js';
+import { createMapDisposedError, normalizeMapRuntimeError } from './runtime/errors.js';
 import { ViewStateStore } from './runtime/viewStateStore.js';
-import { normalizeVectorTileSourceOptions } from './source/vectorTileSource.js';
+import { normalizeVectorTileSourceOptions, getTileRequestUrl } from './source/vectorTileSource.js';
+import type { VectorTileSource } from './source/types.js';
 import { lngLatToTilePosition } from './spatial/mercator.js';
-import { calculateTileCoverage } from './spatial/tileCoverage.js';
-import { createCanonicalTileKey, resolveDataZoom } from './spatial/tileKey.js';
+import { resolveDataZoom, createCanonicalTileKey as createLegacyCanonicalTileKey } from './spatial/tileKey.js';
+import { selectMapOrigin } from './spatial/mapOrigin.js';
 import type { MapOrigin } from './spatial/types.js';
-import type { TileCoverageResult } from './spatial/tileCoverage.js';
-import type {
-  CanonicalTileKey,
-  MapEventMap,
-  Map3DOptions,
-  MapRuntimeStats,
-  MapLayerOptions,
-  RenderBackend,
-  ViewportSize,
-  ViewState,
-} from './types.js';
+import type { CanonicalTileKey as LegacyTileKey } from './types.js';
+import type { MapEventMap, Map3DOptions, MapRuntimeStats, MapLayerOptions, RenderBackend, ViewportSize, ViewState } from './types.js';
 import { TileWorkerPool } from './worker/pool.js';
-import { ThreeTileRenderAdapter } from './rendering/tileRenderAdapter.js';
-import { TileStreamingEngine } from './streaming/tileStreamingEngine.js';
-import type { TileStreamingStats } from './streaming/types.js';
-import {
-  StreamingTileWorkerAdapter,
-  StreamingVectorSourceAdapter,
-} from './streaming/adapters.js';
+import type { TileBuildJob } from './worker/pool.js';
+import { MixedLODPlanner, NovaTileEngine, TileCache, TileDiagnostics, TileFetchPipeline, TileResourceRegistry } from './nova-tile/index.js';
+import type { NovaTileError, TileStats } from './nova-tile/index.js';
+import type { CanonicalTileKey as NovaTileKey } from './nova-tile/tileAddress.js';
+import type { WorkerAdapter, WorkerJobInput } from './nova-tile/worker/index.js';
+import { createGroundFootprint } from './nova-tile/coverage/index.js';
+import type { GroundFootprint } from './nova-tile/coverage/index.js';
 
 const DEFAULT_BACKGROUND_COLOR = 0x07111c;
 const FRAME_SAMPLE_LIMIT = 120;
+const SOURCE_REVISION = 'map3d-source-v1';
 
 /** Nova Map3D 0.1 根运行时入口。 */
 export class Map3D {
@@ -61,447 +41,116 @@ export class Map3D {
   readonly #materials = new MaterialRegistry();
   readonly #backgroundColor: Color;
   readonly #events = new TypedEventEmitter<MapEventMap>();
-  readonly #source;
+  readonly #source: VectorTileSource;
   readonly #layers: readonly TileLayerRecipeV1[];
-  readonly #tileKey: CanonicalTileKey;
+  readonly #tileKey: LegacyTileKey;
   readonly #viewStore: ViewStateStore;
   readonly #interactions: MapInteractionController;
   readonly #reducedMotion: boolean;
-  #origin: MapOrigin;
-  #coverage: TileCoverageResult;
-  #viewport = normalizeViewport({ width: 1, height: 1, pixelRatio: 1 });
   readonly #maxPixelRatio: number | undefined;
+  readonly #cacheOptions: NonNullable<Map3DOptions['cache']>;
+  #origin: MapOrigin;
+  #footprint: GroundFootprint;
+  #viewport = normalizeViewport({ width: 1, height: 1, pixelRatio: 1 });
   #workerPool: TileWorkerPool | undefined;
-  #tileEngine: TileStreamingEngine<TileBuildPayloadV1> | undefined;
+  #tileEngine: NovaTileEngine<TileBuildPayloadV1, readonly TileLayerRecipeV1[], TileRenderResource> | undefined;
   #renderAdapter: ThreeTileRenderAdapter | undefined;
+  #resourceRegistry: TileResourceRegistry<TileRenderResource> | undefined;
   #initializePromise: Promise<void> | undefined;
   #initialized = false;
   #disposed = false;
   #running = false;
   #frameLastMs = 0;
+  #frameId = 0;
+  #lastFrameTime = 0;
+  #targetTileCount = 0;
   readonly #frameSamples: number[] = [];
 
   constructor(options: Map3DOptions) {
     this.#source = normalizeVectorTileSourceOptions(options.source);
-
-    if (options.layers.length === 0) {
-      throw new RangeError('Map3D 至少需要一个 fill 或 line layer。');
-    }
-
-    this.#layers = Object.freeze(
-      options.layers.map((layer, renderOrder) =>
-        createLayerRecipe(layer, renderOrder),
-      ),
-    );
+    if (options.layers.length === 0) throw new RangeError('Map3D 至少需要一个 fill 或 line layer。');
+    this.#layers = Object.freeze(options.layers.map((layer, renderOrder) => createLayerRecipe(layer, renderOrder)));
     const maxPixelRatio = options.renderer?.maxPixelRatio;
-    if (
-      maxPixelRatio !== undefined &&
-      (!Number.isFinite(maxPixelRatio) || maxPixelRatio <= 0)
-    ) {
-      throw new RangeError('renderer.maxPixelRatio 必须是正有限数值。');
-    }
+    if (maxPixelRatio !== undefined && (!Number.isFinite(maxPixelRatio) || maxPixelRatio <= 0)) throw new RangeError('renderer.maxPixelRatio 必须是正有限数值。');
     this.#maxPixelRatio = maxPixelRatio;
     this.#cacheOptions = options.cache ?? {};
     this.#viewStore = new ViewStateStore(options.view);
     const initialView = this.#viewStore.get();
-    const dataZoom = resolveDataZoom(
-      initialView.zoom,
-      this.#source.minZoom,
-      this.#source.maxZoom,
-    );
+    const dataZoom = resolveDataZoom(initialView.zoom, this.#source.minZoom, this.#source.maxZoom);
     const tilePosition = lngLatToTilePosition(initialView.center, dataZoom);
-    const tileKey = createCanonicalTileKey(
-      this.#source.id,
-      dataZoom,
-      Math.floor(tilePosition.x),
-      Math.floor(tilePosition.y),
-    );
-
-    if (tileKey === undefined) {
-      throw new RangeError('初始 ViewState 未对应有效 Tile。');
-    }
-
+    const tileKey = createLegacyCanonicalTileKey(this.#source.id, dataZoom, Math.floor(tilePosition.x), Math.floor(tilePosition.y));
+    if (tileKey === undefined) throw new RangeError('初始 ViewState 未对应有效 Tile。');
     this.#tileKey = tileKey;
-    this.#coverage = calculateTileCoverage(
-      initialView,
-      this.#viewport,
-      this.#source,
-    );
-    this.#origin = this.#coverage.origin;
-    this.#backgroundColor = new Color(
-      options.renderer?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR,
-    );
+    this.#origin = selectMapOrigin(initialView.center, dataZoom);
+    this.#footprint = createFootprint(initialView, this.#viewport);
+    this.#backgroundColor = new Color(options.renderer?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR);
     this.#scene.background = this.#backgroundColor;
-    this.#reducedMotion =
-      typeof matchMedia === 'function' &&
-      matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.#renderer = new WebGPURenderer({
-      canvas: options.canvas,
-      antialias: options.renderer?.antialias ?? true,
-      forceWebGL: options.renderer?.forceWebGL ?? false,
-    });
-    const initialFrame = updateMapCamera(
-      this.#camera,
-      initialView,
-      this.#viewport,
-      this.#origin,
-    );
-    this.#materials.setHorizonFade(
-      calculateHorizonFadeParameters({
-        view: initialView,
-        camera: initialFrame,
-        origin: this.#origin,
-        footprint: this.#coverage.footprint,
-        footprintZoom: this.#coverage.referenceZoom,
-      }),
-      this.#backgroundColor,
-    );
-    this.#viewStore.onChange((view) => {
-      this.#applyView(view);
-      this.#events.emit('viewchange', { view });
-    });
-    this.#interactions = new MapInteractionController({
-      target: options.canvas,
-      getView: () => this.#viewStore.get(),
-      setView: (view) => this.#setViewFromInteraction(view),
-      getViewport: () => this.#viewport,
-      reducedMotion: this.#reducedMotion,
-      onMotion: (snapshot) => this.#applyMotion(snapshot),
-    });
+    this.#reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.#renderer = new WebGPURenderer({ canvas: options.canvas, antialias: options.renderer?.antialias ?? true, forceWebGL: options.renderer?.forceWebGL ?? false });
+    this.#applyView(initialView);
+    this.#viewStore.onChange((view) => { this.#applyView(view); this.#events.emit('viewchange', { view }); });
+    this.#interactions = new MapInteractionController({ target: options.canvas, getView: () => this.#viewStore.get(), setView: (view) => this.#setViewFromInteraction(view), getViewport: () => this.#viewport, reducedMotion: this.#reducedMotion, onMotion: (snapshot) => this.#applyMotion(snapshot) });
   }
 
-  /** 初始化渲染后端并加载当前 ViewState 对应的动态 Tile 覆盖。 */
-  initialize(): Promise<void> {
-    if (this.#disposed) {
-      return Promise.reject(createMapDisposedError());
-    }
-
-    this.#initializePromise ??= this.#initializeOnce();
-    return this.#initializePromise;
-  }
-
-  /** 返回底层渲染器，供宿主集成 Inspector 等开发工具。 */
-  getRenderer(): WebGPURenderer {
-    return this.#renderer;
-  }
-
-  /** 返回初始化后实际启用的渲染后端。 */
-  getBackend(): RenderBackend {
-    const backend = this.#renderer.backend as {
-      isWebGLBackend?: boolean;
-      isWebGPUBackend?: boolean;
-    };
-
-    if (backend.isWebGPUBackend === true) {
-      return 'webgpu';
-    }
-    if (backend.isWebGLBackend === true) {
-      return 'webgl2';
-    }
-    return 'unknown';
-  }
-
-  /** 返回当前归一化视图状态的副本。 */
-  getView(): ViewState {
-    return this.#viewStore.get();
-  }
-
-  /** 同步更新 ViewState、Camera、Coverage 和 MapOrigin。 */
-  setView(view: Partial<ViewState>): void {
-    if (this.#disposed) {
-      throw createMapDisposedError();
-    }
-    this.#interactions.cancelMotion();
-    this.#viewStore.set(view);
-  }
-
-  on<Type extends keyof MapEventMap>(
-    type: Type,
-    listener: (event: MapEventMap[Type]) => void,
-  ): () => void {
-    if (this.#disposed) {
-      throw createMapDisposedError();
-    }
-    return this.#events.on(type, listener);
-  }
+  initialize(): Promise<void> { if (this.#disposed) return Promise.reject(createMapDisposedError()); this.#initializePromise ??= this.#initializeOnce(); return this.#initializePromise; }
+  getRenderer(): WebGPURenderer { return this.#renderer; }
+  getBackend(): RenderBackend { const backend = this.#renderer.backend as { isWebGLBackend?: boolean; isWebGPUBackend?: boolean }; if (backend.isWebGPUBackend === true) return 'webgpu'; if (backend.isWebGLBackend === true) return 'webgl2'; return 'unknown'; }
+  getView(): ViewState { return this.#viewStore.get(); }
+  setView(view: Partial<ViewState>): void { if (this.#disposed) throw createMapDisposedError(); this.#interactions.cancelMotion(); this.#viewStore.set(view); }
+  on<Type extends keyof MapEventMap>(type: Type, listener: (event: MapEventMap[Type]) => void): () => void { if (this.#disposed) throw createMapDisposedError(); return this.#events.on(type, listener); }
 
   getStats(): MapRuntimeStats {
-    const runtimeStats = this.#tileEngine?.getStats();
-
-    return {
-      backend: this.getBackend(),
-      frame: {
-        lastMs: this.#frameLastMs,
-        p95Ms: getPercentile95(this.#frameSamples),
-      },
-      tiles: {
-        visible: this.#disposed
-          ? 0
-          : runtimeStats?.tiles.visible ?? this.#coverage.visible.length,
-        queued: runtimeStats?.tiles.queued ?? 0,
-        fetching: runtimeStats?.tiles.fetching ?? 0,
-        decoding: runtimeStats?.tiles.decoding ?? 0,
-        building: runtimeStats?.tiles.building ?? 0,
-        ready: runtimeStats?.tiles.ready ?? 0,
-        empty: runtimeStats?.tiles.empty ?? 0,
-        failed: runtimeStats?.tiles.failed ?? 0,
-      },
-      resources: {
-        cpuBytes: runtimeStats?.resources.cpuBytes ?? 0,
-        gpuBytes: runtimeStats?.resources.gpuBytes ?? 0,
-        batches: runtimeStats?.resources.batches ?? 0,
-        features: runtimeStats?.resources.features ?? 0,
-        vertices: runtimeStats?.resources.vertices ?? 0,
-        indices: runtimeStats?.resources.indices ?? 0,
-        objects: runtimeStats?.resources.objects ?? 0,
-      },
-      workers: runtimeStats?.workers ?? { active: 0, queued: 0 },
-    };
+    const tileStats = this.#tileEngine?.getStats();
+    const resourceStats = this.#resourceRegistry?.getStats();
+    const resourceTotals = getResourceTotals(this.#resourceRegistry);
+    return { backend: this.getBackend(), frame: { lastMs: this.#frameLastMs, p95Ms: getPercentile95(this.#frameSamples) }, tiles: { visible: this.#disposed ? 0 : this.#targetTileCount, queued: tileStats?.planned ?? 0, fetching: tileStats?.inFlight ?? 0, decoding: 0, building: 0, ready: (tileStats?.ready ?? 0) + (tileStats?.committed ?? 0) + (tileStats?.retained ?? 0), empty: tileStats?.empty ?? 0, failed: tileStats?.failed ?? 0 }, resources: { cpuBytes: resourceStats?.cpuBytes ?? 0, gpuBytes: resourceStats?.gpuBytes ?? 0, ...resourceTotals }, workers: this.#workerPool?.getStats() ?? { active: 0, queued: 0 } };
   }
 
-  /** 更新视口，并重新推导 Camera、Coverage 和 MapOrigin。 */
-  resize(size: ViewportSize): void {
-    if (this.#disposed) {
-      throw createMapDisposedError();
-    }
-
-    const pixelRatio =
-      this.#maxPixelRatio === undefined
-        ? size.pixelRatio
-        : Math.min(size.pixelRatio ?? 1, this.#maxPixelRatio);
-    this.#viewport = normalizeViewport(
-      pixelRatio === undefined
-        ? { width: size.width, height: size.height }
-        : { width: size.width, height: size.height, pixelRatio },
-    );
-    this.#renderer.setPixelRatio(this.#viewport.pixelRatio);
-    this.#renderer.setSize(
-      this.#viewport.width,
-      this.#viewport.height,
-      false,
-    );
-    this.#applyView(this.#viewStore.get());
-  }
-
-  /** 启动由 Three.js 管理的渲染循环。 */
-  start(): void {
-    if (this.#disposed) {
-      throw createMapDisposedError();
-    }
-    if (!this.#initialized || this.#running) {
-      return;
-    }
-
-    this.#running = true;
-    this.#renderer.setAnimationLoop(() => {
-      const startedAt = performance.now();
-      this.#renderer.render(this.#scene, this.#camera);
-      this.#frameLastMs = performance.now() - startedAt;
-      this.#frameSamples.push(this.#frameLastMs);
-      if (this.#frameSamples.length > FRAME_SAMPLE_LIMIT) {
-        this.#frameSamples.shift();
-      }
-    });
-  }
-
-  /** 停止渲染循环。 */
-  stop(): void {
-    if (!this.#running) {
-      return;
-    }
-    this.#running = false;
-    this.#renderer.setAnimationLoop(null);
-  }
-
-  /** 取消固定 Tile 工作并按 Tile → Worker → Renderer 顺序释放。 */
-  dispose(): void {
-    if (this.#disposed) {
-      return;
-    }
-
-    this.#disposed = true;
-    this.stop();
-    this.#interactions.dispose();
-    this.#viewStore.dispose();
-    this.#tileEngine?.dispose();
-    this.#materials.dispose();
-    this.#tileEngine = undefined;
-    this.#renderAdapter = undefined;
-    this.#workerPool = undefined;
-    this.#renderer.dispose();
-    this.#events.clear();
-    this.#initialized = false;
-  }
+  resize(size: ViewportSize): void { if (this.#disposed) throw createMapDisposedError(); const pixelRatio = this.#maxPixelRatio === undefined ? size.pixelRatio : Math.min(size.pixelRatio ?? 1, this.#maxPixelRatio); this.#viewport = normalizeViewport(pixelRatio === undefined ? { width: size.width, height: size.height } : { width: size.width, height: size.height, pixelRatio }); this.#renderer.setPixelRatio(this.#viewport.pixelRatio); this.#renderer.setSize(this.#viewport.width, this.#viewport.height, false); this.#applyView(this.#viewStore.get()); }
+  start(): void { if (this.#disposed) throw createMapDisposedError(); if (!this.#initialized || this.#running) return; this.#running = true; this.#renderer.setAnimationLoop((time?: number) => this.#renderFrame(time ?? performance.now())); }
+  stop(): void { if (!this.#running) return; this.#running = false; this.#renderer.setAnimationLoop(null); }
+  dispose(): void { if (this.#disposed) return; this.#disposed = true; this.stop(); this.#interactions.dispose(); this.#viewStore.dispose(); void this.#tileEngine?.dispose(); this.#renderAdapter?.dispose(); this.#materials.dispose(); this.#tileEngine = undefined; this.#renderAdapter = undefined; this.#resourceRegistry = undefined; this.#workerPool = undefined; this.#renderer.dispose(); this.#events.clear(); this.#initialized = false; }
 
   async #initializeOnce(): Promise<void> {
     try {
       await this.#renderer.init();
-
-      if (this.#disposed) {
-        throw createMapDisposedError();
-      }
-
-      this.#initialized = true;
-      this.start();
-      const workerPool = new TileWorkerPool();
-      this.#workerPool = workerPool;
-      const sourceAdapter = new StreamingVectorSourceAdapter(this.#source);
-      const workerAdapter = new StreamingTileWorkerAdapter(workerPool, this.#layers);
-      const renderAdapter = new ThreeTileRenderAdapter(
-        this.#scene,
-        this.#materials,
-        this.#origin,
-      );
-      this.#renderAdapter = renderAdapter;
-      const tileEngine = new TileStreamingEngine<TileBuildPayloadV1>({
-        source: sourceAdapter,
-        worker: workerAdapter,
-        render: renderAdapter,
-        sourceId: this.#source.id,
-        sourceMinZoom: this.#source.minZoom,
-        sourceMaxZoom: this.#source.maxZoom,
-        reducedMotion: this.#reducedMotion,
-        minFallbackZoom: this.#source.minZoom,
-        ...(this.#cacheOptions.maxTileEntries === undefined
-          ? {}
-          : { maxEntries: this.#cacheOptions.maxTileEntries }),
-        ...(this.#cacheOptions.maxCpuBytes === undefined
-          ? {}
-          : { maxCpuBytes: this.#cacheOptions.maxCpuBytes }),
-        ...(this.#cacheOptions.maxGpuBytes === undefined
-          ? {}
-          : { maxGpuBytes: this.#cacheOptions.maxGpuBytes }),
-      });
-      this.#tileEngine = tileEngine;
-      this.#wireRuntimeEvents(tileEngine);
-      this.#setRuntimeSchedule(tileEngine, this.#viewStore.get());
-      await tileEngine.whenIdle();
-      if (this.#disposed) {
-        throw createMapDisposedError();
-      }
-      this.#events.emit('load', { backend: this.getBackend() });
+      if (this.#disposed) throw createMapDisposedError();
+      const workerPool = new TileWorkerPool(); this.#workerPool = workerPool;
+      const renderAdapter = new ThreeTileRenderAdapter(this.#scene, this.#materials, this.#origin); this.#renderAdapter = renderAdapter;
+      const resources = new TileResourceRegistry<TileRenderResource>(this.#cacheOptions); this.#resourceRegistry = resources;
+      const sourceRevision = SOURCE_REVISION;
+      const fetchPipeline = new TileFetchPipeline({ fetch: async (url, init) => {
+        const response = await globalThis.fetch(url, init);
+        if (!response.ok && response.status !== 204) {
+          const code = response.status >= 400 ? 'HTTP_ERROR' : 'NETWORK_ERROR';
+          this.#events.emit('error', createMapError(code, `Tile 请求返回 HTTP ${response.status}。`, 'request', response.status >= 500, this.#tileKey));
+        }
+        return response;
+      } });
+      const tileEngine = new NovaTileEngine<TileBuildPayloadV1, readonly TileLayerRecipeV1[], TileRenderResource>({ source: { sourceId: this.#source.id, sourceRevision, minZoom: this.#source.minZoom, maxZoom: this.#source.maxZoom, url: (key) => getTileRequestUrl(this.#source, toLegacyKey(key), 0).url }, planner: new MixedLODPlanner({ sourceId: this.#source.id, sourceRevision, minZoom: this.#source.minZoom, maxZoom: this.#source.maxZoom }), worker: createWorkerAdapter(workerPool), fetch: fetchPipeline, workerInput: () => this.#layers, cache: new TileCache<TileBuildPayloadV1>(this.#cacheOptions), resources, diagnostics: new TileDiagnostics(), mapOriginId: 'map3d', uploadBytes: (payload) => payload.stats.outputBytes, upload: (_key, payload) => { const resource = renderAdapter.upload({ payload }); return { resource, cpuBytes: resource.cpuBytes, gpuBytes: resource.gpuBytes, dispose: () => resource.dispose() }; } });
+      this.#tileEngine = tileEngine; this.#wireRuntimeEvents(tileEngine); tileEngine.resize(this.#viewport); tileEngine.updateView(this.#viewStore.get()); await tileEngine.initialize(); this.#initialized = true; await this.#drainTileEngine(tileEngine); this.start(); this.#events.emit('load', { backend: this.getBackend() });
     } catch (error) {
-      if (this.#disposed) {
-        throw createMapDisposedError();
-      }
-
-      this.stop();
-      if (this.#tileEngine !== undefined) {
-        this.#tileEngine.dispose();
-      } else {
-        this.#renderAdapter?.dispose();
-        this.#workerPool?.dispose();
-      }
-      this.#tileEngine = undefined;
-      this.#renderAdapter = undefined;
-      this.#workerPool = undefined;
-      this.#initialized = false;
-      throw normalizeMapRuntimeError(error, this.#tileKey);
+      if (this.#disposed) throw createMapDisposedError(); this.stop(); void this.#tileEngine?.dispose(); this.#renderAdapter?.dispose(); this.#workerPool?.dispose(); this.#tileEngine = undefined; this.#renderAdapter = undefined; this.#workerPool = undefined; this.#resourceRegistry = undefined; this.#initialized = false; throw normalizeMapRuntimeError(error, this.#tileKey);
     }
   }
 
-  #applyView(view: ViewState): void {
-    const previousVisible = this.#coverage.visible;
-    this.#coverage = calculateTileCoverage(
-      view,
-      this.#viewport,
-      this.#source,
-      { previousVisible },
-    );
-    this.#origin = this.#coverage.origin;
-    const frame = updateMapCamera(this.#camera, view, this.#viewport, this.#origin);
-    this.#materials.setHorizonFade(
-      calculateHorizonFadeParameters({
-        view,
-        camera: frame,
-        origin: this.#origin,
-        footprint: this.#coverage.footprint,
-        footprintZoom: this.#coverage.referenceZoom,
-      }),
-      this.#backgroundColor,
-    );
-    this.#renderAdapter?.setOrigin(this.#origin);
-    if (this.#tileEngine !== undefined) {
-      this.#setRuntimeSchedule(this.#tileEngine, view);
-    }
+  async #drainTileEngine(engine: NovaTileEngine<TileBuildPayloadV1, readonly TileLayerRecipeV1[], TileRenderResource>): Promise<void> {
+    for (;;) { engine.frame({ frameId: this.#frameId++, timeMs: performance.now(), deltaMs: 0 }); const stats = engine.getStats(); if (stats.planned === 0 && stats.inFlight === 0) { engine.frame({ frameId: this.#frameId++, timeMs: performance.now(), deltaMs: 0 }); if (engine.getStats().inFlight === 0) break; } await Promise.race([engine.whenIdle(), new Promise<void>((resolve) => setTimeout(resolve, 0))]); if (this.#disposed) throw createMapDisposedError(); }
   }
 
-  #setViewFromInteraction(view: Partial<ViewState>): void {
-    if (this.#disposed) {
-      throw createMapDisposedError();
-    }
-    this.#viewStore.set(view);
-  }
-
-  #applyMotion(snapshot: InteractionMotionSnapshot): void {
-    this.#tileEngine?.setMotion(snapshot);
-    if (snapshot.phase === 'idle' && this.#tileEngine !== undefined) {
-      this.#setRuntimeSchedule(this.#tileEngine, this.#viewStore.get());
-    }
-  }
-
-  #setRuntimeSchedule(
-    runtime: TileStreamingEngine<TileBuildPayloadV1>,
-    view: ViewState,
-  ): void {
-    runtime.setViewContext(
-      view,
-      this.#viewport,
-      this.#source,
-      this.#coverage,
-      performance.now(),
-    );
-  }
-
-  readonly #cacheOptions: NonNullable<Map3DOptions['cache']>;
-
-  #wireRuntimeEvents(runtime: TileStreamingEngine<TileBuildPayloadV1>): void {
-    runtime.on('stats', (stats) => {
-      this.#events.emit('stats', toMapRuntimeStats(this.getBackend(), stats, this.#frameLastMs, this.#frameSamples));
-    });
-    runtime.on('idle', ({ stats }) => {
-      this.#events.emit('idle', {
-        stats: toMapRuntimeStats(
-          this.getBackend(),
-          stats,
-          this.#frameLastMs,
-          this.#frameSamples,
-        ),
-      });
-    });
-    runtime.on('error', (error) => this.#events.emit('error', error));
-  }
+  #renderFrame(timeMs: number): void { const startedAt = performance.now(); const deltaMs = this.#lastFrameTime === 0 ? 0 : Math.max(0, timeMs - this.#lastFrameTime); this.#lastFrameTime = timeMs; this.#tileEngine?.frame({ frameId: this.#frameId++, timeMs, deltaMs }); this.#renderer.render(this.#scene, this.#camera); this.#frameLastMs = performance.now() - startedAt; this.#frameSamples.push(this.#frameLastMs); if (this.#frameSamples.length > FRAME_SAMPLE_LIMIT) this.#frameSamples.shift(); }
+  #applyView(view: ViewState): void { const dataZoom = resolveDataZoom(view.zoom, this.#source.minZoom, this.#source.maxZoom); this.#origin = selectMapOrigin(view.center, dataZoom); this.#footprint = createFootprint(view, this.#viewport); const frame = updateMapCamera(this.#camera, view, this.#viewport, this.#origin); this.#materials.setHorizonFade(calculateHorizonFadeParameters({ view, camera: frame, origin: this.#origin, footprint: this.#footprint.points }), this.#backgroundColor); this.#renderAdapter?.setOrigin(this.#origin); if (this.#tileEngine !== undefined) { this.#tileEngine.resize(this.#viewport); this.#tileEngine.updateView(view); } }
+  #setViewFromInteraction(view: Partial<ViewState>): void { if (this.#disposed) throw createMapDisposedError(); this.#viewStore.set(view); }
+  #applyMotion(_snapshot: InteractionMotionSnapshot): void { /* ViewState 更新由交互控制器回调驱动。 */ }
+  #wireRuntimeEvents(runtime: NovaTileEngine<TileBuildPayloadV1, readonly TileLayerRecipeV1[], TileRenderResource>): void { runtime.on('plan', (event) => { this.#targetTileCount = event.targetKeys.length; }); runtime.on('stats', (stats) => this.#events.emit('stats', toMapRuntimeStats(this.getBackend(), stats, this.#frameLastMs, this.#frameSamples, this.#targetTileCount, this.#resourceRegistry, this.#workerPool))); runtime.on('idle', ({ stats }) => this.#events.emit('idle', { stats: toMapRuntimeStats(this.getBackend(), stats, this.#frameLastMs, this.#frameSamples, this.#targetTileCount, this.#resourceRegistry, this.#workerPool) })); runtime.on('error', (error) => this.#events.emit('error', toMapError(error, this.#tileKey))); }
 }
 
-function createLayerRecipe(
-  layer: MapLayerOptions,
-  renderOrder: number,
-): TileLayerRecipeV1 {
-  return layer.type === 'fill'
-    ? createPolygonLayerRecipe(layer, renderOrder)
-    : createLineLayerRecipe(layer, renderOrder);
-}
-
-function toMapRuntimeStats(
-  backend: RenderBackend,
-  stats: TileStreamingStats,
-  frameLastMs: number,
-  frameSamples: readonly number[],
-): MapRuntimeStats {
-  return {
-    backend,
-    frame: { lastMs: frameLastMs, p95Ms: getPercentile95(frameSamples) },
-    tiles: stats.tiles,
-    resources: stats.resources,
-    workers: stats.workers,
-  };
-}
-
-function getPercentile95(samples: readonly number[]): number {
-  if (samples.length === 0) {
-    return 0;
-  }
-
-  const sorted = [...samples].sort((left, right) => left - right);
-  return sorted[Math.ceil(sorted.length * 0.95) - 1] ?? 0;
-}
+function createLayerRecipe(layer: MapLayerOptions, renderOrder: number): TileLayerRecipeV1 { return layer.type === 'fill' ? createPolygonLayerRecipe(layer, renderOrder) : createLineLayerRecipe(layer, renderOrder); }
+function createFootprint(view: ViewState, viewport: ViewportSize): GroundFootprint { return createGroundFootprint(view, viewport); }
+function toLegacyKey(key: NovaTileKey): LegacyTileKey { return { sourceId: key.sourceId, z: key.z, x: key.x, y: key.y }; }
+function createWorkerAdapter(pool: TileWorkerPool): WorkerAdapter<readonly TileLayerRecipeV1[], TileBuildPayloadV1> { const jobs = new Map<number, TileBuildJob>(); return { run: (input: WorkerJobInput<readonly TileLayerRecipeV1[]> & { readonly jobId: number }) => { const options = input.signal === undefined ? {} : { signal: input.signal }; const job = pool.enqueue({ key: toLegacyKey(input.key), generation: Number(input.generation), data: input.data, layers: input.input }, options); jobs.set(input.jobId, job); return job.result.finally(() => jobs.delete(input.jobId)); }, cancel: (jobId) => jobs.get(jobId)?.cancel(), dispose: () => pool.dispose() }; }
+function getResourceTotals(resources: TileResourceRegistry<TileRenderResource> | undefined): Pick<MapRuntimeStats['resources'], 'batches' | 'features' | 'vertices' | 'indices' | 'objects'> { let batches = 0; let features = 0; let vertices = 0; let indices = 0; let objects = 0; for (const entry of resources?.entries() ?? []) { const stats = entry.resource?.stats; if (stats !== undefined) { batches += stats.batches; features += stats.features; vertices += stats.vertices; indices += stats.indices; objects += stats.objects; } } return { batches, features, vertices, indices, objects }; }
+function toMapRuntimeStats(backend: RenderBackend, stats: TileStats, frameLastMs: number, frameSamples: readonly number[], visible: number, resources: TileResourceRegistry<TileRenderResource> | undefined, workerPool: TileWorkerPool | undefined): MapRuntimeStats { const resourceStats = resources?.stats; return { backend, frame: { lastMs: frameLastMs, p95Ms: getPercentile95(frameSamples) }, tiles: { visible, queued: stats.planned, fetching: stats.inFlight, decoding: 0, building: 0, ready: stats.ready + stats.committed + stats.retained, empty: stats.empty, failed: stats.failed }, resources: { cpuBytes: resourceStats?.cpuBytes ?? 0, gpuBytes: resourceStats?.gpuBytes ?? 0, ...getResourceTotals(resources) }, workers: workerPool?.getStats() ?? { active: 0, queued: 0 } }; }
+function createMapError(code: string, message: string, phase: 'request' | 'decode' | 'build' | 'upload' | 'initialize', recoverable: boolean, tileKey: LegacyTileKey): ReturnType<typeof normalizeMapRuntimeError> { const error = new Error(message) as ReturnType<typeof normalizeMapRuntimeError>; Object.assign(error, { code, phase, recoverable, tileKey }); return error; }
+function toMapError(error: NovaTileError, fallback: LegacyTileKey): ReturnType<typeof normalizeMapRuntimeError> { const code = error.code === 'UPLOAD_ERROR' ? 'INITIALIZE_FAILED' : error.code === 'STALE_RESULT' ? 'WORKER_ERROR' : error.code; const phase = error.phase === 'request' ? 'request' : error.phase === 'decode' ? 'decode' : error.phase === 'build' ? 'build' : error.phase === 'upload' ? 'upload' : 'initialize'; return createMapError(code, error.message, phase, error.recoverable, error.key === undefined ? fallback : toLegacyKey(error.key)); }
+function getPercentile95(samples: readonly number[]): number { if (samples.length === 0) return 0; const sorted = [...samples].sort((left, right) => left - right); return sorted[Math.ceil(sorted.length * 0.95) - 1] ?? 0; }
