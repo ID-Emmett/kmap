@@ -53,7 +53,7 @@ function resolveCoverageCell(
   if (ancestor !== undefined) return Object.freeze({ id, target, entries: Object.freeze([ancestor]), complete: true, blankArea: 0, role: 'ancestor' });
 
   const descendants = [...candidates.values()]
-    .filter((candidate) => candidate.availability === 'ready' && isRenderDescendant(target, candidate.key, pyramid))
+    .filter((candidate) => isRenderableCandidate(candidate) && isRenderDescendant(target, candidate.key, pyramid))
     .sort((left, right) => right.key.canonical.z - left.key.canonical.z || renderTileKeyToString(left.key).localeCompare(renderTileKeyToString(right.key)));
   const covering: RenderTileCandidate[] = [];
   for (const candidate of descendants) {
@@ -67,7 +67,11 @@ function resolveCoverageCell(
 
 function getReadyCandidate(key: RenderTileKey, candidates: ReadonlyMap<string, RenderTileCandidate>): RenderTileCandidate | undefined {
   const candidate = candidates.get(renderTileKeyToString(key));
-  return candidate?.availability === 'ready' ? candidate : undefined;
+  return candidate !== undefined && isRenderableCandidate(candidate) ? candidate : undefined;
+}
+
+function isRenderableCandidate(candidate: RenderTileCandidate): boolean {
+  return candidate.availability === 'ready' || candidate.availability === 'empty';
 }
 
 function isSameRenderKey(left: RenderTileKey, right: RenderTileKey): boolean {

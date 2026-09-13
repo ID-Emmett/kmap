@@ -43,7 +43,7 @@ export type {
 } from './events.js';
 
 export { NovaTileEngine } from './engine.js';
-export type { FrameTime, NovaTileEngineContract } from './engine.js';
+export type { FrameTime, NovaTileEngineContract, NovaTileEngineOptions, NovaTileSourceOptions, NovaTileUploadResult } from './engine.js';
 
 export * from './contracts.js';
 

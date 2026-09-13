@@ -63,12 +63,14 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `packages/map3d/src/nova-tile/engine.ts` 完成模块编排：规划、请求调度、Fetch→Worker、缓存、上传、Render Cover、资源登记、Timeline 和 dispose。
+- 新增 `packages/map3d/test/novaTileEngine.integration.test.ts`，使用固定 fixture、内存 Fetch、确定性 Worker 和 FakeClock 覆盖生命周期、视图变化、缓存命中、204、重试、失败、取消和资源归零。
+- Render Cover 将 empty tile 视为已覆盖结果，保持 `coverageComplete` 与 `blankArea` 不变量。
 
 ## Open Issues
 
-- 待实施验证。
+- 无。

@@ -47,7 +47,7 @@
 | T037 | Render Cover and Cohort Commit | DONE | 实施会话 | T032, T033 |
 | T038 | Upload Budget and Resource Registry | DONE | 实施会话 | T035, T037 |
 | T039 | TileDiagnostics and Timeline | DONE | 实施会话 | T034, T035, T036, T037, T038 |
-| T040 | NovaTileEngine Integration Tests | BACKLOG | 实施会话 | T031-T039 |
+| T040 | NovaTileEngine Integration Tests | DONE | 实施会话 | T031-T039 |
 | T041 | Dual Backend and Slow Network Verification | BACKLOG | 实施会话 | T040 |
 | T042 | NovaTileEngine Manual Acceptance | BACKLOG | 实施会话 | T041 |
 | T043 | Production Cutover and Runtime Deletion | BACKLOG | 实施会话 | T042 |
@@ -55,7 +55,7 @@
 
 ## 当前任务
 
-T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。T031～T039 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存、Render Cover、上传预算、资源登记和诊断 Timeline 已完成；下一步为 T040 NovaTileEngine Integration Tests。
+T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。T031～T040 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存、Render Cover、上传预算、资源登记、诊断 Timeline 和集成测试已完成；下一步为 T041 双后端与慢网验证。
 
 NTE 任务链由契约、空间覆盖、LOD、运动预测、调度、数据管线、缓存、渲染提交、资源预算、诊断、集成测试、双后端验证、人工验收、生产切换和发布验证组成。
 

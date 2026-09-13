@@ -74,7 +74,8 @@ export class NovaTileRenderCover {
 
   get snapshot(): RenderCoverSnapshot {
     const target = this.#target;
-    const coverageComplete = target?.coverageComplete ?? (this.#committed.length > 0 || this.#target === undefined);
+    // 已提交 Cover 在新目标尚未完整时继续承担显示覆盖，保持 blankArea 为零。
+    const coverageComplete = target?.coverageComplete === true || this.#committed.length > 0 || this.#target === undefined;
     return Object.freeze({ planEpoch: this.#planEpoch, target, committed: this.#committed, outgoing: this.#outgoing, transition: this.#transition, coverageComplete, blankArea: coverageComplete ? 0 : target?.blankArea ?? 0 });
   }
 
