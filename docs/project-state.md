@@ -9,7 +9,7 @@
 - Nova 是 Human-Governed + Spec-Driven + Task-Driven + Evidence-Driven 的纯 AI Coding 工程。
 - D033 已确认 `NovaTileEngine` 当前契约、架构模块、加载、调度、缓存、渲染、预算和验收标准。
 - T030 已完成方案与任务依赖冻结。
-- D033 已确认 `NovaTileEngine` 方案和 T030～T044 任务链；T031 契约与独立命名空间已完成，下一组可执行任务为 T032、T034、T035、T036。
+- D033 已确认 `NovaTileEngine` 方案和 T030～T044 任务链；T031～T036 契约、空间覆盖、运动调度、数据管线和分层缓存，以及 T033 混合 LOD 已完成，下一步为 T037 Render Cover 与 Cohort Commit。
 - D031、D032 为历史路线治理记录。
 
 ## 当前任务状态
@@ -29,11 +29,11 @@
 | T029 | BLOCKED | 历史任务记录 |
 | T030 | DONE | NovaTileEngine 方案与任务依赖已冻结 |
 | T031 | DONE | 契约与独立命名空间 |
-| T032 | BACKLOG | TilePyramid 与 GroundFootprint |
-| T033 | BACKLOG | Mixed LOD 与 Pitch Cover |
-| T034 | BACKLOG | Motion Prediction 与 Request Scheduler |
-| T035 | BACKLOG | Fetch 与 Worker Pipeline |
-| T036 | BACKLOG | Layered Cache 与 Persistence |
+| T032 | DONE | TilePyramid 与 GroundFootprint |
+| T033 | DONE | Mixed LOD 与 Pitch Cover |
+| T034 | DONE | Motion Prediction 与 Request Scheduler |
+| T035 | DONE | Fetch 与 Worker Pipeline |
+| T036 | DONE | Layered Cache 与 Persistence |
 | T037 | BACKLOG | Render Cover 与 Cohort Commit |
 | T038 | BACKLOG | Upload Budget 与 Resource Registry |
 | T039 | BACKLOG | TileDiagnostics 与 Timeline |

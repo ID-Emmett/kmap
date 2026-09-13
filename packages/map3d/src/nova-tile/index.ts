@@ -46,3 +46,6 @@ export { NovaTileEngine } from './engine.js';
 export type { FrameTime, NovaTileEngineContract } from './engine.js';
 
 export * from './contracts.js';
+
+export { MixedLODPlanner } from './lod/index.js';
+export type { LODPlannerOptions, LODTileCandidate, MixedLODPlan } from './lod/index.js';

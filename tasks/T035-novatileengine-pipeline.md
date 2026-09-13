@@ -64,12 +64,16 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/fetch/` 建立 HTTP Fetch Pipeline，支持 canonical 去重、204 empty、5xx 重试、4xx 错误、AbortSignal 和指数退避。
+- 在 `src/nova-tile/worker/` 建立 WorkerBridge、protocol v1、generation/epoch stale 校验和 transferable buffer 收集。
+- 新增 Fetch→Worker 管线组合器，确保同一 canonical key 只运行一条在途数据管线。
+- 新增 4 个数据管线测试，覆盖 204、4xx、5xx 重试、取消、去重、stale 结果和 transferable buffer。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。

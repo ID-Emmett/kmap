@@ -64,12 +64,15 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/pyramid/` 建立带 source revision 的 TilePyramid，覆盖 parent/children、ancestor、neighbors、Y 边界和 world wrap。
+- 在 `src/nova-tile/coverage/` 建立有限 GroundFootprint、pitch 采样、guard band、loadCutoff、Tile AABB 相交和 footprint Tile bounds。
+- 新增 9 个空间覆盖测试，pitch 0/20/40/60、边界和 wrap 关系通过。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。

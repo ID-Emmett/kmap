@@ -64,12 +64,16 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/cache/` 建立 Resident/Warm/Cold 内存层与 Persistent store 接口，使用 source revision 隔离缓存 key。
+- 实现 entry、CPU/GPU byte budget、非 pinned LRU 淘汰、empty/negative/retryable 记录、命中统计和 pressure 原因。
+- 提供 MemoryPersistentTileStore 测试替身及 PersistentTileCache 读写失效校验。
+- 新增 3 个缓存测试，覆盖角色、命中、LRU/预算、压力和 source revision 隔离。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。

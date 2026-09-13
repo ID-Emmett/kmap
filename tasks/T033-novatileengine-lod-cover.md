@@ -64,12 +64,16 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/lod/` 建立 MixedLODPlanner，按 SSE、pitch 区域和 tile budget 执行 best-first 四叉树细分、兄弟合并与层级平衡。
+- 使用 T032 GroundFootprint 的有限 loadCutoff 和 guard band 生成完整目标覆盖，并保持 Canonical key/source revision 稳定。
+- 高 pitch 使用 near/middle/far 区域策略；输出每 Tile SSE、distance、region 和覆盖完整性诊断。
+- 新增 7 个混合 LOD 测试，覆盖 pitch 0/20/40/60、SSE 细分、预算和 LOD 差值约束。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。

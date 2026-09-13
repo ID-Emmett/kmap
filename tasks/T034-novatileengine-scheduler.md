@@ -64,12 +64,15 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/motion/` 建立 MotionPredictor，输出速度、加速度、方向、置信度和 150～500ms 预测窗口。
+- 在 `src/nova-tile/scheduler/` 建立 canonical 去重、角色优先级、空间 bucket 轮询、starvation 提升和 moving/settling/settled/idle 帧预算。
+- 新增 3 个运动与调度测试，覆盖预测、去重、预算、starvation 和 bucket 统计。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。
