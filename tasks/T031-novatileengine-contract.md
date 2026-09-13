@@ -65,12 +65,16 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `packages/map3d/src/nova-tile/` 建立独立契约层，包含 Canonical/Render key、epoch/generation、生命周期状态、异步结果、事件和引擎接口。
+- Canonical key 固定包含 `sourceId`、`sourceRevision`、`z/x/y`；Render key 独立保存 `wrapIndex` 与 `mapOriginId`，稳定字符串键区分数据身份和渲染实例。
+- 所有异步结果类型统一携带 `jobId`、`planEpoch`、`generation` 和 canonical key；状态机验证合法转换并保持 render/cache role 独立。
+- 新增 `novaTileEngine.test.ts` 的 6 个测试，覆盖 key 稳定性、epoch/generation 迟到结果判定、状态模型、引擎生命周期和模块边界。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。

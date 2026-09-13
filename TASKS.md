@@ -38,7 +38,7 @@
 | T028 | Tile Subsystem Reset and AI Context Isolation | DONE | 决策会话 | T021, T023, T025 |
 | T029 | Implement TileStreamingEngine Vertical Slice | BLOCKED | 实施会话 | T028 |
 | T030 | NovaTileEngine Plan and Task Freeze | DONE | 决策会话 | T028 |
-| T031 | NovaTileEngine Contract and Isolated Namespace | BACKLOG | 实施会话 | T030 |
+| T031 | NovaTileEngine Contract and Isolated Namespace | DONE | 实施会话 | T030 |
 | T032 | TilePyramid and GroundFootprint | BACKLOG | 实施会话 | T031 |
 | T033 | Mixed LOD and Pitch Cover | BACKLOG | 实施会话 | T032 |
 | T034 | Motion Prediction and Request Scheduler | BACKLOG | 实施会话 | T031 |
@@ -55,7 +55,7 @@
 
 ## 当前任务
 
-T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。当前默认实施任务为 T031。
+T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。T031 已完成契约与独立命名空间；下一组可执行任务为 T032、T034、T035、T036。
 
 NTE 任务链由契约、空间覆盖、LOD、运动预测、调度、数据管线、缓存、渲染提交、资源预算、诊断、集成测试、双后端验证、人工验收、生产切换和发布验证组成。
 
