@@ -239,7 +239,7 @@ for (const [id, expected] of [
   ['T035', 'DONE'],
   ['T036', 'DONE'],
   ['T037', 'DONE'],
-  ['T038', 'BACKLOG'],
+  ['T038', 'DONE'],
   ['T039', 'BACKLOG'],
   ['T040', 'BACKLOG'],
   ['T041', 'BACKLOG'],
@@ -255,8 +255,8 @@ for (const [id, expected] of [
 if (/执行 T026，分离 Coverage 与 prefetch/.test(tasksText) || /T026→T027/.test(tasksText)) {
   errors.push('TASKS.md 仍包含 T026→T027 作为默认下一步的旧路线。');
 }
-if (!/T031～T037/.test(tasksText) || !/T038 Upload Budget/.test(tasksText)) {
-  errors.push('TASKS.md 未登记 T031～T037 完成及 T038 下一步任务。');
+if (!/T031～T038/.test(tasksText) || !/T039 TileDiagnostics/.test(tasksText)) {
+  errors.push('TASKS.md 未登记 T031～T038 完成及 T039 下一步任务。');
 }
 
 const projectState = exists('docs/project-state.md') ? read('docs/project-state.md') : '';
@@ -271,6 +271,7 @@ for (const [id, expected] of [
   ['T032', 'DONE'],
   ['T033', 'DONE'],
   ['T037', 'DONE'],
+  ['T038', 'DONE'],
   ['T034', 'DONE'],
   ['T035', 'DONE'],
   ['T036', 'DONE'],
@@ -338,7 +339,7 @@ console.log('AI governance check passed.');
 console.log(`- Required governance files: ${requiredFiles.length}`);
 console.log(`- Parsed tasks: ${taskRows.length}`);
 console.log(`- Open implementation tasks with context packets: ${implementationOpenTasks.length}`);
-console.log('- Current route gate: T031-T037 are complete; T038 is next; T026/T027 are blocked.');
+console.log('- Current route gate: T031-T038 are complete; T039 is next; T026/T027 are blocked.');
 console.log('- Formal documentation gate: policy anchors and pollution scan active.');
 if (warnings.length > 0) {
   console.log('Warnings:');

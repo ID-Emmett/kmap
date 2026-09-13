@@ -52,3 +52,8 @@ export type { LODPlannerOptions, LODTileCandidate, MixedLODPlan } from './lod/in
 
 export { NovaTileRenderCover, RenderCover, canonicalCandidateId, createCoverageCohort, isCohortCurrent, isDescendantRenderKey, resolveRenderCover } from './render/index.js';
 export type { CoverageCell, CoverageCohort, RenderCoverOptions, RenderCoverResolution, RenderCoverSnapshot, RenderTileAvailability, RenderTileCandidate, RenderTransition } from './render/index.js';
+
+export { TileUploadQueue } from './upload/index.js';
+export type { UploadPriority, UploadQueueOptions, UploadQueueStats, UploadRequest, UploadReservation } from './upload/index.js';
+export { TileResourceRegistry } from './resources/index.js';
+export type { ResourceCacheRole, ResourcePressureListener, ResourceRegistryOptions, ResourceRegistryStats, TileResourceEntry } from './resources/index.js';

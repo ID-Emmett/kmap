@@ -65,12 +65,16 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/upload/` 建立 TileUploadQueue，按 5MB/4ms/2 commits 默认预算执行 reserve、commit、release、优先级和 backpressure。
+- 在 `src/nova-tile/resources/` 建立 TileResourceRegistry，管理 CPU/GPU ownership、refCount、resident/warm/cold role、延迟释放和 pressure 事件。
+- 延迟释放默认 2 帧；资源在 Render Cover 或 transition 引用存在时保持有效，释放后执行 dispose 并归零统计。
+- 新增 `novaTileUpload.test.ts` 与 `novaTileResource.test.ts`，共 6 个测试覆盖双预算、优先级、backpressure、ownership、pressure 和三次 dispose 周期。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。
