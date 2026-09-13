@@ -63,12 +63,16 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
-- 待实施。
+- 在 `src/nova-tile/render/` 建立 Target/Committed/Outgoing Cover、Coverage Cell、exact/ancestor/descendant fallback 和 Cohort 提交模型。
+- Cohort 仅在完整 Coverage Cell 集合上提交；提交验证 planEpoch，过时结果不会进入当前画面。
+- 过渡默认 150ms，范围约束为 120～180ms；Outgoing 引用在过渡完成前持续保留，完成后释放。
+- 新增 `novaTileRenderCover.test.ts` 的 4 个测试，覆盖 fallback 优先级、descendant 完整性、atomic commit、transition 生命周期和 stale epoch。
+- `pnpm --filter @nova/map3d typecheck`、目标测试、`pnpm ai:check`、`pnpm check` 和 `git diff --check` 通过。
 
 ## Open Issues
 
-- 待实施验证。
+无。

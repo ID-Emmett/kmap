@@ -9,7 +9,7 @@
 - Nova 是 Human-Governed + Spec-Driven + Task-Driven + Evidence-Driven 的纯 AI Coding 工程。
 - D033 已确认 `NovaTileEngine` 当前契约、架构模块、加载、调度、缓存、渲染、预算和验收标准。
 - T030 已完成方案与任务依赖冻结。
-- D033 已确认 `NovaTileEngine` 方案和 T030～T044 任务链；T031～T036 契约、空间覆盖、运动调度、数据管线和分层缓存，以及 T033 混合 LOD 已完成，下一步为 T037 Render Cover 与 Cohort Commit。
+- D033 已确认 `NovaTileEngine` 方案和 T030～T044 任务链；T031～T037 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存和 Render Cover 已完成，下一步为 T038 Upload Budget 与 Resource Registry。
 - D031、D032 为历史路线治理记录。
 
 ## 当前任务状态
@@ -34,7 +34,7 @@
 | T034 | DONE | Motion Prediction 与 Request Scheduler |
 | T035 | DONE | Fetch 与 Worker Pipeline |
 | T036 | DONE | Layered Cache 与 Persistence |
-| T037 | BACKLOG | Render Cover 与 Cohort Commit |
+| T037 | DONE | Render Cover 与 Cohort Commit |
 | T038 | BACKLOG | Upload Budget 与 Resource Registry |
 | T039 | BACKLOG | TileDiagnostics 与 Timeline |
 | T040 | BACKLOG | NovaTileEngine Integration Tests |

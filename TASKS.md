@@ -44,7 +44,7 @@
 | T034 | Motion Prediction and Request Scheduler | DONE | 实施会话 | T031 |
 | T035 | Fetch and Worker Pipeline | DONE | 实施会话 | T031 |
 | T036 | Layered Cache and Persistence | DONE | 实施会话 | T031 |
-| T037 | Render Cover and Cohort Commit | BACKLOG | 实施会话 | T032, T033 |
+| T037 | Render Cover and Cohort Commit | DONE | 实施会话 | T032, T033 |
 | T038 | Upload Budget and Resource Registry | BACKLOG | 实施会话 | T035, T037 |
 | T039 | TileDiagnostics and Timeline | BACKLOG | 实施会话 | T034, T035, T036, T037, T038 |
 | T040 | NovaTileEngine Integration Tests | BACKLOG | 实施会话 | T031-T039 |
@@ -55,7 +55,7 @@
 
 ## 当前任务
 
-T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。T031～T036 契约、空间覆盖、混合 LOD、运动调度、数据管线和分层缓存已完成；下一步为 T037 Render Cover 与 Cohort Commit。
+T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。T031～T037 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存和 Render Cover 已完成；下一步为 T038 Upload Budget 与 Resource Registry。
 
 NTE 任务链由契约、空间覆盖、LOD、运动预测、调度、数据管线、缓存、渲染提交、资源预算、诊断、集成测试、双后端验证、人工验收、生产切换和发布验证组成。
 

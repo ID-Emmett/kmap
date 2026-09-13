@@ -49,3 +49,6 @@ export * from './contracts.js';
 
 export { MixedLODPlanner } from './lod/index.js';
 export type { LODPlannerOptions, LODTileCandidate, MixedLODPlan } from './lod/index.js';
+
+export { NovaTileRenderCover, RenderCover, canonicalCandidateId, createCoverageCohort, isCohortCurrent, isDescendantRenderKey, resolveRenderCover } from './render/index.js';
+export type { CoverageCell, CoverageCohort, RenderCoverOptions, RenderCoverResolution, RenderCoverSnapshot, RenderTileAvailability, RenderTileCandidate, RenderTransition } from './render/index.js';
