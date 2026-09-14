@@ -34,6 +34,7 @@
 - D031 已冻结既有补丁路线；D033 已确认 `NovaTileEngine` 方案，T030～T044 组成原任务链；T045 是针对 T042 首屏覆盖阻断新增的 LOD 修复任务。
 - T042 生产双后端复跑确认 `MixedLODPlanner` 在 `minZoom=0`、初始 `zoom=15` 时仅计划 z=0 根 Tile，首屏为空；T045 已修复 Bootstrap/Exact 初始覆盖规划并通过双后端 smoke。
 - `docs/project-state.md`、`docs/architecture/index.md`、`docs/decisions/index.md` 和 `pnpm ai:check` 已作为低 token 与强约束治理入口。
+- T046 全量复核确认生产 NTE 视图切换后资源未释放、在途请求无阶段并发上限、连续 ViewState 更新反复 abort，以及 loadCutoff 未接入生产规划；修复任务与证据见 `tasks/T046-tile-system-full-lifecycle-repair.md` 和 `docs/research/tile-system-audit-2026-09-14.md`。
 
 ## 维护规则
 

@@ -40,6 +40,14 @@
 - 决策：`docs/decisions/D033-nova-tile-engine-plan.md`。
 - 证据：`docs/evidence/T042-production-browser.json`、`docs/evidence/T045-nte-initial-coverage-analysis.json`、`docs/evidence/T045-production-browser.json`。
 
+## T046 全量复核
+
+- 生产 NTE 视图切换后已注册资源没有正常降级或释放；注入审计中 Resource Registry entries 从 7 增至 12，`refCount=0`、`releases=0` 并触发 entry pressure。
+- 连续 ViewState 更新会使在途管线反复 abort；10 次更新产生 38 次 pipeline run、34 次 abort signal，最终仍有 planned/inFlight 记录。
+- RequestScheduler 仅限制每帧启动数，没有 moving/settled active concurrency cap；审计中 moving active 达到 40，高于 D033 的 8。
+- `loadCutoff` 尚未接入生产 TileCoverPlanner 的选择、请求、构建和渲染终止条件。
+- 修复任务：`tasks/T046-tile-system-full-lifecycle-repair.md`；研究与证据：`docs/research/tile-system-audit-2026-09-14.md`、`docs/evidence/T046-*`。
+
 ## 人工验收失败事实
 
 - T021/T023/T025 的自动测试和真实浏览器脚本不能替代人工体验结论。

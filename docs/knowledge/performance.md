@@ -1,6 +1,6 @@
 # Nova Knowledge — Performance
 
-更新日期：2026-09-13
+更新日期：2026-09-14
 
 ## T041 NovaTileEngine 双后端复跑
 
@@ -36,3 +36,9 @@
 - T025 浏览器脚本证明 1500 ms 延迟下运动期间会启动请求：WebGPU pointer pan 16 个、WebGL2 pointer pan 16 个、WebGPU wheel zoom 24 个、reduced-motion pointer pan 17 个。
 - 这只证明请求不再被统一延迟到 idle；不能证明人工观感已经改善。
 - 证据：`docs/evidence/T025-browser-regression.json`、`docs/evidence/T025-*.png`。
+
+## T046 全量复核指标
+
+- 真实 Chromium T042 生产轨迹在每个动作停止等待 12 秒后仍有 queued/fetching：WebGPU 17～37、WebGL2 10～32；资源对象与 CPU/GPU bytes 随视图变化增长，dispose 后才归零。
+- 注入审计 10 次连续 ViewState 更新产生 38 次 pipeline run、34 次 abort signal；Scheduler moving active 达到 40，当前实现没有阶段 active concurrency cap。
+- 这些指标用于 T046 修复前基线，不代表 D033 性能门槛已满足；修复后必须重新采集 Worker、Upload、Frame、输入响应和 60 秒资源曲线。

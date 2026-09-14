@@ -9,7 +9,7 @@
 - Nova 是 Human-Governed + Spec-Driven + Task-Driven + Evidence-Driven 的纯 AI Coding 工程。
 - D033 已确认 `NovaTileEngine` 当前契约、架构模块、加载、调度、缓存、渲染、预算和验收标准。
 - T030 已完成方案与任务依赖冻结。
-- D033 已确认 `NovaTileEngine` 方案和 T030～T044 原任务链；T031～T041 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存、Render Cover、上传预算、资源登记、诊断 Timeline、集成测试和双后端慢网验证已完成；T043 已完成生产入口切换与旧运行时清理；T045 已完成首屏覆盖规划修复，T042 待重跑完整生产人工验收。
+- D033 已确认 `NovaTileEngine` 方案和 T030～T044 原任务链；T031～T041 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存、Render Cover、上传预算、资源登记、诊断 Timeline、集成测试和双后端慢网验证已完成；T043 已完成生产入口切换与旧运行时清理；T045 已完成首屏覆盖规划修复；T046 已完成全量复核并建立生命周期与流式调度修复任务，T042 待 T046 后重跑完整生产人工验收。
 - T041 复跑功能断言与 dispose 资源归零通过；Worker P95（WebGPU 256.3ms、WebGL2 46.5ms）和 WebGPU Upload P95（8.6ms）超过 D033 目标，列入 T042/T044 性能复核。
 - D031、D032 为历史路线治理记录。
 
@@ -44,6 +44,7 @@
 | T043 | DONE | Production Cutover and Runtime Deletion |
 | T044 | BACKLOG | Post-Deletion Regression and Release Verification |
 | T045 | DONE | NovaTileEngine Initial Coverage Refinement Fix |
+| T046 | BACKLOG | Tile System Full Lifecycle and Streaming Repair |
 
 ## 默认读取策略
 
@@ -57,7 +58,7 @@
 - 实施会话只执行一个已批准 Task；不得顺手扩大范围。
 - 修改 Forbidden Files、公共 API、核心架构、MVP、默认预算、依赖或验收门槛时，必须停止并返回决策会话。
 - NTE 实施任务使用独立命名空间和专属 Context Packet。
-- T045 已完成 NTE 初始覆盖与细化规划修复；T042 负责修复后的生产人工验收；T044 负责删除后回归和发布验证。
+- T045 已完成 NTE 初始覆盖与细化规划修复；T046 负责全量生命周期、回收、调度和倾斜覆盖修复；T042 负责修复后的生产人工验收；T044 负责删除后回归和发布验证。
 
 ## 关键索引
 
