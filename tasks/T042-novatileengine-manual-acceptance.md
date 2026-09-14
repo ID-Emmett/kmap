@@ -67,12 +67,13 @@ BLOCKED
 
 ## Findings
 
-- 2026-09-13 生产 NTE 双后端复跑：真实 Chromium WebGPU 与强制 WebGL2 均进入 `ready`，但首屏截图为空；两端统计均为 `visible=1`、`ready=1`、`resources.batches=1`。
-- 当前生产 `MixedLODPlanner` 在 `zoom=15`、`minZoom=0` 场景仅计划单个 `z=0` 根 Tile；SSE 使用 `2 ** (key.z - targetZoom)`，根 Tile 得分约 `9.375`，低于默认细化阈值 `320px`。
-- T043 生产入口检查确认 `Map3D` 当前实例化 `NovaTileEngine`；T042 阻断点位于初始覆盖规划。
-- 证据：`docs/evidence/T042-production-browser.json`、`docs/evidence/T042-webgpu-initial.png`、`docs/evidence/T042-webgl2-initial.png`、`docs/evidence/T045-nte-initial-coverage-analysis.json`。
+- 2026-09-14 真实 Chromium 生产 Playground 双后端轨迹已执行。WebGPU 与强制 WebGL2 均进入 `ready`，首屏均显示北京基线地图；首屏统计均为 `visible=94`、`ready=94`、`failed=0`。
+- 连续 pan 真实改变中心点（WebGPU `lng=116.38577`，WebGL2 `lng=116.38591`）；连续 wheel zoom 将 `zoom` 从 `15` 提升到 `17.4`；bearing 拖拽将 `bearing` 从 `0` 变更到约 `35.9`；pitch 0/20/40/60 均达到目标值。对应截图位于 `docs/evidence/T042-webgpu-*.png` 和 `docs/evidence/T042-webgl2-*.png`。
+- 停止等待 12 秒后，WebGPU 仍保持 `queued=17..37`、`fetching=17..37`，WebGL2 仍保持 `queued=10..32`、`fetching=10..32`；`failed=0` 且 workers 已归零。停止阶段存在持续请求，触发 T042 Stop Conditions，验收结论为阻断。
+- 返回初始 canonical ViewState 的缓存复用场景两端 `requestDelta=0`；dispose 后两端均为 `tiles.visible=0`、`resources.cpuBytes=0`、`resources.gpuBytes=0`、`workers.active=0`、`workers.queued=0`。
+- 结构化证据：`docs/evidence/T042-production-browser.json`；执行脚本：`docs/evidence/T042-production-runner.mjs`。
 
 ## Open Issues
 
-- 修复任务 T045 负责修正 `MixedLODPlanner` 的 Bootstrap 层级和细化评分方向；该修改超出 T042 的 Allowed Files（`packages/playground/**`），当前任务停止于阻断证据。
-- 修复后重新执行 T042 的 WebGPU/WebGL2 人工轨迹，补齐初始化、pan、zoom、bearing、pitch 0/20/40/60、停止等待、缓存复用、dispose 的截图与操作记录。
+- 生产 KYE 请求在 pan/zoom 后存在持续未完成 fetch；需要后续任务在真实网络环境核查请求生命周期、超时/取消和停止阶段调度，确认是否为服务端响应时延或运行时请求收敛问题。
+- 在持续请求问题关闭并重新取得短且可控的停止尾部前，T042 保持 `BLOCKED`，不得将本次双后端轨迹标记为通过。

@@ -81,14 +81,18 @@
 
 ## Status
 
-BACKLOG
+DONE
 
 ## Findings
 
 - 2026-09-13 代码检查确认生产 `zoom=15`、`minZoom=0` 场景从 z=0 根 Tile 开始，当前评分约为 `9.375`，低于默认 `320px` 细化阈值，导致规划器保持 root-only 计划。
 - T042 WebGPU 与强制 WebGL2 生产证据均为 `ready`、`visible=1`、`ready=1`、`batches=1`，初始截图为空；证据见 `docs/evidence/T042-production-browser.json` 与 `docs/evidence/T045-nte-initial-coverage-analysis.json`。
 - 现有 `novaTileLod.test.ts` 的 7 个测试未覆盖生产高 zoom 与默认阈值组合。
+- 2026-09-14 `MixedLODPlanner` 已按 D033 使用 `clamp(floor(view.zoom) - 2, minZoom, maxZoom)` 生成 Bootstrap Cover，并将 SSE 像素尺度修正为目标层级相对粗层级增大；Exact Refinement 继续受 source `maxZoom`、预算和 SSE 阈值约束。
+- 新增 LOD 回归覆盖生产 `minZoom=0`、`maxZoom=17`、`zoom=15`、默认阈值、source 边界、maxZoom、pitch 0/20/40/60、previous cover 和紧预算场景；14 项目标测试通过。
+- 生产 Chromium smoke（WebGPU 与强制 WebGL2）均为 `ready`，首屏计划 `visible=94`、`ready=94`、`batches=542`，计划层级为 z15/z16 且 `rootOnly=false`、目标区域已覆盖；证据见 `docs/evidence/T045-production-browser.json`、`docs/evidence/T045-webgpu-initial.png` 和 `docs/evidence/T045-webgl2-initial.png`。
 
 ## Open Issues
 
-- 修复完成后必须重跑 T042 生产双后端人工轨迹，并继续复核 T041 已记录的 Worker/WebGPU Upload 性能超标项。
+- T042 仍需重跑完整 pan、zoom、bearing、pitch、停止阶段和 dispose 人工轨迹；本任务 smoke 仅确认首屏规划不再 root-only。
+- T041 已记录的 Worker/WebGPU Upload 性能超标项保持待 T042/T044 复核。

@@ -58,12 +58,14 @@ export class MixedLODPlanner {
   plan(view: ViewState, viewport: ViewportSize, previous: readonly CanonicalTileKey[] = []): MixedLODPlan {
     const footprint = createGroundFootprint(view, viewport, { guardBand: this.#guardBand });
     const targetZoom = Math.min(this.#pyramid.maxZoom, Math.max(this.#pyramid.minZoom, Math.floor(view.zoom)));
-    const rootBounds = footprintTileBounds(footprint, this.#pyramid.minZoom);
+    // Bootstrap 使用视图整数层级前两级，避免高 zoom 初始化退化为远离视图的根 Tile。
+    const bootstrapZoom = Math.min(this.#pyramid.maxZoom, Math.max(this.#pyramid.minZoom, Math.floor(view.zoom) - 2));
+    const bootstrapBounds = footprintTileBounds(footprint, bootstrapZoom);
     const leaves = new Map<string, CanonicalTileKey>();
     const refinementThreshold = previous.length > 0 ? Math.max(this.#refineThreshold, this.#mergeThreshold) : this.#refineThreshold;
-    for (let y = rootBounds.minY; y <= rootBounds.maxY; y += 1) {
-      for (let x = rootBounds.minX; x <= rootBounds.maxX; x += 1) {
-        const key = createCanonicalTileKey(this.#pyramid.sourceId, this.#pyramid.sourceRevision, this.#pyramid.minZoom, x, y);
+    for (let y = bootstrapBounds.minY; y <= bootstrapBounds.maxY; y += 1) {
+      for (let x = bootstrapBounds.minX; x <= bootstrapBounds.maxX; x += 1) {
+        const key = createCanonicalTileKey(this.#pyramid.sourceId, this.#pyramid.sourceRevision, bootstrapZoom, x, y);
         if (key !== undefined) leaves.set(canonicalTileKeyToString(key), key);
       }
     }
@@ -97,7 +99,7 @@ export class MixedLODPlanner {
     const tileCenter = this.tileCenter(key);
     const viewPoint = mercatorToTilePoint(projectView(view), key.z);
     const distance = Math.max(0.5, Math.hypot(tileCenter.x * 2 ** key.z - viewPoint.x, tileCenter.y * 2 ** key.z - viewPoint.y));
-    const tilePixels = Math.min(viewport.width, viewport.height) * 2 ** (key.z - targetZoom);
+    const tilePixels = Math.min(viewport.width, viewport.height) * 2 ** (targetZoom - key.z);
     const pitchFactor = 1 + Math.sin(Math.min(60, Math.max(0, view.pitch)) * Math.PI / 180) * (tileCenter.y * 2 ** key.z < viewPoint.y ? 1.5 : 0.5);
     const tileFootprint = footprintTileBounds(footprint, key.z);
     const intersects = key.x >= tileFootprint.minX && key.x <= tileFootprint.maxX && key.y >= tileFootprint.minY && key.y <= tileFootprint.maxY;

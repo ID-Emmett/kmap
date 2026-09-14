@@ -1,6 +1,6 @@
 # Nova Project Status
 
-更新日期：2026-09-13
+更新日期：2026-09-14
 
 ## 项目背景
 
@@ -14,7 +14,7 @@ Nova 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立�
 
 T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯通，T011-T015 已完成视觉与连续体验阻断项修复并经人工接受。
 
-T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。T031～T041 已完成 NTE 契约、空间覆盖、LOD、调度、管线、缓存、渲染、资源、诊断、集成和双后端慢网验证；T043 已完成生产入口切换与运行时清理；T042 人工体验验收由首屏覆盖规划问题阻断，T045 负责修复后重跑 T042。
+T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。T031～T041 已完成 NTE 契约、空间覆盖、LOD、调度、管线、缓存、渲染、资源、诊断、集成和双后端慢网验证；T043 已完成生产入口切换与运行时清理；T045 已完成首屏覆盖规划修复，T042 待重跑完整人工验收。
 
 ## 当前事实基线
 
@@ -28,7 +28,7 @@ T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。T03
 - Polygon 三角化使用 `earcut` 3.2.3；Worker bundle 不包含 Three.js。
 - 固定 `z15/26978/12416` Polygon 场景在当前 Chromium 的 WebGPU 与强制 WebGL2 中通过可视验证；三个 batch 对应 276 features、2,139 vertices、4,755 indices 和 53,244 bytes TypedArray/GPU estimate。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
-- 当前可见集使用 Camera Frustum/Tile AABB、projected tile size 和 best-first 四叉树 refinement 生成 mixed canonical zoom Target Coverage；默认 128 Tile 数量预算通过停止细分或父级合并满足，支持日期线 world wrap、source bounds、Y 边界和 maxZoom overzoom，并与 MapOrigin/horizon fade 的 `referenceZoom` 解耦。
+- 当前可见集使用 Ground Footprint、Bootstrap `floor(view.zoom)-2`、SSE best-first 四叉树 refinement 生成 mixed canonical zoom Target Coverage；默认 128 Tile 数量预算通过停止细分或父级合并满足，支持日期线 world wrap、source bounds、Y 边界和 maxZoom overzoom，并与 MapOrigin/horizon fade 的 `referenceZoom` 解耦。
 - NTE 使用 Canonical key 共享 Fetch、Decode、Build、Cache 和 GPU 数据；运行配额为 8～12 Fetch、2～4 Worker、256 entries、128 MiB CPU 和 256 MiB GPU。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
@@ -114,12 +114,11 @@ Non-Goals：
 - T028：瓦片子系统重置与 AI 上下文隔离已完成。
 - T030：NovaTileEngine 方案、架构规范和任务依赖已冻结。
 - T031～T041：NTE 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存、Render Cover、上传预算、资源登记、诊断 Timeline、集成测试和真实 Chromium 双后端/慢网验证已完成；T041 功能断言和 dispose 资源归零通过。
+- T045：NTE 初始 Bootstrap/Exact 覆盖细化修复、LOD 回归和生产双后端首屏 smoke 已完成。
 
 ## 进行中
 
-- T042：NTE 人工体验验收，等待 T045 修复后重跑。
-- T043：NTE 生产切换与运行时删除，已完成。
-- T045：NTE 初始覆盖细化修复，当前待实施。
+- T042：NTE 人工体验验收，待重跑完整双后端轨迹。
 - T044：删除后回归与发布验证，等待 T042 重跑完成。
 
 ## 历史任务记录
@@ -131,9 +130,8 @@ Non-Goals：
 
 ## 下一步
 
-1. 执行 T045，修复 NTE 初始覆盖与细化规划。
-2. 重跑 T042，完成 NTE 双后端人工体验验收。
-3. 执行 T044，完成删除后回归与发布验证。
+1. 重跑 T042，完成 NTE 双后端完整人工体验验收。
+2. 执行 T044，完成删除后回归与发布验证。
 
 ## 已确认架构约束
 
@@ -163,7 +161,7 @@ D030 已确认停止扩展旧 Tile Runtime 的调度/显示路径，建立独立
 
 D031 已确认 T021/T023/T025 的人工体验失败覆盖自动证据，冻结 T026/T027 的 V2 补丁链，并以 T028 作为瓦片子系统重置与 AI 上下文隔离入口。
 
-D032 已确认 `TileStreamingEngine` 路线；D033 已确认 `NovaTileEngine` 当前契约、模块、预算、验收和 T030～T044 原任务链；T045 是针对 T042 首屏覆盖阻断新增的 LOD 修复任务。
+D032 已确认 `TileStreamingEngine` 路线；D033 已确认 `NovaTileEngine` 当前契约、模块、预算、验收和 T030～T044 原任务链；T045 已完成针对 T042 首屏覆盖阻断的 LOD 修复。
 
 ## 已知风险
 
