@@ -1,6 +1,6 @@
 # Nova Evidence Index
 
-更新日期：2026-09-15
+更新日期：2026-09-16
 
 本文件是 `docs/evidence/` 的轻量索引。默认只读本索引；需要核对具体指标、截图、trace 或脚本时，再按任务号打开具体文件。不得在普通实施会话中整目录通读 evidence。
 
@@ -13,7 +13,11 @@
 
 ## 任务证据索引
 
+公开地图引擎的固定版本覆盖、局部 LOD、雾、加载队列和缓存核验见 [2026-09-16 研究](../research/industry-tile-streaming-2026-09-16.md)。MapLibre、Mapbox、OpenLayers、Cesium、3DTilesRendererJS、3D Tiles 规范源码及论文作者页面的 URL/版本/SHA256 位于 `industry-tile-research-2026-09-15/`；该证据范围为资料核验。
+
 当前 StreamingEngine 的道路宽度、首屏、快速交互与城市飞行证据见 [修复验证报告](streaming-rebuild/oversized-roads-fix.md)：2560×1305 WebGPU 三轮最终验收通过，1155 张 10Hz 图像与 477 张瞬时过渡采样完成模型视觉审查。原始时序、MP4、检查日志与源码 SHA256 由报告索引；公开资料与验收定义见 `docs/research/streaming-rebuild-public-sources.md`。独立重建记录见 [S001 验收报告](streaming-rebuild/README.md)。
+
+当前父子绘制重叠与高倾角细节的专题事实见 [2026-09-15 审计报告](../research/tile-overlap-and-pitch-audit-2026-09-15.md)：当前源码的 CPU 探针确认稳定三层来源重叠及近处目标降级，已记录 WebGPU 时序与选择结果一致。编号分析图、探针与原始时序交叉检查位于 `tile-audit-2026-09-15/`；本轮浏览器连接的认证阻断在报告中登记。
 
 | Task | 文件数 | 关键证据 | 结论用途 |
 | --- | ---: | --- | --- |
