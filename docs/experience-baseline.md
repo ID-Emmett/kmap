@@ -1,4 +1,4 @@
-# Nova MVP Motion and Continuity Baseline
+# Kmap MVP Motion and Continuity Baseline
 
 更新日期：2026-09-12
 

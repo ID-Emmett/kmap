@@ -1,10 +1,10 @@
-# Nova AI Session Log
+# Kmap AI Session Log
 
 更新日期：2026-09-15
 
 ## 定位
 
-本文件是 Nova AI 会话记录的轻量入口、规则和索引。详细记录按日期拆分到 `docs/ai-sessions/YYYY-MM-DD.md`，避免单文件持续膨胀。
+本文件是 Kmap AI 会话记录的轻量入口、规则和索引。详细记录按日期拆分到 `docs/ai-sessions/YYYY-MM-DD.md`，避免单文件持续膨胀。
 
 它不是正式事实库，也不是架构决策记录。`docs/project-state.md` 是低 token 当前状态入口；正式项目状态仍以 `PROJECT.md`、`TASKS.md`、`tasks/Txxx-*.md`、`KNOWLEDGE.md`、`docs/architecture/`、`docs/architecture.md`、`docs/decisions/` 和 `docs/decisions.md` 为准。
 
@@ -17,7 +17,7 @@
 - `Decision Log` 的补充材料：保留讨论线索，但不替代 ADR 或正式 decisions。
 - `AI Work Log` / `Agent Activity Log`：记录 AI 辅助开发时的人类意图、AI 判断、执行结果和风险提示。
 
-Nova 采用的名称是 `AI Session Log`，强调它是 AI 会话层面的纪要，而不是产品事实或架构批准本身。
+Kmap 采用的名称是 `AI Session Log`，强调它是 AI 会话层面的纪要，而不是产品事实或架构批准本身。
 
 ## 文件结构
 
@@ -65,6 +65,8 @@ Nova 采用的名称是 `AI Session Log`，强调它是 AI 会话层面的纪要
 ```
 
 ## 最近记录索引
+
+- 2026-09-15：[S2026-09-15-003 — Kmap 命名与仓库整理](ai-sessions/2026-09-15.md#s2026-09-15-003--kmap-命名与仓库整理)
 
 - 2026-09-15：[S2026-09-15-002 — 道路宽度与快速交互修复](ai-sessions/2026-09-15.md#s2026-09-15-002--道路宽度与快速交互修复)
 - 2026-09-15：[S2026-09-15-001 — 瓦片系统独立重建与连续视觉验证](ai-sessions/2026-09-15.md#s2026-09-15-001--瓦片系统独立重建与连续视觉验证)

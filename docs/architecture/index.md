@@ -1,4 +1,4 @@
-# Nova Architecture Index
+# Kmap Architecture Index
 
 更新日期：2026-09-15
 

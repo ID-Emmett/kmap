@@ -1,4 +1,4 @@
-# Nova Knowledge — Performance
+# Kmap Knowledge — Performance
 
 更新日期：2026-09-14
 

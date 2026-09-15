@@ -1,10 +1,10 @@
-# Nova AI Coding Rules
+# Kmap AI Coding Rules
 
 ## 项目治理
 
 本项目采用 Human-Governed + Spec-Driven + Task-Driven + Evidence-Driven AI Coding。人工负责人决定产品目标、范围、MVP、架构、数据结构、公共 API、技术选型、重大决策和最终验收。AI 编码会话负责研究、分析、实现、测试、调试、重构、性能分析和实施记录。
 
-Nova 只允许两种会话类型：
+Kmap 只允许两种会话类型：
 
 - 决策会话：负责产品目标、范围、MVP、架构、数据结构、公共 API、技术选型、任务拆分、任务排序、验收结论和阶段复盘。
 - 实施会话：围绕一个已批准 Task 执行研究、实现、测试、调试、重构、性能分析、专项验证和记录。调试、验证、性能分析只是任务性质，不是独立会话身份。
@@ -44,7 +44,7 @@ Nova 只允许两种会话类型：
 8. `docs/ai-session-log.md`
 9. `Task Context Packet` 明确列入的 `PROJECT.md` 章节、架构分片、决策分片、知识分片、research、evidence 和源码文件
 
-实施会话默认不得通读 `PROJECT.md` 全文、`docs/architecture.md` 全文、`docs/decisions.md` 全文、`docs/knowledge/full.md`、`docs/evidence/` 全量文件或无关历史任务。若旧任务没有 `Task Context Packet`，不得开始实施；只能返回决策会话补齐上下文包或显式批准临时上下文。
+实施会话默认不得通读 `PROJECT.md` 全文、`docs/architecture.md` 全文、`docs/decisions.md` 全文、`docs/evidence/` 全量文件或无关历史任务。若旧任务没有 `Task Context Packet`，不得开始实施；只能返回决策会话补齐上下文包或显式批准临时上下文。
 
 ## Task Context Packet
 
@@ -106,7 +106,7 @@ Read
 - 变量、函数、类和文件名使用英文工程命名。
 - 注释只描述当前事实、职责和约束，不保留历史讨论。
 - SDK 不依赖 Playground、Inspector、页面状态或业务 Demo 状态。
-- Playground 通过 `@nova/map3d` workspace 依赖 SDK。
+- Playground 通过 `@kmap/map3d` workspace 依赖 SDK。
 - 自定义 Shader、材质节点和后处理统一使用 Three.js TSL / Node Material。
 - Feature 不创建独立 Object3D；批处理边界由后续决策会话确认。
 
@@ -115,7 +115,7 @@ Read
 - `docs/research/` 是事实输入，必须区分“已验证”“代码已确认”“待验证”和“未发现”。
 - research 之间存在冲突时保留冲突，不自行选择结论，交由决策会话处理。
 - `KNOWLEDGE.md` 是已验证事实的轻量入口和索引；详细知识按主题分片到 `docs/knowledge/`。
-- `docs/knowledge/full.md` 是迁移前完整知识库归档，只在索引和分片不足以判断时按关键词局部读取，不得作为默认启动文件。
+- 知识按主题保存在 `docs/knowledge/`；归档内容通过 Git history 追溯。
 - 已验证事实可写入对应 `docs/knowledge/` 分片，并同步 `KNOWLEDGE.md` 索引；推测、候选设计和未复现问题不得写成正式知识。
 - `docs/evidence/index.md` 是 evidence 轻量入口；默认只读索引，按任务号、场景或文件名追溯具体 evidence。
 - 新的非显然硬编码数据应记录来源和验证方法。

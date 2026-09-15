@@ -1,18 +1,18 @@
 {
-  "name": "nova",
+  "name": "kmap",
   "version": "0.0.0",
   "private": true,
-  "description": "Nova 3D Map SDK Monorepo",
+  "description": "Kmap 3D Map SDK Monorepo",
   "packageManager": "pnpm@11.19.0",
   "engines": {
     "node": ">=22.12.0",
     "pnpm": ">=11.0.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @nova/playground dev",
-    "build": "pnpm --filter @nova/map3d build && pnpm --filter @nova/playground build",
-    "typecheck": "pnpm --filter @nova/map3d typecheck && pnpm --filter @nova/playground typecheck",
-    "test": "pnpm --filter @nova/map3d build && pnpm --filter @nova/map3d test && pnpm --filter @nova/playground test",
+    "dev": "pnpm --filter @kmap/playground dev",
+    "build": "pnpm --filter @kmap/map3d build && pnpm --filter @kmap/playground build",
+    "typecheck": "pnpm --filter @kmap/map3d typecheck && pnpm --filter @kmap/playground typecheck",
+    "test": "pnpm --filter @kmap/map3d build && pnpm --filter @kmap/map3d test && pnpm --filter @kmap/playground test",
     "check": "pnpm typecheck && pnpm test && pnpm build",
     "ai:check": "node scripts/ai-governance/check-ai-governance.mjs"
   },

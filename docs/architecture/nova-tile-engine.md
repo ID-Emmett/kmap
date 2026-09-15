@@ -1,10 +1,10 @@
-# Nova Streaming Map Architecture
+# Kmap Streaming Map Architecture
 
 更新日期：2026-09-15
 
 ## 生产入口
 
-`Map3D` 使用 `packages/map3d/src/streaming/engine.ts` 中的 `StreamingEngine`。Playground 通过 `@nova/map3d` workspace 依赖接入 SDK。
+`Map3D` 使用 `packages/map3d/src/streaming/engine.ts` 中的 `StreamingEngine`。Playground 通过 `@kmap/map3d` workspace 依赖接入 SDK。
 
 ```text
 ViewState + PerspectiveCamera

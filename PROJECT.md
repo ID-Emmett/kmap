@@ -1,10 +1,10 @@
-# Nova Project Status
+# Kmap Project Status
 
 更新日期：2026-09-15
 
 ## 项目背景
 
-Nova 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立、模块化、可发布的 Web 3D 地图 SDK，逐步替代对厂商地图运行时和历史适配层的强耦合。
+Kmap 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立、模块化、可发布的 Web 3D 地图 SDK，逐步替代对厂商地图运行时和历史适配层的强耦合。
 
 ## 项目目标
 
@@ -71,7 +71,7 @@ Non-Goals：
 
 ## 公共 API 基线
 
-`@nova/map3d` 0.1 API 包含：
+`@kmap/map3d` 0.1 API 包含：
 
 - constructor：Canvas、单 MVT source、fill/line layers、初始 ViewState、renderer/cache options。
 - 生命周期：`initialize/resize/start/stop/dispose`。

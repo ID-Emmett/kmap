@@ -33,7 +33,7 @@
 - MapLibre 的 Tile Cache 与 parent/child retain、deck.gl TileLayer 的 best-available refinement 适合作为 Retained Cache 和空间替换参考，详见 `docs/research/tile-lod-scheduling.md`。
 - Mapbox Fog 官方文档明确将减少远处 Tile 加载作为性能收益：<https://docs.mapbox.com/mapbox-gl-js/guides/globe/#atmosphere-styling>。
 - Cesium 3D Tiles 的 screen-space error 与 dynamic screen-space error 说明远景/地平线方向可使用更积极的细节降低：<https://cesium.com/learn/cesiumjs/ref-doc/Cesium3DTileset.html>。
-- 上述 Runtime 均与 Nova 的 Three.js、TSL、Worker 和 Tile ownership 强耦合边界不同，不建议直接引入完整引擎；应移植不变量和调度思想。
+- 上述 Runtime 均与 Kmap 的 Three.js、TSL、Worker 和 Tile ownership 强耦合边界不同，不建议直接引入完整引擎；应移植不变量和调度思想。
 
 ## 决策会话结论
 

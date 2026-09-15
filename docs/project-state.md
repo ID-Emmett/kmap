@@ -1,12 +1,12 @@
-# Nova Current Project State
+# Kmap Current Project State
 
 更新日期：2026-09-15
 
-本文件是 Nova AI 会话的低 token 启动入口。新会话先读本文件，再按会话类型和当前任务读取索引、任务文件和必要分片；不得用本文件替代 `PROJECT.md`、`TASKS.md`、任务文件、decisions、knowledge 或 evidence。
+本文件是 Kmap AI 会话的低 token 启动入口。新会话先读本文件，再按会话类型和当前任务读取索引、任务文件和必要分片；不得用本文件替代 `PROJECT.md`、`TASKS.md`、任务文件、decisions、knowledge 或 evidence。
 
 ## 当前结论
 
-- Nova 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
+- Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
 - 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 面纹理与中心线实例、视图线宽、加载、缓存、帧提交和资源回收。
 - T046 状态为 VERIFYING，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - 浏览器入口为 `http://127.0.0.1:5173/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。

@@ -1,4 +1,4 @@
-import type { Map3D, ViewState } from '@nova/map3d';
+import type { Map3D, ViewState } from '@kmap/map3d';
 import { CITIES, flyToCity } from './cityFlight.js';
 import { createMapRecorder } from './recording.js';
 
@@ -93,11 +93,11 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
     cacheRevisitHits: cacheReturn.cacheHits > cacheA.cacheHits,
     cacheRevisitNoFetch: cacheReturn.network.starts === cacheB.network.starts,
   };
-  const videoResponse = await fetch('/__nova/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
+  const videoResponse = await fetch('/__kmap/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
   if (!videoResponse.ok) throw new Error('视频证据保存失败。');
   const video = await videoResponse.json() as { file: string };
   const result = { at: new Date().toISOString(), backend: map.getBackend(), durationMs: performance.now() - start, frameSummary, assertions, passed: Object.values(assertions).every(Boolean), video: video.file, visualReview: 'pending', visibility, stages, final, intervals, longFrames, samples, visualFrames };
-  const response = await fetch('/__nova/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
+  const response = await fetch('/__kmap/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
   if (!response.ok) throw new Error('视觉与时序证据保存失败。');
   const saved = await response.json() as { file: string };
   return { ...result, samples: [], visualFrames: [], intervals: [], evidence: saved.file };

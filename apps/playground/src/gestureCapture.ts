@@ -1,4 +1,4 @@
-import type { Map3D } from '@nova/map3d';
+import type { Map3D } from '@kmap/map3d';
 import { createMapRecorder } from './recording.js';
 
 /** 真实指针和滚轮测试保留完整录像与每帧相机状态。 */
@@ -21,11 +21,11 @@ export async function captureGestures(map: Map3D, progress: (text: string) => vo
   }
   observer.disconnect();
   await new Promise<void>(resolve => { recorder.onstop = () => resolve(); recorder.stop(); }); stream.getTracks().forEach(track => track.stop());
-  const videoResponse = await fetch('/__nova/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
+  const videoResponse = await fetch('/__kmap/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
   if (!videoResponse.ok) throw new Error('手势录像保存失败。');
   const video = await videoResponse.json() as { file: string };
   const result = { at: new Date().toISOString(), kind: 'trusted-pointer-wheel', backend: map.getBackend(), durationMs, video: video.file, frames, samples, longFrames };
-  const response = await fetch('/__nova/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
+  const response = await fetch('/__kmap/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
   if (!response.ok) throw new Error('手势时序保存失败。');
   const saved = await response.json() as { file: string }; progress(`手势录像已保存：${saved.file}`);
   return saved;

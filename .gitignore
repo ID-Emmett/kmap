@@ -10,4 +10,13 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
-docs/evidence
+docs/evidence/*
+!docs/evidence/index.md
+!docs/evidence/streaming-rebuild/
+docs/evidence/streaming-rebuild/*
+!docs/evidence/streaming-rebuild/oversized-roads-fix.md
+
+.env
+.env.*
+!.env.example
+package-lock.json

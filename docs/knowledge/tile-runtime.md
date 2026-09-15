@@ -1,4 +1,4 @@
-# Nova Knowledge — Tile Runtime
+# Kmap Knowledge — Tile Runtime
 
 更新日期：2026-09-14
 

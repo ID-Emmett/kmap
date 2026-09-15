@@ -1,4 +1,4 @@
-import type { Map3D, ViewState } from '@nova/map3d';
+import type { Map3D, ViewState } from '@kmap/map3d';
 
 export const CITIES = {
   beijing: { center: { lng: 116.39465, lat: 39.90552 }, zoom: 15, bearing: 0, pitch: 0 },

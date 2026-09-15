@@ -1,4 +1,4 @@
-import type { MapLayerOptions } from '@nova/map3d';
+import type { MapLayerOptions } from '@kmap/map3d';
 
 /** Playground 浅色底图的固定视觉 token。 */
 export const PLAYGROUND_STYLE_TOKENS = Object.freeze({

@@ -1,7 +1,7 @@
 {
-  "name": "@nova/map3d",
+  "name": "@kmap/map3d",
   "version": "0.0.0",
-  "description": "Nova 3D Map SDK",
+  "description": "Kmap 3D Map SDK",
   "type": "module",
   "sideEffects": false,
   "files": [

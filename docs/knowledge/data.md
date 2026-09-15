@@ -1,4 +1,4 @@
-# Nova Knowledge — Data
+# Kmap Knowledge — Data
 
 更新日期：2026-09-12
 

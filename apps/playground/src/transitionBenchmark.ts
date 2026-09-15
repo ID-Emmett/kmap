@@ -1,4 +1,4 @@
-import type { Map3D, ViewState } from '@nova/map3d';
+import type { Map3D, ViewState } from '@kmap/map3d';
 import { CITIES } from './cityFlight.js';
 import { createMapRecorder } from './recording.js';
 
@@ -53,13 +53,13 @@ export async function runTransitionBenchmark(map: Map3D, progress: (value: strin
     boundedWorkers: samples.every(s => (s.diagnostics.workers?.active ?? 0) <= 4),
     gpuBudget: samples.every(s => (s.diagnostics.tiles?.resources.gpuBytes ?? 0) <= (s.diagnostics.tiles?.resources.maxGpuBytes ?? 0)),
     noNetworkErrors: map.getDiagnostics().tiles?.network.errors === 0 };
-  const videoResponse = await fetch('/__nova/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
+  const videoResponse = await fetch('/__kmap/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
   if (!videoResponse.ok) throw new Error('瞬时画面录像保存失败。');
   const video = await videoResponse.json() as { file: string };
   const result = { at: new Date().toISOString(), kind: 'startup-rapid-transitions', backend: map.getBackend(), video: video.file, videoMimeType: recorder.mimeType, stages, intervals, samples, longFrames, frameSummary, assertions, passed: Object.values(assertions).every(Boolean), visualReview: 'pending' };
-  const response = await fetch('/__nova/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
+  const response = await fetch('/__kmap/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
   if (!response.ok) throw new Error('瞬时画面时序保存失败。');
   const saved = await response.json() as { file: string };
-  document.documentElement.dataset.novaTransitionBenchmark = JSON.stringify({ evidence: saved.file, frameSummary, assertions });
+  document.documentElement.dataset.kmapTransitionBenchmark = JSON.stringify({ evidence: saved.file, frameSummary, assertions });
   progress(`首屏与快速交互记录已保存：${saved.file}`);
 }

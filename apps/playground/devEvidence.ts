@@ -6,10 +6,10 @@ import type { Plugin } from 'vite';
 export function devEvidence(): Plugin {
   const directory = fileURLToPath(new URL('../../docs/evidence/', import.meta.url));
   return {
-    name: 'nova-local-evidence',
+    name: 'kmap-local-evidence',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use('/__nova/video', async (request, response) => {
+      server.middlewares.use('/__kmap/video', async (request, response) => {
         if (request.method !== 'POST' || request.headers.origin !== `http://${request.headers.host}`) { response.writeHead(403).end(); return; }
         const chunks: Buffer[] = []; let size = 0;
         for await (const chunk of request) { size += chunk.length; if (size > 128 * 1024 * 1024) { response.writeHead(413).end(); return; } chunks.push(Buffer.from(chunk)); }
@@ -19,7 +19,7 @@ export function devEvidence(): Plugin {
         await writeFile(`${directory}/${stem}`, Buffer.concat(chunks));
         response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ file: `docs/evidence/${stem}` }));
       });
-      server.middlewares.use('/__nova/diagnostics', async (request, response) => {
+      server.middlewares.use('/__kmap/diagnostics', async (request, response) => {
         if (request.method !== 'POST' || request.headers.origin !== `http://${request.headers.host}`) {
           response.writeHead(403).end(); return;
         }

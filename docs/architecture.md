@@ -1,4 +1,4 @@
-# Nova Architecture Baseline
+# Kmap Architecture Baseline
 
 更新日期：2026-09-13
 
@@ -7,13 +7,13 @@
 ## 证据边界
 
 - 已验证输入：KYE 主瓦片为标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096；部分专用空瓦片返回 HTTP 204。
-- 代码现状：`@nova/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、world-wrap render instance、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024/T025 已补齐 V2 rAF Render transaction 和运动调度补丁，但人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链；T028 已完成重置输出；T029 将实施 `TileStreamingEngine`。
+- 代码现状：`@kmap/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、world-wrap render instance、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024/T025 已补齐 V2 rAF Render transaction 和运动调度补丁，但人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链；T028 已完成重置输出；T029 将实施 `TileStreamingEngine`。
 - 架构决策：本文件中的坐标、Tile、Worker、Batch、公共 API 和性能目标属于 T002 设计结论，不写入 `KNOWLEDGE.md`，直到实现和真实环境验证形成证据。
 - 未验证项继续保持未验证：服务节点正式负载均衡规则、完整字段 schema、跨地域建筑数据、Raster DPR 语义、Glyph/Sprite 许可与目标设备性能。
 
 ## MVP 定义
 
-Nova MVP 的目标是证明并交付一个最小但完整的动态矢量地图运行时：
+Kmap MVP 的目标是证明并交付一个最小但完整的动态矢量地图运行时：
 
 ```text
 真实 KYE 主 MVT
@@ -289,7 +289,7 @@ interface TileBuildPayloadV1 {
 
 ## 公共 API 基线
 
-以下是 `@nova/map3d` 0.1 MVP 的最小稳定面：
+以下是 `@kmap/map3d` 0.1 MVP 的最小稳定面：
 
 ```ts
 export type RenderBackend = 'webgpu' | 'webgl2' | 'unknown';

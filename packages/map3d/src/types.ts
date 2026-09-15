@@ -1,4 +1,4 @@
-/** Nova 当前支持的渲染后端。 */
+/** Kmap 当前支持的渲染后端。 */
 export type RenderBackend = 'webgpu' | 'webgl2' | 'unknown';
 
 /** 图层属性和 MVT 字段允许保留的原始值。 */

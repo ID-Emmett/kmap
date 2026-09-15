@@ -1,4 +1,4 @@
-import type { Map3D } from '@nova/map3d';
+import type { Map3D } from '@kmap/map3d';
 import { runBrowserBenchmark } from './browserBenchmark.js';
 import { CITIES, flyToCity } from './cityFlight.js';
 import { captureGestures } from './gestureCapture.js';
@@ -13,7 +13,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
   const panel = document.createElement('aside');
   panel.className = 'diagnostics';
   panel.setAttribute('aria-label', '地图性能面板');
-  panel.innerHTML = `<header><div><span class="eyebrow">NOVA / TILE OBSERVATORY</span><h1>地图性能</h1></div><button id="panel-toggle" aria-expanded="true">收起</button></header>
+  panel.innerHTML = `<header><div><span class="eyebrow">KMAP / TILE OBSERVATORY</span><h1>地图性能</h1></div><button id="panel-toggle" aria-expanded="true">收起</button></header>
     <div class="panel-body"><div class="vitals"><div><strong data-metric="fps">—</strong><span>FPS · 实际帧间隔</span></div><div><strong data-metric="backend">—</strong><span data-metric="phase">初始化</span></div></div>
     <canvas id="frame-chart" width="320" height="44" aria-label="最近 30 秒 CPU 帧耗时趋势"></canvas>
     <section><h2>帧与渲染</h2><dl id="frame-metrics"></dl></section>
@@ -85,7 +85,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     set('origin', `${d.camera.origin.meters.x.toFixed(1)} / ${d.camera.origin.meters.y.toFixed(1)}`);
     set('viewport', `${d.viewport.width} × ${d.viewport.height} / ${d.viewport.pixelRatio}`);
     set('cutoff', `${(t?.footprint?.loadCutoff ?? 0).toFixed(0)} m / ${t?.maxLodDelta ?? 0}`);
-    document.documentElement.dataset.novaDiagnostics = JSON.stringify(d, (key, value: unknown) => key === 'values' ? undefined : value);
+    document.documentElement.dataset.kmapDiagnostics = JSON.stringify(d, (key, value: unknown) => key === 'values' ? undefined : value);
     history.push(d.frame.cpu.p95); if (history.length > 120) history.shift();
     chart.clearRect(0, 0, 320, 44); chart.strokeStyle = '#d8e2dc'; chart.beginPath(); chart.moveTo(0, 22); chart.lineTo(320, 22); chart.stroke();
     chart.strokeStyle = '#1a866b'; chart.lineWidth = 1.5; chart.beginPath(); history.forEach((v, i) => { const x = i / 119 * 320; const y = 42 - Math.min(40, v); if (i === 0) chart.moveTo(x, y); else chart.lineTo(x, y); }); chart.stroke();
@@ -95,9 +95,9 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     if (button.id === 'panel-toggle') { const hidden = panel.classList.toggle('collapsed'); button.textContent = hidden ? '展开' : '收起'; button.setAttribute('aria-expanded', String(!hidden)); return; }
     if (button.id === 'export') {
       requestAnimationFrame(() => {
-        const value = { screenshot: document.querySelector<HTMLCanvasElement>('#map-canvas')?.toDataURL('image/png'), at: new Date().toISOString(), diagnostics: latest, timeline: map.getTileTimeline(), benchmark: document.documentElement.dataset.novaBenchmark ? JSON.parse(document.documentElement.dataset.novaBenchmark) : undefined };
+        const value = { screenshot: document.querySelector<HTMLCanvasElement>('#map-canvas')?.toDataURL('image/png'), at: new Date().toISOString(), diagnostics: latest, timeline: map.getTileTimeline(), benchmark: document.documentElement.dataset.kmapBenchmark ? JSON.parse(document.documentElement.dataset.kmapBenchmark) : undefined };
         if (import.meta.env.DEV) {
-          void fetch('/__nova/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) }).then(async (response) => {
+          void fetch('/__kmap/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) }).then(async (response) => {
             if (!response.ok) throw new Error('诊断保存失败');
             const saved = await response.json() as { file: string };
             status.textContent = `已保存：${saved.file}`;
@@ -137,7 +137,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     if (button.id === 'benchmark') {
       running = true; button.disabled = true;
       void runBrowserBenchmark(map, (message) => { status.textContent = message; }, () => stopped).then((result) => {
-        document.documentElement.dataset.novaBenchmark = JSON.stringify(result);
+        document.documentElement.dataset.kmapBenchmark = JSON.stringify(result);
         status.textContent = result.passed ? '60 秒采样完成 · 功能断言通过' : '采样完成 · 详细结果见导出 JSON';
       }).catch((error: unknown) => { status.textContent = String(error); }).finally(() => { running = false; button.disabled = false; });
     }
@@ -147,6 +147,6 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
 
 function download(value: unknown): void {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
-  const anchor = document.createElement('a'); anchor.href = url; anchor.download = `nova-webgpu-${Date.now()}.json`; anchor.click();
+  const anchor = document.createElement('a'); anchor.href = url; anchor.download = `kmap-webgpu-${Date.now()}.json`; anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

@@ -1,4 +1,4 @@
-# Nova Knowledge — Rendering
+# Kmap Knowledge — Rendering
 
 更新日期：2026-09-12
 

@@ -1,14 +1,13 @@
-# Nova Verified Knowledge Index
+# Kmap Verified Knowledge Index
 
 更新日期：2026-09-15
 
-本文件是 Nova 已验证事实的轻量入口。默认启动只读本文件；需要细节时先按主题读取 `docs/knowledge/` 分片，再按证据索引追溯具体文件。
+本文件是 Kmap 已验证事实的轻量入口。默认启动只读本文件；需要细节时先按主题读取 `docs/knowledge/` 分片，再按证据索引追溯具体文件。
 
 ## 读取规则
 
 - 默认读取：`KNOWLEDGE.md`。
 - 主题细节：读取 `docs/knowledge/*.md` 中相关分片。
-- 原始迁移归档：`docs/knowledge/full.md` 只在分片缺失、冲突或需要历史长文时按关键词局部读取。
 - Evidence：先读 `docs/evidence/index.md`，再打开具体 JSON、截图、trace 或脚本。
 - 新事实必须先有 research、代码、测试、浏览器或人工验收证据，再写入对应知识分片和本索引。
 
@@ -23,7 +22,6 @@
 | Performance | `docs/knowledge/performance.md` | 浏览器性能、资源预算、long task、T016/T025 指标 |
 | Environment | `docs/knowledge/environment.md` | 目标工作站、浏览器矩阵、验证边界和环境风险 |
 | AI Governance | `docs/knowledge/ai-governance.md` | 低 token 入口、Task Context Packet、会话记录和治理门禁 |
-| 完整归档 | `docs/knowledge/full.md` | 迁移前完整 `KNOWLEDGE.md`，非默认读取 |
 
 ## 当前高信号事实
 

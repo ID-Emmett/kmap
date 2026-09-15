@@ -1,4 +1,4 @@
-# Nova Architecture — Tile System
+# Kmap Architecture — Tile System
 
 更新日期：2026-09-13
 

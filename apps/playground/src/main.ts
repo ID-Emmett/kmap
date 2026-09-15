@@ -1,4 +1,4 @@
-import { Map3D } from '@nova/map3d';
+import { Map3D } from '@kmap/map3d';
 import type { Inspector } from 'three/addons/inspector/Inspector.js';
 import { createDiagnosticsPanel } from './diagnosticsPanel.js';
 
@@ -10,7 +10,7 @@ interface InspectorWithTimestampResolution extends Inspector {
 }
 
 async function bootstrap(): Promise<void> {
-  window.__novaMap3D?.dispose();
+  window.__kmapMap3D?.dispose();
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas');
 
   if (!canvas) {
@@ -45,7 +45,7 @@ async function bootstrap(): Promise<void> {
       pitch: 0,
     },
   });
-  window.__novaMap3D = map;
+  window.__kmapMap3D = map;
   publishStatus({ state: 'initializing' });
 
   // Inspector 只在 Playground 接入，SDK 不依赖开发调试界面。
@@ -53,7 +53,7 @@ async function bootstrap(): Promise<void> {
   if (new URLSearchParams(window.location.search).has('inspector')) {
     const { Inspector } = await import('three/addons/inspector/Inspector.js');
     inspector = new Inspector() as InspectorWithTimestampResolution;
-    window.__novaInspector = inspector;
+    window.__kmapInspector = inspector;
     map.getRenderer().inspector = inspector;
   }
   const removePanel = createDiagnosticsPanel(map);
@@ -94,8 +94,8 @@ async function bootstrap(): Promise<void> {
       stats: map.getStats(),
     });
     console.info(
-      'Nova Map3D 动态 Polygon/Line Tile 已就绪。',
-      document.documentElement.dataset.novaStatus,
+      'Kmap Map3D 动态 Polygon/Line Tile 已就绪。',
+      document.documentElement.dataset.kmapStatus,
     );
 
     if (new URLSearchParams(window.location.search).get('lifecycle') === 'dispose') {
@@ -125,16 +125,16 @@ async function bootstrap(): Promise<void> {
   }
 }
 
-if (import.meta.hot) import.meta.hot.dispose(() => window.__novaMap3D?.dispose());
+if (import.meta.hot) import.meta.hot.dispose(() => window.__kmapMap3D?.dispose());
 
 void bootstrap().catch(async (error: unknown) => {
   const structured = getStructuredError(error);
-  const map = window.__novaMap3D;
+  const map = window.__kmapMap3D;
   if (map !== undefined) {
-    await disposeMapAfterInspectorQueries(map, window.__novaInspector);
+    await disposeMapAfterInspectorQueries(map, window.__kmapInspector);
   }
   publishStatus({ state: 'failed', error: structured });
-  console.error('Nova Playground 启动失败。', structured, error);
+  console.error('Kmap Playground 启动失败。', structured, error);
 });
 
 async function disposeMapAfterInspectorQueries(
@@ -150,8 +150,8 @@ async function disposeMapAfterInspectorQueries(
 }
 
 function publishStatus(status: Record<string, unknown>): void {
-  window.__novaStatus = status;
-  document.documentElement.dataset.novaStatus = JSON.stringify(status);
+  window.__kmapStatus = status;
+  document.documentElement.dataset.kmapStatus = JSON.stringify(status);
 }
 
 function getStructuredError(error: unknown): Record<string, unknown> {
@@ -177,8 +177,8 @@ function getStructuredError(error: unknown): Record<string, unknown> {
 
 declare global {
   interface Window {
-    __novaInspector?: InspectorWithTimestampResolution;
-    __novaMap3D?: Map3D;
-    __novaStatus?: Record<string, unknown>;
+    __kmapInspector?: InspectorWithTimestampResolution;
+    __kmapMap3D?: Map3D;
+    __kmapStatus?: Record<string, unknown>;
   }
 }

@@ -1,8 +1,8 @@
-# Nova MVP Visual Style Baseline
+# Kmap MVP Visual Style Baseline
 
 更新日期：2026-09-09
 
-状态：D022 已确认的 MVP 视觉基线。它约束官方 Playground 和 MVP 验收场景，不改变 `@nova/map3d` 的通用 Layer API。
+状态：D022 已确认的 MVP 视觉基线。它约束官方 Playground 和 MVP 验收场景，不改变 `@kmap/map3d` 的通用 Layer API。
 
 ## 目标
 

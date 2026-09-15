@@ -1,5 +1,5 @@
 {
-  "name": "@nova/playground",
+  "name": "@kmap/playground",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@nova/map3d": "workspace:*",
+    "@kmap/map3d": "workspace:*",
     "three": "catalog:"
   },
   "devDependencies": {

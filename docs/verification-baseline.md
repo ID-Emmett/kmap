@@ -1,4 +1,4 @@
-# Nova MVP Verification Baseline
+# Kmap MVP Verification Baseline
 
 更新日期：2026-09-09
 
@@ -38,7 +38,7 @@
 
 ### Package Integration
 
-- `@nova/playground` 只能通过 workspace package 导入 `@nova/map3d`。
+- `@kmap/playground` 只能通过 workspace package 导入 `@kmap/map3d`。
 - SDK build 不打包第二份 Three.js；SDK 不引用 Playground、Inspector 或 DOM 调试面板。
 - Type declaration 覆盖批准的公共 API，未批准的内部类型不从根入口导出。
 - `pnpm check` 必须通过：strict typecheck、Vitest、SDK/Playground production build。

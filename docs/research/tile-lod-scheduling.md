@@ -4,13 +4,13 @@
 
 ## 研究目标
 
-为 Nova 在高 pitch、宽视口和连续相机运动下的 Tile Coverage 与加载体验提供可追溯事实输入，重点判断：
+为 Kmap 在高 pitch、宽视口和连续相机运动下的 Tile Coverage 与加载体验提供可追溯事实输入，重点判断：
 
 - 当前左右区域不加载是否属于 Coverage 正确性问题。
 - 业界是否存在成熟的混合 LOD、父子替换和请求调度实现。
-- 哪些算法可以在不引入另一套地图 Runtime 的前提下适配 Nova。
+- 哪些算法可以在不引入另一套地图 Runtime 的前提下适配 Kmap。
 
-## Nova 当前代码证据
+## Kmap 当前代码证据
 
 状态：代码已确认，并于 2026-09-10 使用现有实现执行代表性复算。
 
@@ -51,7 +51,7 @@
 
 适用判断：
 
-- 四叉树、Frustum/AABB、按屏幕误差细分和父子保留适合 Nova 当前平面 Web Mercator Camera。
+- 四叉树、Frustum/AABB、按屏幕误差细分和父子保留适合 Kmap 当前平面 Web Mercator Camera。
 - MapLibre 内部代码依赖其 Transform、Projection、OverscaledTileID、SourceCache 和渲染体系，不能作为无适配的独立模块直接导入。
 - 可以在遵守 BSD-3-Clause 声明的前提下参考或移植算法，但不应引入完整 `maplibre-gl` Runtime。
 
@@ -69,8 +69,8 @@
 
 适用判断：
 
-- 可作为 Nova 请求调度、取消迟滞、settled refinement 和 Cache 指标的参考。
-- deck.gl TileLayer 自带 Layer/Viewport/Renderer 生命周期，不适合替换 Nova 的 Three.js Tile Runtime。
+- 可作为 Kmap 请求调度、取消迟滞、settled refinement 和 Cache 指标的参考。
+- deck.gl TileLayer 自带 Layer/Viewport/Renderer 生命周期，不适合替换 Kmap 的 Three.js Tile Runtime。
 
 ## 候选方案
 
@@ -88,7 +88,7 @@
 
 - 优点：近景高精度、远景低精度；天然满足数量预算与覆盖完整性；与 T013 父子 fallback 方向一致。
 - 缺点：需要重构 Coverage 选择、优先级和相关测试；需处理 LOD 邻接、迟滞和 Layer zoom 语义。
-- 结论：推荐作为 Nova 目标方案。
+- 结论：推荐作为 Kmap 目标方案。
 
 ### 方案 C：固定屏幕分带
 

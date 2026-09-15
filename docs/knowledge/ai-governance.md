@@ -1,10 +1,10 @@
-# Nova Knowledge — AI Governance
+# Kmap Knowledge — AI Governance
 
 更新日期：2026-09-12
 
 ## 当前治理模型
 
-- Nova 采用 Human-Governed + Spec-Driven + Task-Driven + Evidence-Driven AI Coding。
+- Kmap 采用 Human-Governed + Spec-Driven + Task-Driven + Evidence-Driven AI Coding。
 - 会话类型只允许 `决策会话` 和 `实施会话`；调试、验证、性能分析和迁移只是任务性质。
 - `docs/project-state.md` 是低 token 当前状态入口；正式事实仍由 `PROJECT.md`、`TASKS.md`、任务文件、decisions、knowledge 和 evidence 共同承载。
 
@@ -12,7 +12,7 @@
 
 - 所有非 DONE 的实施任务必须包含 `Task Context Packet`。
 - `Task Context Packet` 用 `Must Read`、`Read If Needed`、`Allowed Files`、`Forbidden Files`、`Required Evidence` 和 `Stop Conditions` 控制读取、修改和验收边界。
-- 默认不得通读 `docs/knowledge/full.md`、`docs/evidence/` 全目录、旧任务全集或与当前任务无关的历史会话记录。
+- 默认不得通读 `docs/evidence/` 全目录、旧任务全集或与当前任务无关的历史会话记录。
 
 ## 文档污染控制
 

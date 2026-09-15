@@ -1,4 +1,4 @@
-# Nova Technical Decisions
+# Kmap Technical Decisions
 
 更新日期：2026-09-12
 
@@ -158,7 +158,7 @@
 - 状态：Accepted
 - 确认日期：2026-09-09
 - 人工方向：地图效果参考 Apple Maps 的浅色、清爽和低噪声体验。
-- 决策：Nova 采用原创的 Apple Maps-inspired 浅色视觉方向；不复制 Apple 的专有样式、资产、字体、图标或标识，也不宣称像素级等价。
+- 决策：Kmap 采用原创的 Apple Maps-inspired 浅色视觉方向；不复制 Apple 的专有样式、资产、字体、图标或标识，也不宣称像素级等价。
 - 语义：一般土地为浅中性色，水体为柔和浅蓝，建筑为低对比冷灰，道路通过 casing/fill 建立层级，绿色只表达经字段确认的植被类别。
 - 边界：该视觉基线约束官方 Playground 和 MVP 截图验收；SDK 继续接收通用 fill/line layer 配置，不新增默认 style preset 或公共 API。
 - 限制：MVP 仍不包含文字、Glyph/Sprite 和完整 Style v8，因此交付目标是无文字的浅色底图骨架。

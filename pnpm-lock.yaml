@@ -32,7 +32,7 @@ importers:
 
   apps/playground:
     dependencies:
-      '@nova/map3d':
+      '@kmap/map3d':
         specifier: workspace:*
         version: link:../../packages/map3d
       three:
