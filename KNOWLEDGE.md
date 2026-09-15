@@ -28,7 +28,7 @@
 ## 当前高信号事实
 
 - KYE 主瓦片是标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096；部分专用空瓦片返回 HTTP 204。
-- 当前 MVP 以真实 KYE 主 MVT、Worker Canvas 图层绘制、Three.js 纹理合成、StreamingEngine 和浅色 Playground 为核心。
+- 当前 MVP 使用真实 KYE 主 MVT、Worker 面纹理与中心线实例、Three.js TSL 视图线宽、StreamingEngine 和浅色 Playground。
 - 当前瓦片架构、数据响应与验证事实见 `docs/knowledge/streaming.md`。
 - `docs/project-state.md`、`docs/architecture/index.md`、`docs/decisions/index.md` 和 `pnpm ai:check` 已作为低 token 与强约束治理入口。
 

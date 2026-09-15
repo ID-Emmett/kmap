@@ -221,12 +221,28 @@ describe('Map interactions', () => {
     expect(setView).not.toHaveBeenCalled();
     scheduler.step(16);
     expect(setView).toHaveBeenCalledTimes(1);
-    expect(getView().zoom).toBeCloseTo(5.35);
+    expect(getView().zoom).toBeGreaterThan(5);
+    expect(getView().zoom).toBeLessThan(5.3);
 
     scheduler.runUntilIdle(16, 1_000);
 
     expect(getView().zoom).toBeCloseTo(6.2);
     expect(scheduler.pendingCount()).toBe(0);
+  });
+
+  it('滚轮在 60/120/170Hz 下按相同时间推进并准确到达目标', () => {
+    const positions = [60, 120, 170].map(hz => {
+      const { target, scheduler, getView } = createInteractionHarness({ zoom: 5 });
+      target.dispatch('wheel', wheelEvent({ deltaY: -400, deltaMode: 0 }));
+      let elapsed = 0;
+      while (elapsed < 160) { const step = Math.min(1000 / hz, 160 - elapsed); scheduler.step(step); elapsed += step; }
+      const mid = getView().zoom;
+      scheduler.runUntilIdle(1000 / hz, 1000);
+      expect(getView().zoom).toBeCloseTo(6, 6);
+      return mid;
+    });
+    expect(positions[0]).toBeGreaterThan(5.8); expect(positions[0]).toBeLessThan(6);
+    expect(positions[0]).toBeCloseTo(positions[1]!, 10); expect(positions[0]).toBeCloseTo(positions[2]!, 10);
   });
 
   it('wheel 新输入会取消旧惯性', () => {

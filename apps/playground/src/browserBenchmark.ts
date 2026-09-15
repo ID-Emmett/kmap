@@ -1,12 +1,13 @@
 import type { Map3D, ViewState } from '@nova/map3d';
 import { CITIES, flyToCity } from './cityFlight.js';
+import { createMapRecorder } from './recording.js';
 
 /** 验收同时保留 60 FPS 视频、逐帧间隔、10Hz 图像与队列观测。 */
 export async function runBrowserBenchmark(map: Map3D, progress: (message: string) => void, cancelled: () => boolean) {
   if (map.getBackend() !== 'webgpu') throw new Error('验收要求 WebGPU 后端。');
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas')!;
   const stream = canvas.captureStream(60);
-  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 4_000_000 });
+  const recorder = createMapRecorder(stream);
   const chunks: Blob[] = []; recorder.ondataavailable = event => chunks.push(event.data);
   const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
   const wait = async (ms: number) => { const end = performance.now() + ms; while (performance.now() < end) { if (cancelled()) throw new Error('验收已取消。'); await nextFrame(); } };
@@ -80,6 +81,8 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
     finalCoverage: final.tiles?.targetMissing === 0 && final.tiles.uncoveredCells === 0,
     boundedRequests: samples.every(s => (s.diagnostics.tiles?.scheduler.active ?? 0) <= 12),
     boundedWorkers: samples.every(s => (s.diagnostics.workers?.active ?? 0) <= 4),
+    entryBudget: samples.every(s => (s.diagnostics.tiles?.cache.entries ?? 0) <= (s.diagnostics.tiles?.cache.maxEntries ?? 0)),
+    cpuBudget: samples.every(s => (s.diagnostics.tiles?.cache.cpuBytes ?? 0) <= (s.diagnostics.tiles?.cache.maxCpuBytes ?? 0)),
     gpuBudget: samples.every(s => (s.diagnostics.tiles?.resources.gpuBytes ?? 0) <= (s.diagnostics.tiles?.resources.maxGpuBytes ?? Infinity)),
     motionCoverage: visualFrames.filter(f => ['pan-zoom-rotate', 'beijing-to-shanghai', 'shanghai-to-beijing'].includes(f.stage)).every(f => f.uncovered === 0),
     interactionCoverage: visualFrames.filter(f => f.stage !== 'initial').every(f => f.uncovered === 0),

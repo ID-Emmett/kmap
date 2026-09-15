@@ -7,9 +7,10 @@
 ## 当前结论
 
 - Nova 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
-- 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 纹理绘制、加载、缓存、帧提交和资源回收。
+- 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 面纹理与中心线实例、视图线宽、加载、缓存、帧提交和资源回收。
 - T046 状态为 VERIFYING，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - 浏览器入口为 `http://127.0.0.1:5173/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。
+- 2560×1305 WebGPU 首屏、快速交互、城市往返与真实手势的最终验证见 `docs/evidence/streaming-rebuild/oversized-roads-fix.md`。
 
 ## 当前任务状态
 

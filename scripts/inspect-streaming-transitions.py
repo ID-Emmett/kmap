@@ -36,6 +36,6 @@ for page in range((len(frames) + 29) // 30):
     sheet.save(output / f'continuous-{page:02d}.jpg', quality=92)
 summary = {'report': args.report.name, 'video': report['video'], 'startSeconds': args.start,
            'durationSeconds': args.duration, 'samplingHz': 60, 'frameCount': len(frames),
-           'method': '60Hz resampling of captured WebM; duplicate source frames may occur'}
+           'method': '60Hz resampling of captured video; duplicate source frames may occur'}
 (output / 'summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
 print(json.dumps(summary))

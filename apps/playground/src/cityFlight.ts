@@ -41,7 +41,7 @@ export async function flyToCity(map: Map3D, destination: ViewState, duration = 1
     const progress = Math.min(1, (now - start) / duration);
     if (now - prefetchedAt >= 250) {
       prefetchedAt = now;
-      for (const [seconds, priority] of [[.5, 30], [1.1, 40]] as const) {
+      for (const [seconds, priority] of [[.5, 0], [1.1, 10]] as const) {
         map.prefetchViews([flightView(from, destination, Math.min(1, progress + seconds * 1000 / duration), width)], { priority });
       }
     }

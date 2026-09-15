@@ -13,7 +13,8 @@ export function devEvidence(): Plugin {
         if (request.method !== 'POST' || request.headers.origin !== `http://${request.headers.host}`) { response.writeHead(403).end(); return; }
         const chunks: Buffer[] = []; let size = 0;
         for await (const chunk of request) { size += chunk.length; if (size > 128 * 1024 * 1024) { response.writeHead(413).end(); return; } chunks.push(Buffer.from(chunk)); }
-        const stem = `streaming-rebuild/video-${Date.now()}.webm`;
+        const extension = request.headers['content-type']?.startsWith('video/mp4') ? 'mp4' : 'webm';
+        const stem = `streaming-rebuild/video-${Date.now()}.${extension}`;
         await mkdir(`${directory}/streaming-rebuild`, { recursive: true });
         await writeFile(`${directory}/${stem}`, Buffer.concat(chunks));
         response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ file: `docs/evidence/${stem}` }));

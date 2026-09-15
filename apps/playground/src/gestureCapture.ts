@@ -1,10 +1,11 @@
 import type { Map3D } from '@nova/map3d';
+import { createMapRecorder } from './recording.js';
 
 /** 真实指针和滚轮测试保留完整录像与每帧相机状态。 */
 export async function captureGestures(map: Map3D, progress: (text: string) => void, durationMs = 30000) {
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas')!;
   const stream = canvas.captureStream(60);
-  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 4_000_000 });
+  const recorder = createMapRecorder(stream);
   const chunks: Blob[] = []; recorder.ondataavailable = event => chunks.push(event.data);
   const frames: { atMs: number; interval: number; view: ReturnType<Map3D['getView']> }[] = [];
   const samples: { atMs: number; diagnostics: ReturnType<Map3D['getDiagnostics']> }[] = [];

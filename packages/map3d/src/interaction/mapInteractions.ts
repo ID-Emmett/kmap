@@ -1,3 +1,4 @@
+import { getPointerMode, takeWheelZoomStep, getEventTime, createDefaultFrameScheduler, releasePointerCapture } from './eventHelpers.js';
 import type { ViewportSize, ViewState } from '../types.js';
 import {
   INERTIA_MAX_DURATION_MS,
@@ -95,7 +96,6 @@ interface InertiaState {
   frame: FrameHandle | undefined;
 }
 
-const WHEEL_ZOOM_STEP_PER_FRAME = 0.35;
 const WHEEL_ZOOM_EPSILON = 1e-6;
 
 /** 地图鼠标控制：拖拽跟手、释放阻尼、滚轮逐帧缩放。 */
@@ -382,7 +382,9 @@ export class MapInteractionController {
       return;
     }
 
-    const zoomDelta = takeWheelZoomStep(this.#pendingWheelZoomDelta);
+    const previousTime = this.#lastWheelFrameTimeMs ?? timeMs - 16;
+    const elapsedMs = Math.max(0, timeMs - previousTime);
+    const zoomDelta = takeWheelZoomStep(this.#pendingWheelZoomDelta, elapsedMs);
     this.#pendingWheelZoomDelta -= zoomDelta;
     if (Math.abs(this.#pendingWheelZoomDelta) < WHEEL_ZOOM_EPSILON) {
       this.#pendingWheelZoomDelta = 0;
@@ -390,7 +392,6 @@ export class MapInteractionController {
 
     if (zoomDelta !== 0) {
       const view = this.#options.getView();
-      const previousTime = this.#lastWheelFrameTimeMs ?? timeMs - 16;
       const deltaSeconds = Math.max((timeMs - previousTime) / 1_000, 1 / 240);
       this.#lastWheelFrameTimeMs = timeMs;
       this.#emitMotion(
@@ -488,78 +489,4 @@ export class MapInteractionController {
 
 function stoppedInteractionVelocity(): InteractionVelocity {
   return { panX: 0, panY: 0, bearing: 0, pitch: 0 };
-}
-
-function getPointerMode(
-  event: Pick<PointerEvent, 'button' | 'shiftKey'>,
-): ActivePointer['mode'] | undefined {
-  if (event.button === 2 || (event.button === 0 && event.shiftKey)) {
-    return 'rotate';
-  }
-  if (event.button === 0) {
-    return 'pan';
-  }
-  return undefined;
-}
-
-function takeWheelZoomStep(pendingDelta: number): number {
-  if (Math.abs(pendingDelta) <= WHEEL_ZOOM_STEP_PER_FRAME) {
-    return pendingDelta;
-  }
-
-  return Math.sign(pendingDelta) * WHEEL_ZOOM_STEP_PER_FRAME;
-}
-
-function getEventTime(
-  event: Pick<Event, 'timeStamp'>,
-  scheduler: InteractionFrameScheduler,
-): number {
-  const now = scheduler.now();
-  const timestamp = event.timeStamp;
-  if (!Number.isFinite(timestamp) || timestamp <= 0) {
-    return now;
-  }
-
-  // 浏览器自动化和部分兼容层可能提供非同源或停滞的 timeStamp。
-  if (Math.abs(timestamp - now) > 60_000) {
-    return now;
-  }
-
-  return Math.max(timestamp, now);
-}
-
-function createDefaultFrameScheduler(): InteractionFrameScheduler {
-  return {
-    now: () => performance.now(),
-    requestFrame: (callback) => {
-      if (typeof requestAnimationFrame === 'function') {
-        return requestAnimationFrame(callback);
-      }
-
-      return setTimeout(() => callback(performance.now()), 16);
-    },
-    cancelFrame: (handle) => {
-      if (typeof cancelAnimationFrame === 'function') {
-        cancelAnimationFrame(handle as number);
-        return;
-      }
-
-      clearTimeout(handle as ReturnType<typeof setTimeout>);
-    },
-  };
-}
-
-function releasePointerCapture(
-  target: InteractionTarget,
-  pointerId: number,
-): void {
-  if (target.hasPointerCapture?.(pointerId) === false) {
-    return;
-  }
-
-  try {
-    target.releasePointerCapture?.(pointerId);
-  } catch {
-    // pointercancel/lostpointercapture 可能已由浏览器隐式释放。
-  }
 }

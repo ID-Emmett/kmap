@@ -14,7 +14,7 @@ Nova 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立�
 
 T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯通，T011-T015 已完成视觉与连续体验阻断项修复并经人工接受。
 
-当前生产地图由 `StreamingEngine` 驱动，模块位于 `packages/map3d/src/streaming/`。系统使用真实 XYZ MVT、Worker Canvas 图层绘制、Three.js WebGPU 纹理合成、有界调度、LOD、父子覆盖和缓存回收。当前连续浏览器验证入口为 `docs/evidence/streaming-rebuild/`。
+当前生产地图由 `StreamingEngine` 驱动，模块位于 `packages/map3d/src/streaming/`。系统使用真实 XYZ MVT、Worker 面纹理与线段实例、Three.js WebGPU 合成、有界调度、LOD、父子覆盖和缓存回收。当前连续浏览器验证入口为 `docs/evidence/streaming-rebuild/`。
 
 ## 当前事实基线
 
@@ -25,10 +25,10 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 - `WebGPURenderer` 默认 WebGPU，自动 WebGL2 fallback，可通过 `forceWebGL` 验证回退路径。
 - Playground 使用 Three.js Inspector；SDK 不依赖 Playground 或 Inspector。
 - 主 KYE 数据为标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096。
-- Worker 使用 `@mapbox/vector-tile`、`pbf` 和 OffscreenCanvas 绘制图层；输出 transferable ImageBitmap。
+- Worker 使用 `@mapbox/vector-tile`、`pbf` 和 OffscreenCanvas 绘制面图层；输出 transferable ImageBitmap 与线段实例 TypedArray。道路线宽由 TSL 根据当前视图计算。
 - `z15/26978/12416` MVT fixture 用于验证道路、地块、建筑和属性过滤；真实浏览器使用 KYE 网络瓦片。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
-- 当前可见集由视锥、地面距离和屏幕采样尺度选择，512 像素纹理覆盖整数数据级别的连续缩放，远侧层级按投影尺度合并。
+- 当前可见集由视锥、地面距离和屏幕采样尺度选择；数据源最细三级面纹理使用 512 像素，其余层级使用 256 像素，线宽随当前视图连续计算，远侧层级按投影尺度合并。
 - StreamingEngine 采用 12 请求流水线、至多 4 Worker、384 条目与各 256 MiB CPU/GPU 预算，每帧上传至多 1 张纹理。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
@@ -42,7 +42,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 KYE Tile
 → Browser Fetch / HTTP gzip
 → MVT decode
-→ Worker Canvas 图层绘制
+→ Worker 面纹理绘制与中心线实例生成
 → ImageBitmap / Three.js Texture
 → WebGPU / WebGL2
 → Camera-driven dynamic tile lifecycle
@@ -53,7 +53,7 @@ KYE Tile
 - WGS84 `ViewState`、Web Mercator meters、Tile 局部 Float32 和浮动原点。
 - Camera 平移、连续 Zoom、Bearing、Pitch 和可见 Tile Coverage。
 - XYZ 世界副本、请求去重、队列取消、204 祖先覆盖、有限重试和按字节约束的 LRU。
-- Polygon/Line、常量样式、属性过滤和按 Tile 合成纹理。
+- Polygon/Line、常量样式、属性过滤、按 Tile 合成面纹理和按视图缩放的实例线段。
 - Worker 协议、transferable buffer/ImageBitmap 和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。

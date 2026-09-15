@@ -69,8 +69,8 @@ export class Map3D {
       const origin = selectMapOrigin(view.center, Math.max(0, Math.floor(view.zoom)));
       const frame = updateMapCamera(camera, view, this.viewport, origin);
       const selection = selectTiles(camera, frame, origin, view, this.viewport, this.options.source.minZoom, this.options.source.maxZoom);
-      this.engine.addPrefetch(selection.leaves, options.ttlMs ?? 1600, options.priority ?? 65);
-      this.engine.addPrefetch(selection.leaves.filter(a => a.z > this.options.source.minZoom).map(parentOf), options.ttlMs ?? 1600, (options.priority ?? 65) + 5);
+      this.engine.addPrefetch(selection.leaves, options.ttlMs ?? 1600, options.priority ?? 65, true);
+      this.engine.addPrefetch(selection.leaves.filter(a => a.z > this.options.source.minZoom).map(parentOf), options.ttlMs ?? 1600, (options.priority ?? 65) - 10, true, true);
     }
   }
   on<T extends keyof MapEventMap>(type: T, listener: (event: MapEventMap[T]) => void): () => void { this.assertLive(); return this.events.on(type, listener); }
@@ -108,7 +108,7 @@ export class Map3D {
     const frame = this.cpu.snapshot(); const visible = engine?.shown.size ?? 0;
     return { backend: this.getBackend(), frame: { lastMs: frame.last, p95Ms: frame.p95 },
       tiles: { visible, queued: count('queued'), fetching: count('fetching'), decoding: 0, building: count('painting'), ready: count('ready'), empty: entries.filter(e => e.empty).length, failed: count('failed') },
-      resources: { cpuBytes: (engine?.gpuBytes ?? 0) * .75, gpuBytes: engine?.gpuBytes ?? 0, batches: visible, features: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + e.features, 0), vertices: visible * 4, indices: visible * 6, objects: entries.filter(e => e.surface).length },
+      resources: { cpuBytes: engine?.cpuBytes ?? 0, gpuBytes: engine?.gpuBytes ?? 0, batches: visible, features: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + e.features, 0), vertices: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + 4 + (e.surface?.lines?.vertices ?? 0), 0), indices: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + 6 + (e.surface?.lines?.indices ?? 0), 0), objects: entries.filter(e => e.surface).reduce((sum, e) => sum + 1 + (e.surface?.lines ? 1 : 0), 0) },
       workers: engine?.workers.getStats() ?? { active: 0, queued: 0 } };
   }
   getDiagnostics() {
