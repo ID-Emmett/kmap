@@ -2,8 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-import { matchesLayerFilters } from '../../../packages/map3d/src/geometry/filter.js';
-import { decodeMvt } from '../../../packages/map3d/src/mvt/decodeMvt.js';
+import { matches as matchesLayerFilters, decodeVectorTile } from '../../../packages/map3d/src/streaming/paint.js';
 import {
   MAJOR_ROAD_CLASSES,
   PLAYGROUND_LAYERS,
@@ -14,6 +13,11 @@ const FIXTURE_URL = new URL(
   '../../../packages/map3d/test/fixtures/kye-main-z15-26978-12416.mvt',
   import.meta.url,
 );
+
+function decodeMvt(buffer: Uint8Array) {
+  const tile = decodeVectorTile(buffer);
+  return { layers: Object.fromEntries(Object.entries(tile.layers).map(([name, layer]) => [name, { features: Array.from({ length: layer.length }, (_, i) => layer.feature(i)) }])) };
+}
 
 describe('Playground light basemap style', () => {
   it('uses the approved light token palette and semantic layer order', () => {

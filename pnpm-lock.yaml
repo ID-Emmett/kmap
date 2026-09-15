@@ -51,9 +51,6 @@ importers:
       '@mapbox/vector-tile':
         specifier: 3.0.0
         version: 3.0.0
-      earcut:
-        specifier: 3.2.3
-        version: 3.2.3
       pbf:
         specifier: 5.1.2
         version: 5.1.2
@@ -363,9 +360,6 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
-
-  earcut@3.2.3:
-    resolution: {integrity: sha512-vnS4AVwp1KHAF13i1vp1/2D5evWy3k5u/iW/B81QVsUZtV8cv2tU0b2VNFlqvh4kYwrFMDdjPCfAmfyJW9y14Q==}
 
   es-module-lexer@2.3.2:
     resolution: {integrity: sha512-poHGpORABojJJucnV9KbOavETW8lBVnphkW77ER5/BQ5Fz7oXSoCNek7IH3vR5nRjdsEz926ibFYX8KtLQmdyw==}
@@ -810,8 +804,6 @@ snapshots:
   chai@6.2.2: {}
 
   detect-libc@2.1.2: {}
-
-  earcut@3.2.3: {}
 
   es-module-lexer@2.3.2: {}
 

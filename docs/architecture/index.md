@@ -1,6 +1,6 @@
 # Nova Architecture Index
 
-更新日期：2026-09-13
+更新日期：2026-09-15
 
 本文件是架构文档的低 token 入口。默认只读本索引；只有当前任务的 `Task Context Packet` 或决策问题明确需要时，才读取 `docs/architecture.md` 的对应章节或主题分片。
 
@@ -17,13 +17,13 @@
 | 当前状态与约束 | `docs/project-state.md` | 所有会话默认读取 |
 | 完整架构归档 | `docs/architecture.md` | 需要公共 API、坐标、Worker、Runtime、渲染完整边界时按章节读取 |
 | 瓦片系统 | `docs/architecture/tile-system.md` | 涉及 Tile Runtime、TileEngineV2、TileStreamingEngine 或旧路径隔离时读取 |
-| NovaTileEngine | `docs/architecture/nova-tile-engine.md` | NTE 当前接口、模块、加载、调度、缓存、渲染和验收 |
+| StreamingEngine | `docs/architecture/nova-tile-engine.md` | 当前接口、模块、加载、缓存、Worker 纹理、渲染与连续视觉验收 |
 | 验证与性能 | `docs/verification-baseline.md` | 涉及浏览器矩阵、性能门槛、发布判断时读取 |
 | 体验边界 | `docs/experience-baseline.md` | 涉及 pan/zoom、渐进加载、远景渐隐或人工体验时读取 |
 
 ## 当前架构入口
 
-- `NovaTileEngine` 当前规范：`docs/architecture/nova-tile-engine.md`。
-- `NovaTileEngine` 当前决策：`docs/decisions/D033-nova-tile-engine-plan.md`。
-- T031 为当前默认实施任务。
+- `StreamingEngine` 当前规范：`docs/architecture/nova-tile-engine.md`。
+- 瓦片公开资料与验收定义：`docs/research/streaming-rebuild-public-sources.md`。
+- 当前实现和验证范围以 `docs/project-state.md` 与 StreamingEngine 规范为入口。
 - 架构事实来自 decisions、任务完成记录、测试、evidence 或人工验收。

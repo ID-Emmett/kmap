@@ -1,6 +1,6 @@
 # Nova Verified Knowledge Index
 
-更新日期：2026-09-14
+更新日期：2026-09-15
 
 本文件是 Nova 已验证事实的轻量入口。默认启动只读本文件；需要细节时先按主题读取 `docs/knowledge/` 分片，再按证据索引追溯具体文件。
 
@@ -16,6 +16,7 @@
 
 | 主题 | 文件 | 默认用途 |
 | --- | --- | --- |
+| StreamingEngine | `docs/knowledge/streaming.md` | 当前 MVT 绘制、加载、覆盖、缓存、LOD、雾和连续浏览器证据 |
 | 数据协议与输入 | `docs/knowledge/data.md` | KYE MVT、fixture、style、动态业务数据、空瓦片和资源格式 |
 | Tile Runtime | `docs/knowledge/tile-runtime.md` | TileKey、coverage、cache、TileEngineV2、调度/显示失败事实 |
 | Rendering | `docs/knowledge/rendering.md` | Three.js 后端、Polygon/Line、视觉基线、网格伪影、渐隐 |
@@ -27,14 +28,9 @@
 ## 当前高信号事实
 
 - KYE 主瓦片是标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096；部分专用空瓦片返回 HTTP 204。
-- 当前 MVP 以真实 KYE 主 MVT、Three.js WebGPU/WebGL2、Worker Polygon/Line batch、Tile Runtime/Cache 和浅色 Playground 为核心。
-- T011-T015 的规则网格伪影、浅色底图、渐进式替换、惯性交互和倾斜远景渐隐已通过人工体验验收。
-- T016 已通过 Line geometry 复用解除 T010 city z10 资源阻断，但 128 MiB CPU cache 余量极小，仍是风险。
-- T021/T023/T025 自动和浏览器脚本证据不能替代人工体验结论；人工负责人已明确报告 Tile 加载滞后、停止后波次、逐块出现和白闪仍存在。
-- D031 已冻结既有补丁路线；D033 已确认 `NovaTileEngine` 方案，T030～T044 组成原任务链；T045 是针对 T042 首屏覆盖阻断新增的 LOD 修复任务。
-- T042 生产双后端复跑确认 `MixedLODPlanner` 在 `minZoom=0`、初始 `zoom=15` 时仅计划 z=0 根 Tile，首屏为空；T045 已修复 Bootstrap/Exact 初始覆盖规划并通过双后端 smoke。
+- 当前 MVP 以真实 KYE 主 MVT、Worker Canvas 图层绘制、Three.js 纹理合成、StreamingEngine 和浅色 Playground 为核心。
+- 当前瓦片架构、数据响应与验证事实见 `docs/knowledge/streaming.md`。
 - `docs/project-state.md`、`docs/architecture/index.md`、`docs/decisions/index.md` 和 `pnpm ai:check` 已作为低 token 与强约束治理入口。
-- T046 全量复核确认生产 NTE 视图切换后资源未释放、在途请求无阶段并发上限、连续 ViewState 更新反复 abort，以及 loadCutoff 未接入生产规划；修复任务与证据见 `tasks/T046-tile-system-full-lifecycle-repair.md` 和 `docs/research/tile-system-audit-2026-09-14.md`。
 
 ## 维护规则
 

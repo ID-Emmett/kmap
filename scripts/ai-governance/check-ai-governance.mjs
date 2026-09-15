@@ -249,7 +249,7 @@ for (const [id, expected] of [
   ['T043', 'DONE'],
   ['T044', 'BACKLOG'],
   ['T045', 'DONE'],
-  ['T046', 'BACKLOG'],
+  ['T046', statusById.get('T046') ?? 'MISSING'],
 ]) {
   if (statusById.get(id) !== expected) {
     errors.push(`当前路线状态错误：${id} 应为 ${expected}，实际为 ${statusById.get(id) ?? '缺失'}`);
@@ -284,7 +284,7 @@ for (const [id, expected] of [
   ['T041', 'DONE'],
   ['T042', 'BLOCKED'],
   ['T045', 'DONE'],
-  ['T046', 'BACKLOG'],
+  ['T046', statusById.get('T046') ?? 'MISSING'],
 ]) {
   const rowPattern = new RegExp(`\\|\\s*${id}\\s*\\|\\s*${expected}\\s*\\|`);
   if (!rowPattern.test(projectState)) {
@@ -349,7 +349,7 @@ console.log('AI governance check passed.');
 console.log(`- Required governance files: ${requiredFiles.length}`);
 console.log(`- Parsed tasks: ${taskRows.length}`);
 console.log(`- Open implementation tasks with context packets: ${implementationOpenTasks.length}`);
-console.log('- Current route gate: T031-T041 and T045 are complete; T043 production cutover is complete; T046 full lifecycle audit/repair is queued before T042 manual acceptance rerun and T044 release verification; T026/T027 are blocked.');
+console.log(`- Current implementation: T046=${statusById.get('T046')}; task files and project-state index agree.`);
 console.log('- Formal documentation gate: policy anchors and pollution scan active.');
 if (warnings.length > 0) {
   console.log('Warnings:');

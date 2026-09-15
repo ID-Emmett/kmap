@@ -1,6 +1,6 @@
 # Nova Tasks
 
-更新日期：2026-09-14
+更新日期：2026-09-15
 
 状态：`BACKLOG`、`IN_PROGRESS`、`BLOCKED`、`VERIFYING`、`DONE`。
 
@@ -53,32 +53,15 @@
 | T043 | Production Cutover and Runtime Deletion | DONE | 实施会话 | T042 |
 | T044 | Post-Deletion Regression and Release Verification | BACKLOG | 实施会话 | T042, T043, T045, T046 |
 | T045 | NovaTileEngine Initial Coverage Refinement Fix | DONE | 实施会话 | T041, T043 |
-| T046 | Tile System Full Lifecycle and Streaming Repair | BACKLOG | 实施会话 | T043, T045 |
+| T046 | Tile System Full Lifecycle and Streaming Repair | VERIFYING | 实施会话 | T043, T045 |
 
 ## 当前任务
 
-T030 已完成 NovaTileEngine 方案、架构规范和任务依赖冻结。T031～T041 契约、空间覆盖、混合 LOD、运动调度、数据管线、分层缓存、Render Cover、上传预算、资源登记、诊断 Timeline、集成测试和双后端慢网验证已完成；T043 已完成生产入口切换与旧运行时清理；T045 已完成首屏覆盖规划修复；T046 已完成全量复核并建立生命周期与流式调度修复任务，T042 待 T046 后重跑完整人工验收。
+T046 当前承担标准瓦片系统修复、性能优化和 Playground 指标面板，状态为 VERIFYING。其浏览器验收使用真实 KYE 数据和 WebGPU，入口为 `http://127.0.0.1:5173/`。当前实施边界与证据要求见 `tasks/T046-tile-system-full-lifecycle-repair.md`。
 
-NTE 任务链由契约、空间覆盖、LOD、运动预测、调度、数据管线、缓存、渲染提交、资源预算、诊断、集成测试、双后端验证、人工验收、生产切换和发布验证组成。
+T031～T041 状态为 DONE，T043 生产切换和 T045 初始覆盖修复状态为 DONE。
 
-执行顺序：
-
-1. T031 建立契约和独立命名空间。
-2. T032、T034、T035、T036 在 T031 完成后并行实施。
-3. T033 在 T032 完成后实施。
-4. T037 汇聚空间覆盖和 LOD 结果，建立 Render Cover。
-5. T038 建立上传预算和资源登记。
-6. T039 建立逐帧诊断和 timeline。
-7. T040 完成 NTE 集成测试。
-8. T041 完成真实 Chromium WebGPU/WebGL2 与慢网验证。
-9. T042 完成人工体验验收；当前阻断记录已形成。
-10. T043 完成生产切换和运行时删除。
-11. T045 已完成 NTE 初始覆盖与细化规划修复。
-12. T046 完成瓦片生命周期、缓存回收、连续调度、倾斜覆盖和性能全量修复。
-13. 重跑 T042 双后端人工体验验收。
-14. T044 完成删除后回归和发布判断。
-
-每个 NTE 实施任务的 Context Packet 只包含当前规范、当前任务、当前测试和当前 evidence。T043 单独承载生产切换与运行时清理。
+T044 承担发布回归，发布范围由人工负责人确认。
 
 ## 任务规则
 

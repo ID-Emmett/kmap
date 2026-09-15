@@ -1,5 +1,6 @@
 import { Map3D } from '@nova/map3d';
-import { Inspector } from 'three/addons/inspector/Inspector.js';
+import type { Inspector } from 'three/addons/inspector/Inspector.js';
+import { createDiagnosticsPanel } from './diagnosticsPanel.js';
 
 import { PLAYGROUND_STYLE } from './mapStyle.js';
 import './style.css';
@@ -9,6 +10,7 @@ interface InspectorWithTimestampResolution extends Inspector {
 }
 
 async function bootstrap(): Promise<void> {
+  window.__novaMap3D?.dispose();
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas');
 
   if (!canvas) {
@@ -47,16 +49,20 @@ async function bootstrap(): Promise<void> {
   publishStatus({ state: 'initializing' });
 
   // Inspector 只在 Playground 接入，SDK 不依赖开发调试界面。
-  const inspector = new Inspector() as InspectorWithTimestampResolution;
-  window.__novaInspector = inspector;
-  map.getRenderer().inspector = inspector;
+  let inspector: InspectorWithTimestampResolution | undefined;
+  if (new URLSearchParams(window.location.search).has('inspector')) {
+    const { Inspector } = await import('three/addons/inspector/Inspector.js');
+    inspector = new Inspector() as InspectorWithTimestampResolution;
+    window.__novaInspector = inspector;
+    map.getRenderer().inspector = inspector;
+  }
+  const removePanel = createDiagnosticsPanel(map);
   let ready = false;
   const unsubscribeView = map.on('viewchange', ({ view }) => {
     publishStatus({
       state: ready ? 'ready' : 'initializing',
       backend: map.getBackend(),
       view,
-      stats: map.getStats(),
     });
   });
 
@@ -91,6 +97,7 @@ async function bootstrap(): Promise<void> {
     if (new URLSearchParams(window.location.search).get('lifecycle') === 'dispose') {
       resizeObserver.disconnect();
       unsubscribeView();
+      removePanel();
       await disposeMapAfterInspectorQueries(map, inspector);
       publishStatus({ state: 'disposed', stats: map.getStats() });
       return;
@@ -101,6 +108,7 @@ async function bootstrap(): Promise<void> {
       () => {
         resizeObserver.disconnect();
         unsubscribeView();
+        removePanel();
         map.dispose();
       },
       { once: true },
@@ -108,9 +116,12 @@ async function bootstrap(): Promise<void> {
   } catch (error) {
     resizeObserver.disconnect();
     unsubscribeView();
+    removePanel();
     throw error;
   }
 }
+
+if (import.meta.hot) import.meta.hot.dispose(() => window.__novaMap3D?.dispose());
 
 void bootstrap().catch(async (error: unknown) => {
   const structured = getStructuredError(error);

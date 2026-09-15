@@ -5,8 +5,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(import.meta.dirname, 'src/worker/tileBuild.worker.ts'),
-      fileName: 'tileBuild.worker',
+      entry: resolve(import.meta.dirname, 'src/streaming/paint.worker.ts'),
+      fileName: 'paint.worker',
       formats: ['es'],
     },
     outDir: 'dist/worker',

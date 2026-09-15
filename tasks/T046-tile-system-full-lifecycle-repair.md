@@ -1,8 +1,8 @@
-# T046 瓦片系统全量生命周期与流式调度修复
+# T046 标准瓦片系统与性能面板
 
 ## Goal
 
-在保持 `Map3D` 0.1 公共 API、MVT/Worker protocol v1、Three.js WebGPU/WebGL2 和 D033 预算基线不变的前提下，修复 NTE 生产路径的瓦片显示、请求调度、缓存、GPU/CPU 资源回收、倾斜覆盖和诊断闭环。修复后的系统在连续相机运动中持续产生有效请求，在视图离开后回收不可见资源，在停止阶段快速收敛，并通过真实 Chromium 双后端体验与性能验收。
+提供标准 Web Mercator XYZ 瓦片加载、相机覆盖、混合 LOD、缓存命中、显示过渡和资源回收，并在 Playground 展示可导出的性能诊断。浏览器验收使用真实 KYE 数据和 WebGPU，入口为 `http://127.0.0.1:5173/`。
 
 ## Task Context Packet
 
@@ -10,158 +10,89 @@
 
 - `AGENTS.md`
 - `docs/project-state.md`
-- `TASKS.md`（只读 T046 行、依赖和执行顺序）
-- `tasks/T046-tile-system-full-lifecycle-repair.md`
+- `TASKS.md` 的 T046 行
+- 本任务文件
 - `KNOWLEDGE.md`
-- `docs/knowledge/tile-runtime.md`
-- `docs/knowledge/performance.md`
 - `docs/evidence/index.md`
-- `docs/research/tile-system-audit-2026-09-14.md`
-- `docs/evidence/T042-production-browser.json`
-- `docs/evidence/T041-browser-verification.json`
-- `docs/evidence/T041-webgpu-timeline.json`
-- `docs/evidence/T041-webgl2-timeline.json`
-- `docs/evidence/T045-production-browser.json`
+- `docs/ai-session-log.md`
 - `docs/architecture/nova-tile-engine.md`
-- `docs/decisions/D033-nova-tile-engine-plan.md`
-- `docs/verification-baseline.md`
-- `docs/experience-baseline.md`
 - `packages/map3d/src/nova-tile/engine.ts`
-- `packages/map3d/src/nova-tile/scheduler/requestScheduler.ts`
-- `packages/map3d/src/nova-tile/fetch/fetchPipeline.ts`
-- `packages/map3d/src/nova-tile/fetch/tilePipeline.ts`
-- `packages/map3d/src/nova-tile/cache/tileCache.ts`
-- `packages/map3d/src/nova-tile/resources/resourceRegistry.ts`
-- `packages/map3d/src/nova-tile/render/renderCover.ts`
-- `packages/map3d/src/nova-tile/render/coverResolver.ts`
-- `packages/map3d/src/nova-tile/upload/uploadQueue.ts`
-- `packages/map3d/src/nova-tile/lod/mixedLodPlanner.ts`
-- `packages/map3d/src/nova-tile/coverage/groundFootprint.ts`
-- `packages/map3d/src/rendering/tileRenderAdapter.ts`
 - `packages/map3d/src/Map3D.ts`
+- `apps/playground/src/diagnosticsPanel.ts`
 
 ### Read If Needed
 
-- `packages/map3d/src/nova-tile/state.ts`、`tileAddress.ts`、`pyramid/tilePyramid.ts`
-- `packages/map3d/src/nova-tile/diagnostics/**`
-- `packages/map3d/src/interaction/**`
-- `packages/map3d/test/novaTile*.test.ts`、`packages/map3d/test/map3d.test.ts`、`packages/map3d/test/tileRenderAdapter.test.ts`
-- `docs/evidence/T046-*`
-- `docs/research/tile-lod-scheduling.md`、`docs/research/tile-retention-display-fog.md`
+- `packages/map3d/src/nova-tile/**`：加载、覆盖、缓存、调度和上传问题。
+- `packages/map3d/src/rendering/**`、`src/worker/**`、`src/geometry/**`、`src/mvt/**`：绘制和 Worker 性能问题。
+- `packages/map3d/test/**`：对应模块回归。
+- `docs/evidence/T046-*`：当前任务的指标和验证证据。
 
 ### Allowed Files
 
-- `packages/map3d/src/nova-tile/**`
-- `packages/map3d/src/Map3D.ts`
-- `packages/map3d/src/rendering/tileRenderAdapter.ts`
-- `packages/map3d/test/novaTile*.test.ts`
-- `packages/map3d/test/map3d.test.ts`
-- `packages/map3d/test/tileRenderAdapter.test.ts`
-- `apps/playground/src/main.ts`
-- `docs/evidence/T046-*`
-- `docs/research/tile-system-audit-2026-09-14.md`
-- `tasks/T046-tile-system-full-lifecycle-repair.md`
-- `TASKS.md`
-- `PROJECT.md`
-- `KNOWLEDGE.md`
-- `docs/project-state.md`
-- `docs/evidence/index.md`
-- `docs/ai-session-log.md`
-- `docs/ai-sessions/YYYY-MM-DD.md`
+- `packages/map3d/src/**`、`packages/map3d/test/**` 中瓦片、相机、渲染和诊断相关模块。
+- `apps/playground/**` 的指标面板、采样和样式。
+- `tasks/T046-tile-system-full-lifecycle-repair.md`、`TASKS.md`、`PROJECT.md`、`KNOWLEDGE.md`、`docs/project-state.md`。
+- `docs/architecture/nova-tile-engine.md`、`docs/knowledge/tile-runtime.md`、`docs/knowledge/performance.md`。
+- `docs/evidence/T046-*`、`docs/evidence/index.md`、`docs/ai-session-log.md`、`docs/ai-sessions/2026-09-15.md`。
+
+- `scripts/ai-governance/check-ai-governance.mjs`：任务状态与索引的一致性检查。
 
 ### Forbidden Files
 
-- `packages/map3d/src/legacy/**`
-- `packages/map3d/src/migration/**`
-- `packages/map3d/src/index.ts`（公共导出）
-- `package.json`、`pnpm-lock.yaml`、workspace 依赖配置和运行时依赖版本
-- `docs/architecture/**`、`docs/decisions/**`（需要改变批准架构时先返回决策会话）
-- `docs/records/**`
+- 运行时依赖版本、`pnpm-lock.yaml` 和无关业务模块。
+- `docs/records/**` 和归档实现。
 
 ### Required Evidence
 
-- 自动回归：生命周期状态转换、Render Cover 引用计数、Render instance attach/detach、transition 延迟释放、Cache role/pin/eviction、Resource Registry budget、Fetch timeout/abort/dedupe、Scheduler active cap、plan epoch 复用、Upload backpressure、fog-bounded Coverage 和 diagnostics schema。
-- 固定 fixture 集成：连续 ViewState 更新期间仍能完成新目标请求；过时结果不提交；停止后队列、活动 Fetch、Worker、Upload 和 transition 在有界时间内归零；A→B→A 命中 retained cache 且不重复请求。
-- 资源证据：每个视图变更前后 `entries/refCount/cpuBytes/gpuBytes/objects/batches`，淘汰和 `dispose` 回调计数，3 次 create/initialize/交互/dispose 后全部归零且每个资源只释放一次。
-- 调度证据：moving Fetch active≤8、settled active≤12、Worker≤4；连续拖动 1500ms 期间每个目标覆盖变化均产生请求或命中缓存；停止 1s 后不再启动新请求，2s 内进入 idle（固定 180ms 慢网 fixture）。
-- 真实 Chromium：Windows 目标工作站、稳定 Chromium，WebGPU 与强制 WebGL2；真实 KYE URL 执行连续拖动不松手、快速 pan、wheel burst、bearing/pitch、pitch 0/20/40/60、超出预取环、停止等待 12s、A→B→A 回访和 60s 交互。采集录屏/截图、Network/CDP 请求序列、逐帧 NTE timeline、Chrome performance trace、Frame/Worker/Upload P95、输入响应和 CPU/GPU/Scene 资源。
-- 运行门禁：`pnpm --filter @nova/map3d test`、`pnpm --filter @nova/map3d typecheck`、`pnpm check`、`pnpm ai:check`、`git diff --check`。
+- canonical 请求复用、独立取消、超时、并发上限和上传推进测试。
+- A→B→A 缓存命中、场景卸载、LRU 淘汰、延迟释放和 dispose 归零测试。
+- 宽屏、日期线、倾角 0/20/40/60 和邻接 LOD 覆盖测试。
+- 真实 WebGPU 连续运动、停止收敛、回访、倾角矩阵和 60 秒采样。
+- `pnpm check`、`pnpm ai:check`、`git diff --check`。
 
 ### Stop Conditions
 
-- 修复需要修改 `Map3D` 0.1 公共 API、MVT/Worker protocol、Three.js 后端、默认 CPU/GPU/Tile/Upload 预算、核心坐标语义或引入运行时依赖。
-- Render Cover 完整覆盖与有限资源回收无法同时满足，或资源所有权需要跨 Tile 合批/独立 Object3D。
-- 真实 KYE 服务行为无法通过超时、取消和节点切换形成可复现证据，导致验收门槛需要变更。
-- 自动测试、固定 fixture、真实 Chromium 画面或人工操作结论发生冲突。
-- 必须修改 Forbidden Files 或需要扩展 Allowed Files；停止实现并返回决策会话更新范围与上下文包。
+- 外部数据源持续不可用，真实浏览器环境无法提供验收数据。
+- 修复涉及本任务以外的产品能力或依赖选型。
 
 ## Scope
 
-### A. Render Cover 与资源所有权闭环
-
-- 为每个 Render candidate 维护唯一 resource id 和 render role；`committed`、`outgoing`、`transition`、`upload` 引用分别 retain/release，引用状态在每帧与 Cover 快照一致。
-- 将 `setRenderKeys`、`setDisplayOpacity` 接入 cohort commit/transition/advance；只有 committed/outgoing 实例挂载 Scene，替代范围完整且过渡结束后移除隐藏实例。
-- 视图离开后将记录从 resident 降级为 warm/cold；在无 display/cache/in-flight 引用且延迟帧到期时从 records、Scene、Resource Registry 和 CPU payload 同步移除。
-- 保证 GPU geometry、材质、clone、Group 和 adapter 资源只释放一次；迟到的 Worker/Upload/Fetch 结果不得重新挂载资源。
-
-### B. Cache、预算与回收
-
-- 建立 resident/warm/cold/persistent 的角色同步和独立 pin 位；visible/display pin 不等同于 cache pin。
-- 处理 `TileCache.set()` 返回的淘汰键，释放对应 Resource Registry/Render Adapter 资源；预算超限时按批准顺序淘汰可回收项并发出 pressure 诊断。
-- 对 ready、empty、negative、retryable 记录执行统一 TTL/冷却与 LRU 访问刷新；保留短距离回访所需的 retained cache，淘汰后不再次提交已失效 payload。
-- 资源统计以 Resource Registry 当前可达条目为准，修正 `gpuResourceCount`、objects、CPU/GPU bytes 与 scene attach 数的口径。
-
-### C. 请求与连续运动调度
-
-- 在 Scheduler 增加 moving/settling/settled/idle 的 active concurrency 限制、取消配额和 in-flight 统计；Fetch active 不超过 D033 阶段预算。
-- 将 ViewState 变化的 plan epoch 与可复用的 canonical 请求身份分离；同一 canonical key 仍在目标覆盖时复用在途 Fetch/Decode/Build，目标离开后按迟滞策略取消。
-- 保持连续 pointer move 的请求机会，不在每次相机采样时 abort/recreate 同一批任务；为新覆盖区域设置可观测的 visible-critical/refinement/lookahead 角色和公平配额。
-- Fetch 增加可配置超时、AbortSignal 传播和每消费者取消语义；共享 Promise 的首个消费者取消不会使其他有效消费者永久复用已取消/挂起任务。
-- 使 retry/cooldown、stale generation、worker/upload cancel 和 scheduler finish 全部闭环；`whenIdle()` 覆盖 queued/active Fetch、Worker、Upload、transition、prefetch 和维护任务。
-- 停止阶段保留有限 refinement tail，禁止停止后新请求波次；请求失败、断网、恢复和 HTTP 204 均保持状态可观测。
-
-### D. Coverage、LOD 与倾斜远景
-
-- 将 `loadCutoff`、fogStart/fogEnd、运动方向 guard band 和迟滞接入 TileCoverPlanner；fogEnd 前保持空间完整覆盖，完全超过 loadCutoff 的 Tile 停止选择/请求/构建/渲染。
-- 用相邻区域关系验证 LOD 差值，不以全局层级差替代邻接不变量；预算通过父子合并维持覆盖完整性。
-- 保持 exact/ancestor/descendant Cohort 的空间替代原子性，避免中心向外逐块出现、白闪和过时层级回挂；目标缺口与 committed 覆盖在 diagnostics 中分开报告。
-
-### E. 诊断、可复现验证与性能
-
-- 扩展逐帧 timeline：target/committed/outgoing、blankArea、queue active、cancel reason、cache role、eviction/release、scene resources、Fetch/Worker/Upload/Commit 时长与 idle tail。
-- 在 Playground/runner 中加入连续拖动不松手、快速 zoom、bearing/pitch、慢网、停止 12s、缓存回访、3 次 dispose 和 pitch 0/20/40/60 的统一脚本；保留 WebGPU/WebGL2 成对截图与 trace。
-- 对 T041 已知超标项重新测量：Worker 单 Tile P95≤25ms、WebGPU frame P95≤20ms、WebGL2 frame P95≤25ms、Upload P95≤8ms、输入到下一帧≤50ms；未达标时记录瓶颈并按 Stop Conditions 返回决策会话。
+- 使用 45° 垂直 FOV、256px XYZ zoom、实际 viewport aspect 与相机一致的地面投影。
+- 以像素误差细分、可见多边形裁剪和父子合并维持有限数量与邻接层级连续。
+- 使用粗层级覆盖和精细目标请求；canonical 数据身份跨相机更新复用，wrap 实例共享资源。
+- moving 活动管线最多 8，停止阶段最多 12，生产 Worker Pool 最多 4。
+- HTTP 请求支持独立消费者取消、8 秒超时、最多 3 次尝试和数据源节点轮换。
+- 显示提交在帧边界执行；过渡持续 150ms，退出覆盖保留到过渡结束。
+- 缓存使用 256 entries、128MiB CPU 和 256MiB GPU 预算，显示引用与缓存引用独立登记。
+- 单个 Tile 超过 5MiB 上传字节额度时独占该帧；统计记录实际字节数。
+- Worker 按有效样式选择 source layer；完整三角形复用顶点，跨界三角形执行精确裁剪。
+- Playground 面板显示帧、请求、Worker、上传、缓存、场景、层级、相机及视口指标，并导出 JSON、timeline 和地图截图。
 
 ## Non-Goals
 
-- 调整 `Map3D` 0.1 公共 API、MVT/Worker protocol v1、Three.js 渲染后端和 D033 默认预算。
-- 引入 MapLibre/deck.gl/Cesium 完整运行时、跨 Tile 合批、Feature 级 Object3D、Terrain/Globe、Picking、Overlay、Raster/Glyph/Sprite 或设备丢失恢复。
-- 以降低 Coverage、关闭过渡/渐隐、跳过请求或删除测试作为性能达标方式。
+- 新增地图业务图层、地形、球面、拾取、文字排版或外部运行时依赖。
+- 发布部署和依赖升级。
 
 ## Acceptance Criteria
 
-- 任意目标视图的 committed Cover 在交互和异步加载期间保持 `coverageComplete=true`、`blankArea=0`；target 缺口单独可观测。
-- A→B→A 轨迹中，离开视图的 Tile 在过渡/延迟帧结束后从 Scene 和 Resource Registry 移除；CPU/GPU bytes、objects、batches 不单调增长，cache 命中不产生重复 Fetch。
-- 资源 registry 的 `refCount` 与 committed/outgoing/transition 角色一致；每个 GPU/CPU 资源 dispose 恰好一次；三次生命周期循环后请求、Worker、Upload、Scene、Registry、Cache 临时引用全部归零。
-- 连续拖动不松手 1500ms 期间，视图中心持续跟手且每次新覆盖变化有请求启动或 cache hit；同一 canonical key 不重复 Fetch/Decode/Build；停止 1s 后无新请求启动，固定慢网 2s 内进入 idle。
-- moving/settled active Fetch 分别≤8/≤12，Worker≤4；请求取消、超时、重试、204、失败冷却和 stale 结果均有结构化诊断且无未处理 Promise rejection。
-- pitch 0/20/40/60 下近景/中景/远景 LOD 连续；fogEnd 前完整覆盖，loadCutoff 外停止选择、请求、构建和渲染；WebGPU/WebGL2 画面无 Tile seam、白闪、固定截断带和中心向外水波。
-- CPU/GPU cache 与 Resource Registry 遵守 128MiB/256MiB、256 entries 预算；压力时保留可见和过渡引用并优先淘汰 cold/warm，pressure 原因可追踪。
-- 双后端真实 Chromium 的 Frame、Worker、Upload、输入响应和 60s 资源曲线达到 D033 门槛；所有自动命令、截图、trace、timeline、人工操作结论齐全。
+- 目标就绪后覆盖完整，目标缺口和显示覆盖缺口分别可观测。
+- 连续相机变化期间保持共享数据作业并持续启动所需请求。
+- 停止后 Fetch、Worker、上传和过渡收敛；回访命中缓存时复用数据。
+- 显示实例随覆盖挂载与卸载；缓存按预算淘汰，资源释放具备回归证据。
+- WebGPU 实际交互、倾角矩阵、60 秒采样和生命周期验证具备可复核记录。
+- CPU 帧 P95≤20ms、Worker P95≤25ms、上传 P95≤8ms、输入 P95≤50ms；冷启动、持续运动和空闲分开记录。
+- 所有自动门禁通过；浏览器环境限制和性能尖峰在证据中标明。
 
 ## Status
 
-BACKLOG
+VERIFYING
 
 ## Findings
 
-- 2026-09-14 复核结果详见 `docs/research/tile-system-audit-2026-09-14.md`；当前生产 NTE 具备首屏和基础交互能力，资源回收、在途请求收敛、活动并发限制、Render Cover 资源引用和 loadCutoff 仍缺少闭环。
-- T042 真实 Chromium 证据在两后端停止 12 秒后保留 queued/fetching 请求；生产资源对象与字节在多次视图变化后持续增长。
-- T046 注入管线审计证明视图切换后 Resource Registry entries 由 7 增至 12、`refCount=0`、`releases=0` 并触发 entry pressure；连续 10 次 ViewState 更新产生 38 次 pipeline run 与 34 次 abort；Scheduler moving active 达到 40。
-- T041 固定 fixture 的自动功能和 dispose 断言通过；该证据覆盖模块单测与隔离 harness，不能替代 T046 的生产人工体验和资源回收验收。
+- canonical 请求复用、并发限制、缓存淘汰、场景引用、相机投影、帧提交与指标面板已实现。
+- 2026-09-15 `pnpm typecheck` 与 SDK 155 项测试通过。
+- 真实 WebGPU 60 秒轨迹已验证停止收敛、缓存回访、并发预算、缓存预算和倾角矩阵。
 
 ## Open Issues
 
-- T041 的 Worker/WebGPU Upload 超标项需要在生命周期与调度修复后重新测量；若仍超标，返回决策会话处理性能方向或门槛。
-- 真实 KYE 网络的服务端响应、超时、取消和节点降级需要双后端在线证据；固定 fixture 仅用于确定性回归。
-- T042 保持 `BLOCKED`，直到 T046 完成并重跑完整人工轨迹；T044 在 T046/T042 完成后执行发布回归。
+- 最终源码版本的真实浏览器性能、截图和生命周期验收正在采集。

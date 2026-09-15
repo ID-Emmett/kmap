@@ -1,6 +1,6 @@
 # Nova Project Status
 
-更新日期：2026-09-14
+更新日期：2026-09-15
 
 ## 项目背景
 
@@ -14,7 +14,7 @@ Nova 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立�
 
 T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯通，T011-T015 已完成视觉与连续体验阻断项修复并经人工接受。
 
-T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。T031～T041 已完成 NTE 契约、空间覆盖、LOD、调度、管线、缓存、渲染、资源、诊断、集成和双后端慢网验证；T043 已完成生产入口切换与运行时清理；T045 已完成首屏覆盖规划修复；T046 已完成全量复核并建立生命周期与流式调度修复任务，T042 待 T046 后重跑完整人工验收。
+当前生产地图由 `StreamingEngine` 驱动，模块位于 `packages/map3d/src/streaming/`。系统使用真实 XYZ MVT、Worker Canvas 图层绘制、Three.js WebGPU 纹理合成、有界调度、LOD、父子覆盖和缓存回收。当前连续浏览器验证入口为 `docs/evidence/streaming-rebuild/`。
 
 ## 当前事实基线
 
@@ -25,11 +25,11 @@ T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。T03
 - `WebGPURenderer` 默认 WebGPU，自动 WebGL2 fallback，可通过 `forceWebGL` 验证回退路径。
 - Playground 使用 Three.js Inspector；SDK 不依赖 Playground 或 Inspector。
 - 主 KYE 数据为标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096。
-- Polygon 三角化使用 `earcut` 3.2.3；Worker bundle 不包含 Three.js。
-- 固定 `z15/26978/12416` Polygon 场景在当前 Chromium 的 WebGPU 与强制 WebGL2 中通过可视验证；三个 batch 对应 276 features、2,139 vertices、4,755 indices 和 53,244 bytes TypedArray/GPU estimate。
+- Worker 使用 `@mapbox/vector-tile`、`pbf` 和 OffscreenCanvas 绘制图层；输出 transferable ImageBitmap。
+- `z15/26978/12416` MVT fixture 用于验证道路、地块、建筑和属性过滤；真实浏览器使用 KYE 网络瓦片。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
-- 当前可见集使用 Ground Footprint、Bootstrap `floor(view.zoom)-2`、SSE best-first 四叉树 refinement 生成 mixed canonical zoom Target Coverage；默认 128 Tile 数量预算通过停止细分或父级合并满足，支持日期线 world wrap、source bounds、Y 边界和 maxZoom overzoom，并与 MapOrigin/horizon fade 的 `referenceZoom` 解耦。
-- NTE 使用 Canonical key 共享 Fetch、Decode、Build、Cache 和 GPU 数据；运行配额为 8～12 Fetch、2～4 Worker、256 entries、128 MiB CPU 和 256 MiB GPU。
+- 当前可见集由视锥、地面距离和屏幕采样尺度选择，512 像素纹理覆盖整数数据级别的连续缩放，远侧层级按投影尺度合并。
+- StreamingEngine 采用 12 请求流水线、至多 4 Worker、384 条目与各 256 MiB CPU/GPU 预算，每帧上传至多 1 张纹理。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
 ## MVP 基线
@@ -42,8 +42,8 @@ T030 已完成 `NovaTileEngine` 方案、架构规范和任务依赖冻结。T03
 KYE Tile
 → Browser Fetch / HTTP gzip
 → MVT decode
-→ Worker Polygon/Line batches
-→ Tile GPU resources
+→ Worker Canvas 图层绘制
+→ ImageBitmap / Three.js Texture
 → WebGPU / WebGL2
 → Camera-driven dynamic tile lifecycle
 ```
@@ -52,14 +52,14 @@ KYE Tile
 
 - WGS84 `ViewState`、Web Mercator meters、Tile 局部 Float32 和浮动原点。
 - Camera 平移、连续 Zoom、Bearing、Pitch 和可见 Tile Coverage。
-- Canonical/Render TileKey、请求去重、取消、204 empty、重试、byte-aware LRU。
-- Polygon/Line、常量样式、最小属性过滤和 Tile 内批处理。
-- Worker 协议、transferable buffers、Feature 映射和 GPU 资源所有权。
+- XYZ 世界副本、请求去重、队列取消、204 祖先覆盖、有限重试和按字节约束的 LRU。
+- Polygon/Line、常量样式、属性过滤和按 Tile 合成纹理。
+- Worker 协议、transferable buffer/ImageBitmap 和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。
-- NTE 采用完整 Bootstrap Cover、SSE mixed LOD、运动预测预取、分层 Cache、Cohort Render Commit 和逐帧资源预算。
+- StreamingEngine 采用视锥与屏幕尺度 LOD、祖先覆盖、相邻和路线预取、LRU 缓存、父子淡入淡出及逐帧纹理预算。
 - pan 与 bearing/pitch 旋转在释放后具有基于帧时间的有界惯性；wheel zoom 合并为连续帧更新。
-- pitch 增大时，远处 Polygon/Line 使用统一 TSL 效果渐隐到浅色背景；D029 进一步要求 fogEnd 完全融合，loadCutoff 外停止 Tile 选择、请求、构建和渲染，由 T022 实施。
+- pitch 增大时，远处地图使用共享 TSL 距离雾渐隐；选片和邻接预取使用同一截止半径，城市飞行的目的地预取具有独立时效。
 
 Non-Goals：
 
