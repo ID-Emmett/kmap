@@ -21,7 +21,8 @@ describe('TSL 双后端源码生成', () => {
     const atlas = new GlyphAtlas({ glyphs: '', fontStack: '' }), label = new LabelSurface(atlas);
     const globe = new GlobeView({ canvas, source: { id: 'test', tiles: ['https://example.test/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17 }, layers: [] } as Map3DOptions);
     const curvedLine = createLineSurface(line.data, true);
-    const objects = [line.mesh, curvedLine.mesh, label.mesh, ...globe.scene.children];
+    const themedLine = createLineSurface(line.data, true, true);
+    const objects = [line.mesh, curvedLine.mesh, themedLine.mesh, label.mesh, ...globe.scene.children];
     for (const object of objects) {
       const backendBuilder = renderer.backend as typeof renderer.backend & { createNodeBuilder(object: Object3D, renderer: WebGPURenderer): ShaderBuilder };
       const builder = backendBuilder.createNodeBuilder(object, renderer);
@@ -36,6 +37,7 @@ describe('TSL 双后端源码生成', () => {
         expect(builder.fragmentShader).not.toMatch(/\[\s*uint\(/);
       }
     }
+    themedLine.mesh.geometry.dispose(); themedLine.mesh.material.dispose();
     curvedLine.mesh.geometry.dispose(); curvedLine.mesh.material.dispose();
     line.mesh.geometry.dispose(); line.mesh.material.dispose(); label.dispose(); atlas.dispose(); globe.dispose();
   });

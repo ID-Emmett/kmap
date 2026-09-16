@@ -41,3 +41,9 @@ docs/evidence/map-refinement/*
 !docs/evidence/map-refinement/README.md
 !docs/evidence/map-refinement/data-audit.json
 !docs/evidence/map-refinement/verification-summary.json
+
+!docs/evidence/map-experience/
+docs/evidence/map-experience/*
+!docs/evidence/map-experience/README.md
+!docs/evidence/map-experience/verification-summary.json
+!docs/evidence/map-experience/aa-comparison.json

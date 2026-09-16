@@ -1,6 +1,6 @@
 # Kmap Project Status
 
-更新日期：2026-09-15
+更新日期：2026-09-17
 
 ## 项目背景
 
@@ -18,7 +18,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 
 ## 当前事实基线
 
-- 球面矢量瓦片、跨层级地名、SDF 中文与道路连接的实现和双后端浏览器证据见 `docs/evidence/map-refinement/README.md`。
+- 全缩放球面投影、连续 pan 与雾、分类文字/图标配置、稳定 LOD 及晴昼/深海/霓彩主题已实现。141 项测试和双后端性能/视觉证据见 `docs/evidence/map-experience/README.md`。
 
 - TypeScript 7.0.2，strict，ESM。
 - pnpm workspace 负责 Monorepo 依赖和命令编排。

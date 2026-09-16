@@ -61,7 +61,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
         for (let j = 1; j < curved.length; j++) if (curved[j - 1]!.x !== curved[j]!.x || curved[j - 1]!.y !== curved[j]!.y) count++;
       }
     }
-    const combined = layer.paint.dashArray ? rings : joinLineChains(rings).map(ring => simplifyLine(ring, source.extent / 512));
+    const combined = layer.paint.dashArray ? rings : joinLineChains(rings).map(ring => zoom < 6 ? ring : simplifyLine(ring, source.extent / 512));
     for (const ring of rings) count -= Math.max(0, ring.length - 1);
     for (const ring of combined) count += Math.max(0, ring.length - 1);
     batches.push({ layer, color: new Color(layer.paint.color), extent: source.extent, rings: combined });

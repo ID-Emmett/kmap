@@ -1,10 +1,11 @@
 import type { VectorTile } from '@mapbox/vector-tile';
-import type { MapLayerOptions } from '../types.js';
+import type { MapIcon, MapLayerOptions } from '../types.js';
 import { matches } from '../streaming/paint.js';
 import { simplifyLine } from '../streaming/lines.js';
 
 /** 位置采用瓦片归一化坐标；端点用于道路文字的方向与曲率检查。 */
 export interface LabelCandidate {
+  layerId?: string; category?: string; icon?: MapIcon | undefined;
   text: string; x: number; y: number; endX: number; endY: number; line: boolean;
   key: string; priority: number; minZoom: number; maxZoom: number; size: number;
   color: string | number; haloColor: string | number; haloWidth: number;
@@ -38,12 +39,12 @@ export function buildLabels(tile: VectorTile, layers: readonly MapLayerOptions[]
       const rank = Number(p[layer.layout.rankProperty ?? 'rank'] ?? 10);
       const dataZoom = layer.layout.minZoomProperty ? Number(p[layer.layout.minZoomProperty]) : 0;
       const classPriority = layer.layout.priorityByClass?.[String(p.class)] ?? 0;
-      labels.push({ text, x: (a.x + b.x) / 2 / source.extent, y: (a.y + b.y) / 2 / source.extent,
+      labels.push({ text, layerId: layer.id, category: String(p.class ?? ''), icon: layer.layout.iconByClass?.[String(p.class)], x: (a.x + b.x) / 2 / source.extent, y: (a.y + b.y) / 2 / source.extent,
         endX: b.x / source.extent, endY: b.y / source.extent, line,
         key: `${layer.id}:${String(p.osmId ?? p.osm_id ?? p.admin_code ?? p.id ?? feature.id ?? '')}:${text}`,
         priority: (layer.layout.priority ?? 100) + classPriority + (Number.isFinite(rank) ? Math.log2(Math.max(0, rank) + 1) * 2 : 10),
         minZoom: Math.max(layer.minZoom ?? 0, Number.isFinite(dataZoom) ? dataZoom : 0), maxZoom: (layer.maxZoom ?? 24) + 1, size: layer.layout.textSize ?? 14,
-        color: layer.paint.color ?? '#46515a', haloColor: layer.paint.haloColor ?? '#ffffff', haloWidth: layer.paint.haloWidth ?? 1.2 });
+        color: layer.paint.colorByClass?.[String(p.class)] ?? layer.paint.color ?? '#46515a', haloColor: layer.paint.haloColor ?? '#ffffff', haloWidth: layer.paint.haloWidth ?? 1.2 });
     }
   }
   // 点与道路分别保留候选容量，视图层级过滤在全屏布局阶段执行。

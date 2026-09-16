@@ -1,6 +1,8 @@
+import { iconCode, iconGlyphs } from './icons.js';
+import type { MapPalette } from '../style/palette.js';
 import { facesCamera, projectMapPoint, type ProjectionState } from '../globe/projection.js';
 import { Vector3, type PerspectiveCamera, type Scene } from 'three/webgpu';
-import type { Map3DOptions, ViewportSize, ViewState } from '../types.js';
+import type { LabelAppearance, Map3DOptions, ViewportSize, ViewState } from '../types.js';
 import type { MapOrigin } from '../spatial/types.js';
 import { tileBounds, type Address } from '../streaming/address.js';
 import type { TileSurfaces } from '../streaming/surface.js';
@@ -14,6 +16,13 @@ interface Projected { score: number; label: LabelCandidate; id: string; x: numbe
 /** 字形加载、稳定碰撞与一个全局文字批次共用有界生命周期。 */
 export class LabelSystem {
   readonly atlas: GlyphAtlas; readonly surface: LabelSurface;
+  private appearance: LabelAppearance = {};
+  private styleRevision = 0;
+  private styledCache = new WeakMap<LabelCandidate, LabelCandidate | undefined>();
+  private lastView: ViewState | undefined;
+  private lastRevision = -1;
+  private lastStyleRevision = -1;
+  private lastViewport = '';
   private signature = ''; private lastLayout = -Infinity; private atlasRevision = -1;
   private readonly retained = new Set<string>(); private batchOrigin = { x: 0, y: 0 };
   private readonly births = new Map<string, number>();
@@ -22,22 +31,54 @@ export class LabelSystem {
   candidates = 0; placed = 0; layoutMs = 0; layouts = 0;
   constructor(readonly options: NonNullable<Map3DOptions['labels']>, private readonly scene: Scene) {
     this.atlas = new GlyphAtlas(options); this.surface = new LabelSurface(this.atlas); scene.add(this.surface.mesh);
+    this.atlas.pages.set(0xe0, iconGlyphs());
+  }
+  invalidate(): void { this.styleRevision++; this.styledCache = new WeakMap(); }
+  setStyle(style: LabelAppearance): void {
+    this.appearance = { ...style, sizeScale: Math.max(.5, Math.min(2, style.sizeScale ?? 1)), maxLabels: Math.max(1, Math.min(512, style.maxLabels ?? this.options.maxLabels ?? 256)) };
+    this.invalidate();
+  }
+  private styled(label: LabelCandidate): LabelCandidate | undefined {
+    if (this.styledCache.has(label)) return this.styledCache.get(label);
+    const style = { ...this.appearance.layers?.[label.layerId ?? ''], ...this.appearance.categories?.[label.category ?? ''] };
+    if (style.visible === false) return;
+    const palette = this.scene.userData.mapPalette as MapPalette | undefined;
+    const color = style.color ?? palette?.resolve(label.color) ?? label.color, haloColor = style.haloColor ?? palette?.haloColor ?? label.haloColor;
+    const result = { ...label, color, haloColor,
+      size: Math.max(8, Math.min(40, (style.textSize ?? label.size) * (this.appearance.sizeScale ?? 1))),
+      haloWidth: Math.max(0, Math.min(4, style.haloWidth ?? this.appearance.haloWidth ?? label.haloWidth)),
+      icon: this.appearance.icons === false ? undefined : label.icon };
+    this.styledCache.set(label, result); return result;
   }
   update(surfaces: TileSurfaces, camera: PerspectiveCamera, origin: MapOrigin, view: ViewState, viewport: ViewportSize, revision: number, now: number, fogEnd: number): void {
     this.surface.origin.value.set(origin.meters.x - this.batchOrigin.x, 0, this.batchOrigin.y - origin.meters.y);
     this.surface.clock.value = now / 1000;
     this.surface.viewport.value.set(viewport.width, viewport.height); this.atlas.tick(); this.atlas.flush();
-    const signature = `${revision}:${view.center.lng}:${view.center.lat}:${view.zoom}:${view.bearing}:${view.pitch}:${viewport.width}:${viewport.height}`;
+    const signature = `${this.styleRevision}:${revision}:${view.center.lng}:${view.center.lat}:${view.zoom}:${view.bearing}:${view.pitch}:${viewport.width}:${viewport.height}`;
     if (signature === this.signature && this.atlasRevision === this.atlas.revision) return;
+    const last = this.lastView, viewportKey = `${viewport.width}:${viewport.height}`;
+    if (last && this.lastRevision === revision && this.lastStyleRevision === this.styleRevision && this.atlasRevision === this.atlas.revision && viewportKey === this.lastViewport) {
+      const travel = Math.hypot((view.center.lng - last.center.lng) * Math.cos(view.center.lat * Math.PI / 180), view.center.lat - last.center.lat) * 256 * 2 ** view.zoom / 360;
+      // 小于碰撞安全边距的移动由顶点投影逐帧跟随，布局按累计位移更新。
+      if (travel < 8 && Math.abs(view.zoom - last.zoom) < .025 && Math.abs(view.bearing - last.bearing) < 1 && Math.abs(view.pitch - last.pitch) < 1) return;
+    }
     if (now - this.lastLayout < 64) return;
+    this.lastView = view; this.lastRevision = revision; this.lastStyleRevision = this.styleRevision; this.lastViewport = viewportKey;
     const start = performance.now(); this.lastLayout = now; this.signature = signature; this.atlasRevision = this.atlas.revision;
     const buckets = new Map<number, Projected[]>(), point = this.point, end = this.end;
     const projection = this.scene.userData.mapProjection as ProjectionState | undefined;
+    // 按可见来源公平分配投影预算；数据优先级已在 Worker 排序。
+    const perTile = Math.max(32, Math.min(256, Math.ceil(5000 / Math.max(1, surfaces.instances.size))));
     for (const instance of surfaces.instances.values()) {
       const address = instance.address, bounds = tileBounds(address);
       const available = instance.resource.labels;
       const tileCandidates = available;
-      for (const label of tileCandidates) {
+      let pointCount = 0, lineCount = 0;
+      for (const raw of tileCandidates) {
+        if (view.zoom < raw.minZoom || view.zoom >= raw.maxZoom) continue;
+        const used = raw.line ? lineCount++ : pointCount++;
+        if (used >= perTile && !this.retained.has(raw.key)) continue;
+        const label = this.styled(raw); if (!label) continue;
         if (view.zoom < label.minZoom || view.zoom >= label.maxZoom || !ownsAnchor(address, instance.cells, label.x, label.y)) continue;
         let x = bounds.west + label.x * bounds.span, y = bounds.north - label.y * bounds.span;
         const id = label.key, previous = this.anchors.get(id);
@@ -72,10 +113,11 @@ export class LabelSystem {
     const candidates = projected.slice(0, 2000); this.candidates = candidates.length;
     const characters = new Set<number>();
     for (const p of candidates) for (const char of p.label.text) if (characters.size < 2048) characters.add(char.codePointAt(0)!);
+    for (const p of candidates) if (p.label.icon) characters.add(iconCode(p.label.icon));
     this.atlas.ensure(characters);
     const grid = new CollisionGrid(), quads: GlyphQuad[] = [], selected = new Set<string>();
     const names = new Map<string, { x: number; y: number }[]>();
-    const maxLabels = Math.min(512, Math.max(1, this.options.maxLabels ?? 256));
+    const maxLabels = Math.min(512, Math.max(1, this.appearance.maxLabels ?? this.options.maxLabels ?? 256));
     this.batchOrigin = { ...origin.meters }; this.surface.origin.value.set(0, 0, 0);
     for (const p of candidates) {
       if (selected.size >= maxLabels || quads.length >= 8000) break;
@@ -84,7 +126,7 @@ export class LabelSystem {
       const glyphs: AtlasGlyph[] = [];
       for (const char of p.label.text) { const glyph = this.atlas.glyphs.get(char.codePointAt(0)!); if (glyph) glyphs.push(glyph); }
       if (glyphs.length !== Array.from(p.label.text).length) continue;
-      const scale = p.label.size / GLYPH_EM, width = glyphs.reduce((sum, g) => sum + g.advance * scale, 0);
+      const scale = p.label.size / GLYPH_EM, iconWidth = p.label.icon ? p.label.size + 5 : 0, width = glyphs.reduce((sum, g) => sum + g.advance * scale, 0) + iconWidth;
       if (width + 12 > p.length || width > viewport.width * .7) continue;
       const height = p.label.size + 4;
       const halfX = Math.abs(Math.cos(p.angle)) * width / 2 + Math.abs(Math.sin(p.angle)) * height / 2;
@@ -95,6 +137,14 @@ export class LabelSystem {
       grid.insert(box); selected.add(p.id); this.anchors.set(p.id, { x: p.worldX, y: p.worldY, at: now }); const same = names.get(nameKey) ?? []; same.push(p); names.set(nameKey, same);
       const born = this.births.get(p.id) ?? now / 1000; this.births.set(p.id, born);
       let cursor = -width / 2;
+      if (p.label.icon) {
+        const icon = this.atlas.glyphs.get(iconCode(p.label.icon));
+        if (icon) quads.push({ x: p.worldX - origin.meters.x, y: origin.meters.y - p.worldY,
+          left: cursor - GLYPH_BORDER * scale, top: -p.label.size / 2 - GLYPH_BORDER * scale,
+          width: icon.w * scale, height: icon.h * scale, u: icon.u, v: icon.v, du: icon.w / this.atlas.size, dv: icon.h / this.atlas.size,
+          angle: 0, color: p.label.color, haloColor: p.label.haloColor, haloWidth: .6, scale, born });
+        cursor += iconWidth;
+      }
       for (const glyph of glyphs) {
         if (glyph.w) quads.push({ x: p.worldX - origin.meters.x, y: origin.meters.y - p.worldY,
           left: cursor + (glyph.left - GLYPH_BORDER) * scale, top: p.label.size * .4 - (glyph.top + GLYPH_BORDER) * scale,
@@ -118,4 +168,4 @@ export function ownsAnchor(source: Address, cells: readonly Address[], x: number
 }
 
 /** 字形加载前的保守宽度下界用于剔除无法容纳文字的短路段。 */
-function pTextWidth(label: LabelCandidate): number { return Array.from(label.text).length * label.size * .35 + 12; }
+function pTextWidth(label: LabelCandidate): number { return label.text.length * label.size * .35 + 12; }

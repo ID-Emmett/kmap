@@ -1,7 +1,8 @@
-import { mapVertex, mapFacing } from '../globe/projection.js';
+import { MapPalette } from '../style/palette.js';
+import { mapVertex, mapFacing, mapWorldPosition } from '../globe/projection.js';
 import { surfaceStateBytes } from './surfaceBytes.js';
 import { AlwaysStencilFunc, Color, Mesh, MeshBasicNodeMaterial, ReplaceStencilOp, SRGBColorSpace, Texture, Vector3, type Scene } from 'three/webgpu';
-import { Fn, float, fog, positionLocal, positionWorld, renderGroup, smoothstep, uniform } from 'three/tsl';
+import { Fn, float, fog, max, positionLocal, positionWorld, renderGroup, smoothstep, uniform } from 'three/tsl';
 import type { MapOrigin } from '../spatial/types.js';
 import { keyOf, tileBounds, type Address } from './address.js';
 import { createLineSurface } from './lineSurface.js';
@@ -20,6 +21,7 @@ interface DrawInstance { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; lines
 export class TileSurfaces {
   readonly fogCenter = uniform(new Vector3()).setGroup(renderGroup);
   readonly fogStart = uniform(1).setGroup(renderGroup); readonly fogEnd = uniform(2).setGroup(renderGroup); readonly fogColor;
+  readonly palette = new MapPalette();
   readonly instances = new Map<string, DrawInstance>();
   private readonly resources = new Set<{ mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial> }>();
   private originX = NaN; private originY = NaN;
@@ -30,27 +32,32 @@ export class TileSurfaces {
     return bytes;
   }
   constructor(readonly scene: Scene, background: Color, readonly spherical = false) {
+    scene.userData.mapPalette = this.palette;
     this.fogColor = uniform(background).setGroup(renderGroup);
-    scene.fogNode = fog(this.fogColor, smoothstep(this.fogStart, this.fogEnd, positionWorld.sub(this.fogCenter).length()));
+    scene.fogNode = fog(this.fogColor, max(smoothstep(this.fogStart, this.fogEnd, (this.spherical ? mapWorldPosition : positionWorld).sub(this.fogCenter).length()), this.spherical ? float(1).sub(smoothstep(0, .16, mapFacing)) : 0));
   }
   patchBytes(address: Address): number { return PATCH_RECTANGLE_BYTES * (this.spherical ? 4 ** Math.max(0, 6 - address.z) : 1); }
   create(bitmap: ImageBitmap, address: Address, data?: LineData, fillData?: FillData, buildingData?: BuildingData, labels: LabelCandidate[] = []) {
+    if (data) this.palette.encode(data.colors);
+    if (fillData) this.palette.encode(fillData.colors);
+    if (buildingData) this.palette.encode(buildingData.colors);
     const map = new Texture(bitmap); map.colorSpace = SRGBColorSpace;
     map.flipY = false; map.generateMipmaps = true; map.anisotropy = 4; map.needsUpdate = true;
     const material = new MeshBasicNodeMaterial({ map, depthTest: false, depthWrite: false,
       stencilWrite: false, stencilWriteMask: 255, stencilFunc: AlwaysStencilFunc, stencilZPass: ReplaceStencilOp });
+    material.colorNode = this.fogColor;
     material.positionNode = positionLocal;
-    if (this.spherical && address.z < 6) {
+    if (this.spherical) {
       material.vertexNode = mapVertex(positionLocal);
       material.opacityNode = Fn(() => { mapFacing.lessThan(0).discard(); return float(1); })();
     }
     const geometry = new PatchGeometry(this.spherical); geometry.update(address, [address]);
     const mesh = new Mesh(geometry, material); mesh.frustumCulled = false; mesh.visible = false; mesh.matrixAutoUpdate = false;
-    const lines = data?.segments.length ? createLineSurface(data, this.spherical && address.z < 6) : undefined;
+    const lines = data?.segments.length ? createLineSurface(data, this.spherical, true) : undefined;
     if (lines) { lines.mesh.renderOrder = 2; mesh.add(lines.mesh); }
-    const fills = fillData?.indices.length ? createFillSurface(fillData, this.spherical && address.z < 6) : undefined;
+    const fills = fillData?.indices.length ? createFillSurface(fillData, this.spherical, true) : undefined;
     if (fills) mesh.add(fills.mesh);
-    const buildings = buildingData?.indices.length ? createBuildingSurface(buildingData) : undefined;
+    const buildings = buildingData?.indices.length ? createBuildingSurface(buildingData, this.spherical, true) : undefined;
     if (buildings) mesh.add(buildings.mesh);
     const stateBytes = surfaceStateBytes(data, buildingData);
     const resource = { mesh, map, bitmap, lines, fills, buildings, labels, stateBytes, bytes: Math.ceil(bitmap.width * bitmap.height * 4 * 4 / 3) + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes, cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes + labelBytes(labels) };
@@ -102,7 +109,7 @@ export class TileSurfaces {
       instance.mesh.geometry.update(draw.address, draw.cells);
       instance.mesh.visible = true; instance.mesh.material.stencilRef = stencil; instance.mesh.material.stencilWrite = stencilClip;
       // 原生面使用全局背景；部分区域需要背景批次同步写入 stencil 归属。
-      instance.mesh.material.visible = this.spherical && draw.address.z < 6 || !instance.fills || stencilClip;
+      instance.mesh.material.visible = this.spherical && draw.address.z < 8 || !instance.fills || stencilClip;
       if (instance.lines) { instance.lines.mesh.material.stencilRef = stencil; instance.lines.mesh.material.stencilWrite = stencilClip; }
       if (instance.fills) { instance.fills.mesh.material.stencilRef = stencil; instance.fills.mesh.material.stencilWrite = stencilClip; }
       if (instance.buildings) setBuildingClip(instance.buildings.mesh.userData.buildingState, draw.address, draw.cells);

@@ -1,0 +1,40 @@
+{
+  "viewport": {
+    "width": 2560,
+    "height": 1305,
+    "pixelRatio": 1
+  },
+  "gpu": "NVIDIA GeForce RTX 4070 Ti / ANGLE D3D11",
+  "backend": "webgl2",
+  "view": {
+    "zoom": 15,
+    "pitch": 0,
+    "bearing": 0,
+    "center": {
+      "lng": 116.394653,
+      "lat": 39.90552
+    }
+  },
+  "sampleMs": 4000,
+  "samples": [
+    {
+      "format": "HalfFloatType",
+      "msaa": 4,
+      "fps": 72.89430326027282,
+      "cpuP95": 2.700000002980232
+    },
+    {
+      "format": "HalfFloatType",
+      "msaa": 0,
+      "fps": 170.00773897196447,
+      "cpuP95": 2.200000002980232
+    },
+    {
+      "format": "UnsignedByteType",
+      "msaa": 4,
+      "fps": 76.79880700882316,
+      "cpuP95": 2.5999999940395355
+    }
+  ],
+  "method": "CDP Runtime.evaluate 观察真实 observeFrames；只改变中间渲染目标的采样或格式，对照完成后恢复。最终浏览器矩阵使用 SDK 构造配置并重新加载页面。"
+}

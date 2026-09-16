@@ -11,6 +11,7 @@ export class LabelSurface {
   readonly origin = uniform(new Vector3()); readonly viewport = uniform(new Vector2(1, 1));
   readonly clock = uniform(0);
   readonly capacity = 8192; count = 0;
+  private readonly colors = new Map<string | number, Color>();
   constructor(atlas: GlyphAtlas) {
     const geometry = new InstancedBufferGeometry(), plane = new PlaneGeometry(1, 1);
     geometry.index = plane.index; geometry.attributes = plane.attributes; geometry.instanceCount = 0;
@@ -45,14 +46,19 @@ export class LabelSurface {
   }
   write(quads: readonly GlyphQuad[]): void {
     const geometry = this.mesh.geometry; this.count = Math.min(this.capacity, quads.length);
-    const color = new Color();
+    const a = geometry.getAttribute('labelAnchor'), direction = geometry.getAttribute('labelDirection'), rect = geometry.getAttribute('labelRect');
+    const uv = geometry.getAttribute('labelUV'), style = geometry.getAttribute('labelStyle'), ink = geometry.getAttribute('labelColor'), halo = geometry.getAttribute('labelHalo');
+    const color = (value: string | number) => {
+      let cached = this.colors.get(value); if (!cached) { cached = new Color(value); this.colors.set(value, cached); }
+      return cached;
+    };
     for (let i = 0; i < this.count; i++) {
-      const q = quads[i]!;
-      const set = (name: string, values: number[]) => { (geometry.getAttribute(name).array as Float32Array).set(values, i * values.length); };
-      set('labelAnchor', [q.x, q.y]); set('labelDirection', [q.endX ?? q.x, q.endY ?? q.y, q.endX === undefined ? 0 : 1]); set('labelRect', [q.left, q.top, q.width, q.height]); set('labelUV', [q.u, q.v, q.du, q.dv]);
-      set('labelStyle', [q.angle, q.haloWidth, q.scale, q.born]); color.set(q.color); set('labelColor', [color.r, color.g, color.b]);
-      color.set(q.haloColor); set('labelHalo', [color.r, color.g, color.b]);
+      const q = quads[i]!, c = color(q.color), h = color(q.haloColor);
+      a.setXY(i, q.x, q.y); direction.setXYZ(i, q.endX ?? q.x, q.endY ?? q.y, q.endX === undefined ? 0 : 1);
+      rect.setXYZW(i, q.left, q.top, q.width, q.height); uv.setXYZW(i, q.u, q.v, q.du, q.dv);
+      style.setXYZW(i, q.angle, q.haloWidth, q.scale, q.born); ink.setXYZ(i, c.r, c.g, c.b); halo.setXYZ(i, h.r, h.g, h.b);
     }
+    if (this.colors.size > 256) this.colors.clear();
     for (const [name, attribute] of Object.entries(geometry.attributes)) {
       if (!name.startsWith('label')) continue;
       const buffer = attribute as InstancedBufferAttribute;

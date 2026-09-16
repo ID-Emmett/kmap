@@ -1,3 +1,5 @@
+import { paletteColor } from '../style/palette.js';
+import { mapVertex } from '../globe/projection.js';
 import { Vector4, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
 import { Fn, Loop, attribute, uniformArray, float, max, normalWorld, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
 import type { BuildingData } from './buildings.js';
@@ -16,12 +18,12 @@ export function setBuildingClip(state: ReturnType<typeof createBuildingState>, s
 }
 
 /** 深度缓冲处理建筑互相遮挡；固定太阳方向与墙脚梯度在单次绘制中计算。 */
-export function createBuildingSurface(data: BuildingData) {
+export function createBuildingSurface(data: BuildingData, curved = false, themed = false) {
   const geometry = new BufferGeometry();
   for (const [name, values] of Object.entries({ position: data.positions, normal: data.normals, buildingColor: data.colors, buildingStyle: data.styles }))
     geometry.setAttribute(name, new BufferAttribute(values, 3));
   geometry.setIndex(new BufferAttribute(data.indices, 1));
-  const mesh = new Mesh(geometry, material.clone()); mesh.frustumCulled = false; mesh.renderOrder = 3;
+  const mesh = new Mesh(geometry, materials[Number(curved) + Number(themed) * 2]!.clone()); mesh.frustumCulled = false; mesh.renderOrder = 3;
   const state = createBuildingState(); mesh.userData.buildingState = state;
   let minZoom = Infinity;
   for (let i = 0; i < data.styles.length; i += 3) minZoom = Math.min(minZoom, Math.round(data.styles[i]! * 10000) / 10000);
@@ -34,9 +36,11 @@ const zoomRange = varying(style.xy).setInterpolation('flat');
 const clips = uniformArray(Array.from({ length: 256 }, () => new Vector4()), 'vec4' as const).onObjectUpdate(frame => frame?.object?.userData.buildingState.clips);
 const clipCount = uniform(0, 'int').onObjectUpdate(({ object }) => object!.userData.buildingState.clipCount);
 // 底图透明队列先绘制；建筑在同一队列末尾以不透明 alpha 和深度写入合成。
+function createMaterial(curved: boolean, themed: boolean) {
 const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: true, depthWrite: true, side: DoubleSide });
 material.forceSinglePass = true;
 material.positionNode = positionLocal;
+if (curved) material.vertexNode = mapVertex(positionLocal);
 material.colorNode = Fn(() => {
   max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();
   viewZoom.lessThan(zoomRange.x).or(viewZoom.greaterThanEqual(zoomRange.y)).discard();
@@ -48,5 +52,9 @@ material.colorNode = Fn(() => {
   });
   inside.equal(0).and(clipCount.greaterThan(0)).discard();
   const sunlight = max(normalWorld.dot(vec3(-.45, .8, .4).normalize()), 0).mul(.3).add(.7);
-  return vec4(attribute<'vec3'>('buildingColor', 'vec3').mul(sunlight).mul(style.z), 1);
+  return vec4(paletteColor(attribute<'vec3'>('buildingColor', 'vec3'), themed).mul(sunlight).mul(style.z), 1);
 })();
+
+return material;
+}
+const materials = [createMaterial(false, false), createMaterial(true, false), createMaterial(false, true), createMaterial(true, true)];

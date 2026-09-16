@@ -1,3 +1,4 @@
+import { paletteColor } from '../style/palette.js';
 import { mapVertex, mapFacing } from '../globe/projection.js';
 import { Vector4, DoubleSide, EqualStencilFunc, InstancedBufferAttribute, InstancedBufferGeometry, KeepStencilOp, Mesh, MeshBasicNodeMaterial, PlaneGeometry } from 'three/webgpu';
 import { Fn, If, attribute, uniformArray, float, fwidth, max, min, mix, uint, positionLocal, smoothstep, uniform, uv, varying, vec2, vec3, vec4 } from 'three/tsl';
@@ -5,7 +6,7 @@ import type { LineData } from './lines.js';
 import { createLineState, lineStyleCapacity } from './lineStyle.js';
 
 /** 单次绘制批量合成所有线图层，胶囊距离场提供圆端点与抗锯齿。 */
-export function createLineSurface(data: LineData, curved = false) {
+export function createLineSurface(data: LineData, curved = false, themed = false) {
   const plane = new PlaneGeometry(1, 1);
   const geometry = new InstancedBufferGeometry();
   geometry.index = plane.index; geometry.attributes = plane.attributes;
@@ -22,9 +23,9 @@ export function createLineSurface(data: LineData, curved = false) {
   geometry.setAttribute('lineCaps', new InstancedBufferAttribute(data.caps ?? new Uint8Array(geometry.instanceCount * 2).fill(1), 2));
   geometry.setAttribute('lineDistance', new InstancedBufferAttribute(data.distances, 1));
   const count = lineStyleCapacity(data.paints.length);
-  const key = `${count}:${curved}`;
+  const key = `${count}:${curved}:${themed}`;
   let template = lineMaterials.get(key);
-  if (!template) { template = createLineMaterial(count, curved); lineMaterials.set(key, template); }
+  if (!template) { template = createLineMaterial(count, curved, themed); lineMaterials.set(key, template); }
   const material = template.clone();
   const mesh = new Mesh(geometry, material); mesh.frustumCulled = false;
   const state = createLineState(data);
@@ -33,7 +34,7 @@ export function createLineSurface(data: LineData, curved = false) {
 }
 
 /** 节点图由所有瓦片共享，对象组在绘制时读取各瓦片的宽度比例。 */
-function createLineMaterial(count: number, curved: boolean) {
+function createLineMaterial(count: number, curved: boolean, themed: boolean) {
   const pixelScale = uniform(1 / 256).onObjectUpdate(({ object }) => object!.userData.lineState.pixelScale.value);
   const viewZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.lineState.viewZoom.value);
   const segment = attribute<'vec4'>('lineSegment', 'vec4');
@@ -51,15 +52,16 @@ function createLineMaterial(count: number, curved: boolean) {
   const across = uv().y.mul(2).sub(1).mul(radius.add(pixelScale));
   const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: DoubleSide,
     stencilWrite: true, stencilWriteMask: 0, stencilFunc: EqualStencilFunc, stencilZPass: KeepStencilOp });
-  if (curved) material.vertexNode = mapVertex(positionLocal);
   material.forceSinglePass = true;
-  material.positionNode = Fn(() => {
+  const linePosition = Fn(() => {
     const direction = delta.normalize();
     const joins = attribute<'vec4'>('lineJoin', 'vec4');
     const offset = direction.mul(along).add(mix(joins.xy, joins.zw, uv().x).mul(across));
     const point = segment.xy.add(offset);
     return vec3(point.x, 0, point.y);
   })();
+  material.positionNode = linePosition;
+  if (curved) material.vertexNode = mapVertex(linePosition);
   material.colorNode = Fn(() => {
     const distance = vec2(max(max(along.negate(), along.sub(length)), 0), across).length().sub(radius);
     const aa = max(fwidth(distance), 1e-10).toVar();
@@ -83,7 +85,7 @@ function createLineMaterial(count: number, curved: boolean) {
     max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();
     viewZoom.lessThan(style.z).or(viewZoom.greaterThanEqual(style.w.add(1))).discard();
     alpha.lessThanEqual(.001).discard();
-    return vec4(attribute<'vec3'>('lineColor', 'vec3'), alpha);
+    return vec4(paletteColor(attribute<'vec3'>('lineColor', 'vec3'), themed), alpha);
   })();
   return material;
 }

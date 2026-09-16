@@ -132,10 +132,23 @@ export interface ExtrusionLayerOptions extends BaseLayerOptions {
 export interface SymbolLayerOptions extends BaseLayerOptions {
   type: 'symbol';
   layout: { textFields?: readonly string[]; textSize?: number; priority?: number; rankProperty?: string; minZoomProperty?: string;
-    priorityByClass?: Readonly<Record<string, number>>; placement?: 'point' | 'line' };
-  paint: { color?: string | number; haloColor?: string | number; haloWidth?: number };
+    priorityByClass?: Readonly<Record<string, number>>; iconByClass?: Readonly<Record<string, MapIcon>>; placement?: 'point' | 'line' };
+  paint: { color?: string | number; colorByClass?: Readonly<Record<string, string | number>>; haloColor?: string | number; haloWidth?: number };
 }
 export type MapLayerOptions = FillLayerOptions | LineLayerOptions | ExtrusionLayerOptions | SymbolLayerOptions;
+
+/** 单层或分类文字的运行时样式，像素单位与屏幕布局一致。 */
+export interface LabelStyle {
+  color?: string | number; haloColor?: string | number; haloWidth?: number; textSize?: number; visible?: boolean;
+}
+export type MapIcon = 'metro' | 'airport' | 'hospital' | 'school' | 'park' | 'museum' | 'food' | 'shop' | 'hotel';
+export interface LabelAppearance {
+  sizeScale?: number; haloWidth?: number; maxLabels?: number; icons?: boolean;
+  layers?: Readonly<Record<string, LabelStyle>>;
+  categories?: Readonly<Record<string, LabelStyle>>;
+}
+/** 全地图基础色映射；省略的基础色保留其原始值。 */
+export interface MapTheme { backgroundColor: string | number; colors?: Readonly<Record<string, string | number>> }
 
 /** SDK 结构化错误代码。 */
 export type MapErrorCode =
@@ -232,12 +245,12 @@ export interface Map3DOptions {
   layers: readonly MapLayerOptions[];
   /** 标准 SDF glyph PBF 资源；按需加载 256 字符的 range。 */
   labels?: { glyphs: string; fontStack: string; maxLabels?: number };
-  /** minZoom=0 的源在低缩放显示地球；默认启用，4.5–5.5 级渐变衔接平面地图。 */
+  /** minZoom=0 的源在低缩放显示地球；默认启用，全缩放采用球面投影。 */
   globe?: boolean;
   renderer?: {
     /** 是否强制使用 WebGL2 后端。 */
     forceWebGL?: boolean;
-    /** 是否启用多重采样抗锯齿。 */
+    /** 多重采样抗锯齿；强制 WebGL2 默认关闭，线和文字具有解析抗锯齿。 */
     antialias?: boolean;
     /** 空场景背景色。 */
     backgroundColor?: string | number;

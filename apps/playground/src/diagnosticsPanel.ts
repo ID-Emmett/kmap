@@ -137,7 +137,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     set("workerJobs", `${d.workers?.active ?? 0} / ${d.workers?.queued ?? 0}`);
     set("text", `${d.labels?.candidates ?? 0} / ${d.labels?.placed ?? 0} / ${ms(d.labels?.layoutMs)}`);
     set("glyph", `${d.labels?.glyphs ?? 0} / ${d.labels?.pendingRanges ?? 0} / ${d.labels?.glyphErrors ?? 0}`);
-    set("projection", `${d.globe.active ? '地球' : '平面'} / ${d.globe.ready ? '就绪' : d.globe.errors ? '加载失败' : '待加载'}`);
+    set("projection", `${d.globe.active ? '球面' : '平面'} / ${d.globe.ready ? '就绪' : d.globe.errors ? '加载失败' : '待加载'}`);
     set("cover", `${t?.target ?? 0} / ${t?.committed ?? 0}`);
     set("missing", `${t?.targetMissing ?? 0} / ${t?.uncoveredCells ?? 0}`);
     set("queue", `${t?.scheduler?.queued ?? 0} / ${t?.scheduler?.active ?? 0}`);

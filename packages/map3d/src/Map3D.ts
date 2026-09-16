@@ -16,9 +16,8 @@ import { tileDiagnostics } from './streaming/diagnostics.js';
 import { selectTiles } from './streaming/selection.js';
 import { LabelSystem } from './labels/labelSystem.js';
 import { GlobeView } from './globe/globeView.js';
-import { GLOBE_END } from './globe/globeCamera.js';
 import { updateProjection } from './globe/projection.js';
-import type { Map3DOptions, MapEventMap, MapRuntimeStats, RenderBackend, ViewportSize, ViewState } from './types.js';
+import type { MapTheme, LabelAppearance, Map3DOptions, MapEventMap, MapRuntimeStats, RenderBackend, ViewportSize, ViewState } from './types.js';
 
 /** Three.js 地图容器：相机交互、WebGPU 帧循环与瓦片流式合成。 */
 export class Map3D {
@@ -30,6 +29,8 @@ export class Map3D {
   private readonly interactions: MapInteractionController;
   private readonly cpu = new Samples(); private readonly interval = new Samples(); private readonly input = new Samples();
   private readonly background: Color;
+  private theme: MapTheme | undefined;
+  private labelAppearance: LabelAppearance = {};
   private engine: StreamingEngine | undefined;
   private labels: LabelSystem | undefined;
   private globe: GlobeView | undefined;
@@ -44,7 +45,8 @@ export class Map3D {
     if (!options.source.id || options.source.tiles.length === 0 || options.source.tiles.some(t => !['{z}', '{x}', '{y}'].every(part => t.includes(part)))) throw new TypeError('Source 必须包含有效 XYZ URL 模板。');
     if (!Number.isInteger(options.source.minZoom) || !Number.isInteger(options.source.maxZoom) || options.source.minZoom < 0 || options.source.maxZoom < options.source.minZoom) throw new TypeError('Source 层级范围无效。');
     this.background = new Color(options.renderer?.backgroundColor ?? '#F5F5F2'); this.scene.background = this.background;
-    this.renderer = new WebGPURenderer({ canvas: options.canvas, stencil: true, antialias: options.renderer?.antialias ?? true, forceWebGL: options.renderer?.forceWebGL ?? false });
+    // WebGL 默认依赖线与字形的解析抗锯齿；显式 antialias=true 启用 4x MSAA。
+    this.renderer = new WebGPURenderer({ canvas: options.canvas, stencil: true, antialias: options.renderer?.antialias ?? options.renderer?.forceWebGL !== true, forceWebGL: options.renderer?.forceWebGL ?? false });
     this.viewStore = new ViewStateStore(options.view);
     const view = this.getView(); this.origin = selectMapOrigin(view.center, Math.max(0, Math.floor(view.zoom)));
     this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin, this.options.globe !== false && this.options.source.minZoom === 0);
@@ -62,9 +64,18 @@ export class Map3D {
     const surfaces = new TileSurfaces(this.scene, this.background, this.options.globe !== false && this.options.source.minZoom === 0);
     this.engine = new StreamingEngine(this.options, surfaces, this.renderer, `#${this.background.getHexString()}`, error => this.events.emit('error', error));
     if (this.options.labels && this.options.layers.some(layer => layer.type === 'symbol')) this.labels = new LabelSystem(this.options.labels, this.scene);
+    if (this.theme) this.setTheme(this.theme); this.labels?.setStyle(this.labelAppearance);
     this.initialized = true; this.applyView(this.getView()); this.start();
     this.events.emit('load', { backend: this.getBackend() });
   }
+  /** 原子更新全局调色板，已加载与后续瓦片共享同一主题。 */
+  setTheme(theme: MapTheme): void {
+    this.assertLive(); this.theme = theme; this.background.set(theme.backgroundColor);
+    this.engine?.surfaces.palette.set(theme); this.globe?.setTheme(theme, this.engine?.surfaces.palette);
+    this.labels?.invalidate();
+  }
+  /** 文字外观在下一次屏幕布局中生效，字形缓存继续复用。 */
+  setLabelStyle(style: LabelAppearance): void { this.assertLive(); this.labelAppearance = style; this.labels?.setStyle(style); }
   getRenderer(): WebGPURenderer { return this.renderer; }
   getBackend(): RenderBackend {
     const backend = this.renderer.backend as { isWebGPUBackend?: boolean; isWebGLBackend?: boolean };
@@ -106,9 +117,10 @@ export class Map3D {
     if (this.lastFrame) this.interval.add(this.frameMs); this.lastFrame = now;
     if (this.changedAt) { this.input.add(start - this.changedAt); this.changedAt = 0; }
     this.engine?.update(this.camera, this.cameraFrame, this.origin, this.getView(), this.viewport, start);
-    const view = this.getView(), globeActive = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
-    if (globeActive) { this.globe ??= new GlobeView(this.options, this.scene); }
+    const view = this.getView(), globeActive = this.options.globe !== false && this.options.source.minZoom === 0;
+    if (globeActive && !this.globe) { this.globe = new GlobeView(this.options, this.scene); if (this.theme) this.globe.setTheme(this.theme, this.engine?.surfaces.palette); }
     this.globe?.update(this.scene.userData.mapProjection);
+    if (this.globe) this.globe.mesh.visible = globeActive && view.zoom < 10;
     if (this.labels && this.engine) this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.viewport, this.engine.revision, start, this.engine.selection.fogEnd);
     this.engineMs = performance.now() - start;
     this.renderer.render(this.scene, this.camera);
@@ -136,13 +148,13 @@ export class Map3D {
       camera: { position: this.cameraFrame.position, origin: this.origin },
       frame: { cpu: this.cpu.snapshot(), interval, input: this.input.snapshot(), fps: interval.mean > 0 ? 1000 / interval.mean : 0 },
       render: { drawCalls: info.render.drawCalls, triangles: info.render.triangles },
-      memory: { geometries: info.memory.geometries, textures: info.memory.textures, total: this.engine?.gpuBytes ?? 0 },
+      memory: { paletteBytes: this.engine?.surfaces.palette.values.byteLength ?? 0, geometries: info.memory.geometries, textures: info.memory.textures, total: this.engine?.gpuBytes ?? 0 },
       workers: this.engine?.workers.getStats(), sceneTiles: this.engine?.shown.size ?? 0,
       labels: this.labels ? { candidates: this.labels.candidates, placed: this.labels.placed, glyphs: this.labels.atlas.glyphs.size, glyphErrors: this.labels.atlas.errors,
         missingGlyphs: this.labels.atlas.missing, layoutMs: this.labels.layoutMs, layouts: this.labels.layouts, quads: this.labels.surface.count,
         atlasBytes: this.labels.atlas.size ** 2, pendingRanges: this.labels.atlas.pending.size, cachedRanges: this.labels.atlas.pages.size } : undefined,
       overlayCacheBytes: this.engine?.pipeline.overlays.bytes ?? 0,
-      globe: { active: this.options.globe !== false && this.options.source.minZoom === 0 && this.getView().zoom < GLOBE_END,
+      globe: { active: this.options.globe !== false && this.options.source.minZoom === 0,
         ready: !!this.globe && this.engine?.targetMissing === 0, errors: this.engine?.errors ?? 0 },
       tiles: this.engine ? tileDiagnostics(this.engine) : undefined };
   }

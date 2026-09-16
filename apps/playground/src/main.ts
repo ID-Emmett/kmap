@@ -1,3 +1,4 @@
+import { createAppearancePanel } from './appearancePanel.js';
 import { Map3D } from '@kmap/map3d';
 import type { Inspector } from 'three/addons/inspector/Inspector.js';
 import { createDiagnosticsPanel } from './diagnosticsPanel.js';
@@ -63,7 +64,9 @@ async function bootstrap(): Promise<void> {
     window.__kmapInspector = inspector;
     map.getRenderer().inspector = inspector;
   }
-  const removePanel = createDiagnosticsPanel(map);
+  const removeDiagnostics = createDiagnosticsPanel(map);
+  const removeAppearance = createAppearancePanel(map);
+  const removePanel = () => { removeAppearance(); removeDiagnostics(); };
   let ready = false;
   const unsubscribeView = map.on('viewchange', ({ view }) => {
     publishStatus({
@@ -87,6 +90,10 @@ async function bootstrap(): Promise<void> {
   try {
     resize();
     await map.initialize();
+    if (new URLSearchParams(window.location.search).get('capture') === 'appearance') {
+      const { runAppearanceBenchmark } = await import('./appearanceBenchmark.js');
+      void runAppearanceBenchmark(map).catch(error => { document.documentElement.dataset.kmapAppearanceError = String(error); });
+    }
     if (new URLSearchParams(window.location.search).get('capture') === 'refinement') {
       const { runRefinementBenchmark } = await import('./refinementBenchmark.js');
       void runRefinementBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });

@@ -1,19 +1,19 @@
 # Kmap Current Project State
 
-更新日期：2026-09-16
+更新日期：2026-09-17
 
 本文件是 Kmap AI 会话的低 token 启动入口。新会话先读本文件，再按会话类型和当前任务读取索引、任务文件和必要分片；不得用本文件替代 `PROJECT.md`、`TASKS.md`、任务文件、decisions、knowledge 或 evidence。
 
 ## 当前结论
 
-- 2026-09-16 球面矢量瓦片、跨层级文字与道路连接已完成双后端 36 场景浏览器验证，覆盖缺口与运行错误均为 0。WebGPU 146–170 FPS；WebGL2 压力矩阵 45–116 FPS，预热城市交互约 121 FPS。验证边界见 `docs/evidence/map-refinement/README.md`。
+- 全缩放球面地图、连续雾、文字/图标配置、LOD 滞回和三套全局主题已实现。141 项自动测试与双后端 30 场景、394 张图像验证通过。2560×1305 连续交互实测 WebGL2 163.58 FPS、WebGPU 164.85 FPS；配置与冷加载边界见 `docs/evidence/map-experience/README.md`。
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
 - 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、米制线宽、加载、缓存、帧提交和资源回收。
 - 当前画质支持 75° 强雾与统一目标层级、15.74 建筑门槛、kind 分类色、国省界和连续虚线；证据入口为 `docs/evidence/map-quality/README.md`。
 - T046 状态为 IN_PROGRESS，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - 浏览器入口为 `http://127.0.0.1:6661/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。
-- 当前 2560×1305 WebGPU 160 fps、连续覆盖和视觉验收正在执行；实测范围与证据见 `docs/knowledge/streaming.md`。
+- 当前双后端性能、连续覆盖和视觉检查事实见 `docs/knowledge/streaming.md`。
 
 ## 当前任务状态
 

@@ -67,7 +67,7 @@ export class GlyphAtlas {
         }
         for (const key of this.pages.keys()) {
           if (this.pages.size <= 32) break;
-          this.pages.delete(key);
+          if (key !== 0xe0) this.pages.delete(key);
         }
       }).catch(() => {
         if (!this.disposed) { this.errors++; this.failed.set(range, performance.now() + 30000); }

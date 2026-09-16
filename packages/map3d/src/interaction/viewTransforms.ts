@@ -1,4 +1,4 @@
-import { PerspectiveCamera } from 'three/webgpu';
+import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 
 import {
   intersectCameraRayWithGround,
@@ -16,7 +16,6 @@ import { MAX_SAFE_TILE_ZOOM } from '../spatial/validation.js';
 import { normalizeViewState } from '../spatial/viewState.js';
 import type { ViewportSize, ViewState } from '../types.js';
 import type { InteractionDisplacement } from './inertia.js';
-import { GLOBE_START } from '../globe/globeCamera.js';
 
 /** 按屏幕拖拽的地面射线差更新中心，支持 bearing/pitch。 */
 export function panViewByPixels(
@@ -28,19 +27,26 @@ export function panViewByPixels(
 ): ViewState {
   const normalizedView = normalizeViewState(view);
   const normalizedViewport = normalizeViewport(viewport);
-  if (globe && normalizedView.zoom < GLOBE_START) {
-    const degrees = 180 / (Math.min(normalizedViewport.width, normalizedViewport.height) * .82 * 2 ** (normalizedView.zoom * .5));
-    const bearing = normalizedView.bearing * Math.PI / 180;
-    return normalizeViewState({ center: { lng: normalizedView.center.lng - (deltaX * Math.cos(bearing) + deltaY * Math.sin(bearing)) * degrees,
-      lat: normalizedView.center.lat + (deltaY * Math.cos(bearing) - deltaX * Math.sin(bearing)) * degrees } }, normalizedView);
-  }
   const originZoom = Math.min(
     MAX_SAFE_TILE_ZOOM,
     Math.floor(normalizedView.zoom),
   );
   const origin = selectMapOrigin(normalizedView.center, originZoom);
   const camera = new PerspectiveCamera();
-  updateMapCamera(camera, normalizedView, normalizedViewport, origin);
+  updateMapCamera(camera, normalizedView, normalizedViewport, origin, globe);
+  if (globe) {
+    const radius = WEB_MERCATOR_WORLD_SIZE / (2 * Math.PI * Math.cos(normalizedView.center.lat * Math.PI / 180));
+    const c = projectLngLat(normalizedView.center), cx = c.x - origin.meters.x, cz = origin.meters.y - c.y;
+    const ray = new Vector3(deltaX / normalizedViewport.width * 2, -deltaY / normalizedViewport.height * 2, .5).unproject(camera).sub(camera.position).normalize();
+    const from = camera.position.clone().sub(new Vector3(cx, -radius, cz));
+    const dot = from.dot(ray), discriminant = dot * dot - (from.lengthSq() - radius * radius);
+    const hit = from.addScaledVector(ray, -dot - Math.sqrt(Math.max(0, discriminant))).normalize();
+    const lat = normalizedView.center.lat * Math.PI / 180, s = Math.sin(lat), c0 = Math.cos(lat);
+    const deltaLng = Math.atan2(hit.x, hit.y * c0 + hit.z * s) * 180 / Math.PI;
+    const hitLat = Math.asin(Math.max(-1, Math.min(1, hit.y * s - hit.z * c0))) * 180 / Math.PI;
+    return normalizeViewState({ center: { lng: normalizedView.center.lng - deltaLng,
+      lat: normalizedView.center.lat * 2 - hitLat } }, normalizedView);
+  }
   const maxGroundDistance = WEB_MERCATOR_WORLD_SIZE * 4;
   const centerGround = intersectCameraRayWithGround(
     camera,

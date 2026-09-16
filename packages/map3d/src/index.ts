@@ -1,6 +1,7 @@
 export { Map3D } from './Map3D.js';
 export type {
   BaseLayerOptions,
+  MapTheme, LabelAppearance, LabelStyle, MapIcon,
   CanonicalTileKey,
   FillLayerOptions,
   ExtrusionLayerOptions,

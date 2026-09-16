@@ -1,0 +1,1142 @@
+{
+  "date": "2026-09-17",
+  "url": "http://127.0.0.1:6661/",
+  "viewport": {
+    "width": 2560,
+    "height": 1305,
+    "pixelRatio": 1
+  },
+  "gpu": "NVIDIA GeForce RTX 4070 Ti / ANGLE D3D11",
+  "tests": {
+    "command": "pnpm check",
+    "exitCode": 0,
+    "typecheck": "passed",
+    "sdkTests": 133,
+    "playgroundTests": 8,
+    "productionBuild": "passed",
+    "aiCheck": "passed",
+    "diffCheck": "passed"
+  },
+  "backends": {
+    "webgl2": {
+      "source": "docs/evidence/streaming-rebuild/webgpu-2026-09-16T17-00-50-057Z.json",
+      "sha256": "4030c4f88b8d60d06bbffa5ed01be8235ee88abe0a69db6505ba3ae3b0211968",
+      "errors": [],
+      "visualFrames": 197,
+      "results": [
+        {
+          "name": "default-city",
+          "settled": true,
+          "motion": {
+            "count": 305,
+            "fps": 168.84410983170946,
+            "cpuP95": 3.7000000029802322,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 81842848,
+            "maxGpuBytes": 76496828,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 156,
+            "triangles": 223295
+          },
+          "labels": {
+            "candidates": 2000,
+            "placed": 256,
+            "glyphs": 1282,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 4.300000011920929,
+            "layouts": 34,
+            "quads": 1333,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-buildings",
+          "settled": true,
+          "motion": {
+            "count": 303,
+            "fps": 167.7926680695537,
+            "cpuP95": 4.600000008940697,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 114371510,
+            "maxGpuBytes": 106770024,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 255,
+            "triangles": 290852
+          },
+          "labels": {
+            "candidates": 1520,
+            "placed": 256,
+            "glyphs": 1445,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 4.199999988079071,
+            "layouts": 52,
+            "quads": 1355,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-fog",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 169.46336600764255,
+            "cpuP95": 2.7000000029802322,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 130011722,
+            "maxGpuBytes": 121429762,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 104,
+            "triangles": 390735
+          },
+          "labels": {
+            "candidates": 211,
+            "placed": 119,
+            "glyphs": 1523,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 1.4000000059604645,
+            "layouts": 60,
+            "quads": 253,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-globe",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 169.94335221592797,
+            "cpuP95": 2.2000000029802322,
+            "intervalP95": 6.100000000000364,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 139531462,
+            "maxGpuBytes": 130579228,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 33,
+            "triangles": 304363
+          },
+          "labels": {
+            "candidates": 151,
+            "placed": 37,
+            "glyphs": 1536,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.8999999910593033,
+            "layouts": 64,
+            "quads": 82,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-dateline",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.01716785734055,
+            "cpuP95": 1.9000000059604645,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 141639146,
+            "maxGpuBytes": 132573138,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 36,
+            "triangles": 117035
+          },
+          "labels": {
+            "candidates": 0,
+            "placed": 0,
+            "glyphs": 1536,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 2.2000000029802322,
+            "layouts": 68,
+            "quads": 0,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-city",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 169.44459826125498,
+            "cpuP95": 3.5,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 171962348,
+            "maxGpuBytes": 128540616,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 156,
+            "triangles": 223449
+          },
+          "labels": {
+            "candidates": 2000,
+            "placed": 256,
+            "glyphs": 1536,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 5.5999999940395355,
+            "layouts": 69,
+            "quads": 1410,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-buildings",
+          "settled": true,
+          "motion": {
+            "count": 304,
+            "fps": 168.34643925130143,
+            "cpuP95": 4.0999999940395355,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 132819118,
+            "maxGpuBytes": 125305138,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 255,
+            "triangles": 290864
+          },
+          "labels": {
+            "candidates": 1519,
+            "placed": 256,
+            "glyphs": 1541,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 4.199999988079071,
+            "layouts": 72,
+            "quads": 1361,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-fog",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 169.44459826125498,
+            "cpuP95": 2.699999988079071,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 129898582,
+            "maxGpuBytes": 122573442,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 104,
+            "triangles": 390665
+          },
+          "labels": {
+            "candidates": 186,
+            "placed": 102,
+            "glyphs": 1541,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.8999999910593033,
+            "layouts": 75,
+            "quads": 218,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-globe",
+          "settled": true,
+          "motion": {
+            "count": 308,
+            "fps": 170.00607164541583,
+            "cpuP95": 1.3999999910593033,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 135379482,
+            "maxGpuBytes": 127918136,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 33,
+            "triangles": 304365
+          },
+          "labels": {
+            "candidates": 151,
+            "placed": 37,
+            "glyphs": 1541,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 3.9000000059604645,
+            "layouts": 78,
+            "quads": 83,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-dateline",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 169.9983387784486,
+            "cpuP95": 0.6000000089406967,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 129247204,
+            "maxGpuBytes": 122283174,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 36,
+            "triangles": 117035
+          },
+          "labels": {
+            "candidates": 0,
+            "placed": 0,
+            "glyphs": 1541,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.4000000059604645,
+            "layouts": 80,
+            "quads": 0,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-city",
+          "settled": true,
+          "motion": {
+            "count": 303,
+            "fps": 167.7926680695534,
+            "cpuP95": 2,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 143583138,
+            "maxGpuBytes": 127435624,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 156,
+            "triangles": 223387
+          },
+          "labels": {
+            "candidates": 2000,
+            "placed": 256,
+            "glyphs": 1544,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 4.200000002980232,
+            "layouts": 85,
+            "quads": 1379,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-buildings",
+          "settled": true,
+          "motion": {
+            "count": 305,
+            "fps": 168.90021043304912,
+            "cpuP95": 2.5,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 133359216,
+            "maxGpuBytes": 125220482,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 255,
+            "triangles": 290850
+          },
+          "labels": {
+            "candidates": 1518,
+            "placed": 256,
+            "glyphs": 1545,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 3.3999999910593033,
+            "layouts": 89,
+            "quads": 1354,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-fog",
+          "settled": true,
+          "motion": {
+            "count": 305,
+            "fps": 168.89085774406132,
+            "cpuP95": 1.300000011920929,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 129795729,
+            "maxGpuBytes": 121715488,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 104,
+            "triangles": 390647
+          },
+          "labels": {
+            "candidates": 187,
+            "placed": 98,
+            "glyphs": 1545,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.7000000029802322,
+            "layouts": 92,
+            "quads": 209,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-globe",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.01716785734092,
+            "cpuP95": 0.800000011920929,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 131531901,
+            "maxGpuBytes": 123786704,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 33,
+            "triangles": 304379
+          },
+          "labels": {
+            "candidates": 152,
+            "placed": 38,
+            "glyphs": 1545,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.6000000089406967,
+            "layouts": 95,
+            "quads": 90,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-dateline",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 169.99833877844827,
+            "cpuP95": 0.5999999940395355,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 122150509,
+            "maxGpuBytes": 114956504,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 36,
+            "triangles": 117035
+          },
+          "labels": {
+            "candidates": 0,
+            "placed": 0,
+            "glyphs": 1545,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.29999999701976776,
+            "layouts": 98,
+            "quads": 0,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "continuous-pan-zoom-themes",
+          "motion": {
+            "count": 7361,
+            "fps": 163.58213996817693,
+            "cpuP95": 6.899999991059303,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 209331137,
+            "maxGpuBytes": 160388692,
+            "revisions": 1091
+          }
+        },
+        {
+          "name": "visual-pan-zoom",
+          "motion": {
+            "count": 1688,
+            "fps": 140.73938201404056,
+            "cpuP95": 9.5,
+            "intervalP95": 11.80000000000291,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 210881675,
+            "maxGpuBytes": 163370928,
+            "revisions": 566
+          },
+          "screenshotTiming": true
+        }
+      ]
+    },
+    "webgpu": {
+      "source": "docs/evidence/streaming-rebuild/webgpu-2026-09-16T17-05-24-611Z.json",
+      "sha256": "ec84c5c783fad3eadaabdf00c2df76840d7ff74fcf310cc5800f89f42768860e",
+      "errors": [],
+      "visualFrames": 197,
+      "results": [
+        {
+          "name": "default-city",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 169.9983387784484,
+            "cpuP95": 1.5999999940395355,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 81841468,
+            "maxGpuBytes": 76495448,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 156,
+            "triangles": 223335
+          },
+          "labels": {
+            "candidates": 2000,
+            "placed": 256,
+            "glyphs": 1274,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 4.700000002980232,
+            "layouts": 23,
+            "quads": 1353,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-buildings",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.00775279654445,
+            "cpuP95": 2.3999999910593033,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 114381594,
+            "maxGpuBytes": 107118360,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 255,
+            "triangles": 290846
+          },
+          "labels": {
+            "candidates": 1520,
+            "placed": 256,
+            "glyphs": 1440,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 3,
+            "layouts": 38,
+            "quads": 1352,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-fog",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 170,
+            "cpuP95": 1.2000000029802322,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 130021806,
+            "maxGpuBytes": 121778098,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 104,
+            "triangles": 390737
+          },
+          "labels": {
+            "candidates": 209,
+            "placed": 119,
+            "glyphs": 1521,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.7999999970197678,
+            "layouts": 46,
+            "quads": 254,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-globe",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.01716785734055,
+            "cpuP95": 0.9000000059604645,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 146347164,
+            "maxGpuBytes": 137732284,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 33,
+            "triangles": 304365
+          },
+          "labels": {
+            "candidates": 151,
+            "placed": 37,
+            "glyphs": 1533,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.5,
+            "layouts": 50,
+            "quads": 83,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "default-dateline",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 169.99833877844847,
+            "cpuP95": 0.5999999940395355,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 148454848,
+            "maxGpuBytes": 139726194,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 36,
+            "triangles": 117035
+          },
+          "labels": {
+            "candidates": 0,
+            "placed": 0,
+            "glyphs": 1533,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.4000000059604645,
+            "layouts": 53,
+            "quads": 0,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-city",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 170,
+            "cpuP95": 2.4000000059604645,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 179218340,
+            "maxGpuBytes": 135074218,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 156,
+            "triangles": 223449
+          },
+          "labels": {
+            "candidates": 2000,
+            "placed": 256,
+            "glyphs": 1533,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 5.899999991059303,
+            "layouts": 54,
+            "quads": 1410,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-buildings",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 169.99833877844827,
+            "cpuP95": 2.2000000029802322,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 137430144,
+            "maxGpuBytes": 129603056,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 255,
+            "triangles": 290874
+          },
+          "labels": {
+            "candidates": 1519,
+            "placed": 256,
+            "glyphs": 1538,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 3.4000000059604645,
+            "layouts": 57,
+            "quads": 1366,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-fog",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 169.45398161479685,
+            "cpuP95": 1.6000000089406967,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 128965280,
+            "maxGpuBytes": 121283788,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 104,
+            "triangles": 390681
+          },
+          "labels": {
+            "candidates": 193,
+            "placed": 106,
+            "glyphs": 1538,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.7999999970197678,
+            "layouts": 61,
+            "quads": 226,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-globe",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 169.9983387784486,
+            "cpuP95": 0.9000000059604645,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 129474834,
+            "maxGpuBytes": 121884854,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 33,
+            "triangles": 304367
+          },
+          "labels": {
+            "candidates": 151,
+            "placed": 37,
+            "glyphs": 1538,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.5,
+            "layouts": 64,
+            "quads": 84,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "dark-dateline",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.00775279654454,
+            "cpuP95": 0.7999999970197678,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 123777924,
+            "maxGpuBytes": 116639766,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 36,
+            "triangles": 117035
+          },
+          "labels": {
+            "candidates": 0,
+            "placed": 0,
+            "glyphs": 1538,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.4000000059604645,
+            "layouts": 66,
+            "quads": 0,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-city",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.01716785734055,
+            "cpuP95": 2.0999999940395355,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 168487276,
+            "maxGpuBytes": 126500944,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 156,
+            "triangles": 223405
+          },
+          "labels": {
+            "candidates": 2000,
+            "placed": 256,
+            "glyphs": 1543,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 5.0999999940395355,
+            "layouts": 70,
+            "quads": 1388,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-buildings",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 169.9983387784486,
+            "cpuP95": 2.2999999970197678,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 133056466,
+            "maxGpuBytes": 124938114,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 255,
+            "triangles": 290892
+          },
+          "labels": {
+            "candidates": 1520,
+            "placed": 256,
+            "glyphs": 1543,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 3.2000000029802322,
+            "layouts": 74,
+            "quads": 1375,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-fog",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.01716785734092,
+            "cpuP95": 1.2999999970197678,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 129690128,
+            "maxGpuBytes": 121737112,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 104,
+            "triangles": 390671
+          },
+          "labels": {
+            "candidates": 191,
+            "placed": 104,
+            "glyphs": 1543,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.7999999970197678,
+            "layouts": 78,
+            "quads": 221,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-globe",
+          "settled": true,
+          "motion": {
+            "count": 307,
+            "fps": 170.00775279654454,
+            "cpuP95": 0.8999999910593033,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 133890266,
+            "maxGpuBytes": 126049264,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 33,
+            "triangles": 304371
+          },
+          "labels": {
+            "candidates": 151,
+            "placed": 37,
+            "glyphs": 1543,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.5,
+            "layouts": 81,
+            "quads": 86,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "vivid-dateline",
+          "settled": true,
+          "motion": {
+            "count": 306,
+            "fps": 170.00000000000034,
+            "cpuP95": 0.7999999970197678,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 124329860,
+            "maxGpuBytes": 117036940,
+            "revisions": 1
+          },
+          "render": {
+            "drawCalls": 36,
+            "triangles": 117035
+          },
+          "labels": {
+            "candidates": 0,
+            "placed": 0,
+            "glyphs": 1543,
+            "glyphErrors": 0,
+            "missingGlyphs": 0,
+            "layoutMs": 0.29999999701976776,
+            "layouts": 84,
+            "quads": 0,
+            "atlasBytes": 4194304,
+            "pendingRanges": 0,
+            "cachedRanges": 32
+          }
+        },
+        {
+          "name": "continuous-pan-zoom-themes",
+          "motion": {
+            "count": 7419,
+            "fps": 164.84981535220845,
+            "cpuP95": 7.0999999940395355,
+            "intervalP95": 6,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 211258013,
+            "maxGpuBytes": 160283226,
+            "revisions": 1103
+          }
+        },
+        {
+          "name": "visual-pan-zoom",
+          "motion": {
+            "count": 1759,
+            "fps": 146.6591072053894,
+            "cpuP95": 9.200000002980232,
+            "intervalP95": 11.80000000000291,
+            "uncovered": 0,
+            "emptyTarget": 0,
+            "maxCpuBytes": 211782868,
+            "maxGpuBytes": 163680730,
+            "revisions": 582
+          },
+          "screenshotTiming": true
+        }
+      ]
+    }
+  },
+  "sourceFiles": {
+    "apps/playground/src/appearanceBenchmark.ts": "0c0f999c246bb7e69911fd56e054c74e916d09a28a5efa8b389207dc6765b11c",
+    "apps/playground/src/appearancePanel.ts": "75e968336f26eb564213461177750d880c35d378c3112e7aa062ac3f2411fdd0",
+    "apps/playground/src/diagnosticsPanel.ts": "9e52d014be0a9f304087d6edf27230862409e2da31798493ceeba41c0423b205",
+    "apps/playground/src/main.ts": "bb9b6c60cc1034aeab898726b36df8ec913177e5d7c88de6e468b0c53551449a",
+    "apps/playground/src/mapStyle.ts": "4bb534c73d4ca1f2ad4842423e75d425293a1b076dcacaa87908e4ed426995b7",
+    "apps/playground/src/style.css": "c132556ec213461ccec75bd201b39bd2177dc36f93e10c93c57c57bea462516d",
+    "apps/playground/src/themes.test.ts": "acb91c6343750f0319cb3aa197d9e6284a7f8a0943288315364ed8543cdc6618",
+    "apps/playground/src/themes.ts": "58c8fe050860cfb7e0383c7ee8a7a52f6d9a643ef1cfd8d6d44d523ae6127c71",
+    "packages/map3d/src/Map3D.ts": "50ac794a15e2c017e767513cbec79cb8b50ce69606f872575d1b145134bbd959",
+    "packages/map3d/src/globe/cover.ts": "e023e4b5974a3f721ad9e98bc47cea1cbbffb9ef445e7e92da64c9f83fddcd25",
+    "packages/map3d/src/globe/globeView.ts": "cf3c42f032b34a54e793188e6d8f3301f0ca3c3ac4e2efc76a317144f1aafec6",
+    "packages/map3d/src/globe/projection.ts": "0c5a8b787a0f297ed749111bfa5b3b48b210c8206c8fa25de529344e41f731b2",
+    "packages/map3d/src/index.ts": "bba90fa42dd4d7b45b97bc5a138f26c6c5844b97ce8925d3236789d8b97ccc74",
+    "packages/map3d/src/interaction/viewTransforms.ts": "e3fb9dd5a4f4cafd6cd3053751be9fcb7d2cb3303150d2b5b69576bd66f228dc",
+    "packages/map3d/src/labels/candidates.ts": "d7b8b9623c85169fe2cfc9ba57ab4ad0b99e309a6193f2a1f9d1c4b61bb7b78d",
+    "packages/map3d/src/labels/glyphAtlas.ts": "2e7f024a25d374b72dfe4becb08a78db168390cfbdb5f95cde2a2b7a28ea4b9b",
+    "packages/map3d/src/labels/icons.ts": "582c90c7307a79942e8c34a08c62848cd91c89f6dc2b73f5f3fbef73b994b6b5",
+    "packages/map3d/src/labels/labelSurface.ts": "69c2f1075681dab59283a20dfa1ca970ff472e05970b080274028cbc826a35e5",
+    "packages/map3d/src/labels/labelSystem.ts": "47c2ca1c35889a2047daed6d87e7d9552afaf64cb7590898713a3e4982ee00e5",
+    "packages/map3d/src/streaming/buildingSurface.ts": "7c6b8049fca27a7287a914cc2f77bdd85d2f31936622db379d50a1dc9e75734a",
+    "packages/map3d/src/streaming/engine.ts": "3fff8f30bcf74a177c87e190dff6d35f0864a2a63b58b64b81a422ee98203fc4",
+    "packages/map3d/src/streaming/fillSurface.ts": "c462ee99daa7065911a8d25aa80255ecd8d46bbf638c347903db1004de79e510",
+    "packages/map3d/src/streaming/lineSurface.ts": "d945ca87e1a0d95c758c85054667bcc649a2b715177a9bb8dc0ac0c5eba4645c",
+    "packages/map3d/src/streaming/lines.ts": "11f5b7cf0ca1bac3627cb0330856a96fff823a2d3ec28711413895b48d22e849",
+    "packages/map3d/src/streaming/lod.ts": "0df72909e27108d10eee714a7aaa45134fbe4a550fbba665f47914b675fa8270",
+    "packages/map3d/src/streaming/surface.ts": "fa693a9bad99a104c2c702cf5a8f0500ec8eeeebe064a9fb9072cbeed227f11c",
+    "packages/map3d/src/style/palette.ts": "784bf18cad2a15a2eca292ecdffd0c73dca1caf1480019f5ee455abce31d0dc9",
+    "packages/map3d/src/types.ts": "c9c52546967634d1677a99bfdc3f1e81ef56b79d2db4001c7b5bebeda2a2c0cd",
+    "packages/map3d/test/mapRefinement.test.ts": "89df7c7054c7249893bdc0c992f8e5b2a8c5bccb7907f8480218d7bcfb82adc9",
+    "packages/map3d/test/shaderCompilation.test.ts": "556a6a21fa1b5fde89ca8d4e1b57b0c28ad3268f933f516aef6f72a6c3730f92",
+    "packages/map3d/test/sphericalAppearance.test.ts": "826246bb3dd5a29b85f533efe654471743952a42013def2f55e27556dfa5a408"
+  },
+  "uiVerification": {
+    "url": "http://127.0.0.1:6661/",
+    "viewport": {
+      "width": 1280,
+      "height": 720,
+      "pixelRatio": 1
+    },
+    "cityDragWheel": {
+      "centerLngBefore": 116.3946533203125,
+      "centerLngAfter": 116.40944197579964,
+      "zoomBefore": 15,
+      "zoomAfter": 15.998806959275091
+    },
+    "labelControls": {
+      "sizeScale": 1.05,
+      "maxLabels": 128,
+      "icons": false,
+      "category": "hospital",
+      "color": "#ff3366",
+      "haloWidth": 1.5,
+      "runtimeMatched": true,
+      "resetVerified": true
+    },
+    "themes": [
+      "default",
+      "dark",
+      "vivid"
+    ],
+    "globeDrag": {
+      "startLng": 179.9,
+      "endLng": 281.18654116313354,
+      "zoom": 2,
+      "coldLoadingObservedUncovered": 2,
+      "settledUncovered": 0,
+      "errors": 0
+    },
+    "consoleWarnings": 0,
+    "consoleErrors": 0,
+    "restoredDefaultViewAndTheme": true,
+    "viewportOverrideReset": true
+  },
+  "visualReview": {
+    "reviewer": "AI model",
+    "framesReviewed": 394,
+    "method": "Contact sheets of all stored images plus actual UI screenshots",
+    "observations": [
+      "连续球面内容与球缘雾",
+      "道路随投影保持宽度",
+      "分类文字与图标",
+      "三套全局主题",
+      "建筑跨越15.74门槛进入或退出"
+    ]
+  }
+}
