@@ -2,6 +2,7 @@ import type { Map3DOptions } from '../types.js';
 import { canonical, canonicalKey, type Address } from './address.js';
 import type { PaintResponse } from './protocol.js';
 import { lineBytes } from './lines.js';
+import { fillBytes } from './fills.js';
 import type { Surface, TileSurfaces } from './surface.js';
 import { TileAvailability } from './availability.js';
 import { TILE_LIMITS } from './limits.js';
@@ -14,7 +15,7 @@ export interface TileEntry {
   features: number; empty: boolean; reservedBytes: number; startedAt: number;
 }
 export const resultBytes = (result?: PaintResponse): number => result?.bitmap
-  ? result.bitmap.width * result.bitmap.height * 4 + lineBytes(result.lines) : 0;
+  ? result.bitmap.width * result.bitmap.height * 4 + lineBytes(result.lines) + fillBytes(result.fills) : 0;
 
 /** canonical 数据、CPU 产物和 GPU 资源独立登记，显示依赖由协调器提供。 */
 export class TileStore {

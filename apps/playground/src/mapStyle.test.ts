@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
+import type { MapLayerOptions } from '@kmap/map3d';
 
 import { matches as matchesLayerFilters, decodeVectorTile } from '../../../packages/map3d/src/streaming/paint.js';
 import {
@@ -42,6 +43,10 @@ describe('Playground light basemap style', () => {
       'road-fill',
       'major-road-casing',
       'major-road-fill',
+      'local-road-casing',
+      'local-road-fill',
+      'overview-road-casing',
+      'overview-road-fill',
       'transportation-casing',
       'transportation-fill',
     ]);
@@ -54,9 +59,19 @@ describe('Playground light basemap style', () => {
       filters: [{ operator: '==', property: 'class', value: 'grass' }],
     });
     expect(PLAYGROUND_LAYERS[2]?.minZoom).toBe(0);
-    expect(PLAYGROUND_LAYERS[9]).toMatchObject({ minZoom: 5, maxZoom: 8 });
+    expect(PLAYGROUND_LAYERS.find(l => l.id === 'transportation-casing')).toMatchObject({ minZoom: 5, maxZoom: 8 });
   });
 
+  it('概览的 road 与 transportation 使用相同缩放范围和线宽，细路从同一相机层级启用', () => {
+    const layers = PLAYGROUND_LAYERS as readonly MapLayerOptions[];
+    for (const part of ['casing', 'fill']) {
+      const road = layers.find(l => l.id === `overview-road-${part}`)!;
+      const transport = layers.find(l => l.id === `transportation-${part}`)!;
+      expect(road.paint).toEqual(transport.paint);
+      expect([road.minZoom, road.maxZoom]).toEqual([transport.minZoom, transport.maxZoom]);
+      expect(layers.find(l => l.id === `local-road-${part}`)!.minZoom).toBe(15);
+    }
+  });
   it('keeps vegetation and neutral landuse categories separate on the fixed fixture', () => {
     const tile = decodeMvt(readFileSync(FIXTURE_URL));
     const landuse = tile.layers.landuse;
@@ -96,10 +111,13 @@ describe('Playground light basemap style', () => {
     const ordinaryCount = road?.features.filter((feature) =>
       matchesLayerFilters(feature.properties, ordinaryFilter),
     ).length;
+    const localFilter = (PLAYGROUND_LAYERS.find(l => l.id === 'local-road-casing') as MapLayerOptions).filters;
+    const localCount = road?.features.filter(feature => matchesLayerFilters(feature.properties, localFilter)).length;
 
     expect(MAJOR_ROAD_CLASSES).toEqual(['motorway', 'trunk', 'primary']);
     expect(majorCount).toBeGreaterThan(0);
     expect(ordinaryCount).toBeGreaterThan(0);
-    expect((majorCount ?? 0) + (ordinaryCount ?? 0)).toBe(road?.features.length);
+    expect(localCount).toBeGreaterThan(0);
+    expect((majorCount ?? 0) + (ordinaryCount ?? 0) + (localCount ?? 0)).toBe(road?.features.length);
   });
 });

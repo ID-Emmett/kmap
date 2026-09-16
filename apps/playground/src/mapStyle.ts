@@ -21,6 +21,7 @@ export const MAJOR_ROAD_CLASSES = Object.freeze([
   'trunk',
   'primary',
 ] as const);
+const LOCAL_ROAD_CLASSES = ['service', 'unclassified', 'pedestrian', 'path', 'footway', 'steps', 'track'] as const;
 
 /** 官方 Playground 的无文字浅色矢量底图图层配方。 */
 export const PLAYGROUND_LAYERS = [
@@ -67,7 +68,7 @@ export const PLAYGROUND_LAYERS = [
     id: 'road-casing',
     sourceLayer: 'road',
     minZoom: 9,
-    filters: [{ operator: '!in', property: 'class', values: MAJOR_ROAD_CLASSES }],
+    filters: [{ operator: '!in', property: 'class', values: [...MAJOR_ROAD_CLASSES, ...LOCAL_ROAD_CLASSES] }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.roadCasing, width: 4.5 },
   },
   {
@@ -75,14 +76,14 @@ export const PLAYGROUND_LAYERS = [
     id: 'road-fill',
     sourceLayer: 'road',
     minZoom: 9,
-    filters: [{ operator: '!in', property: 'class', values: MAJOR_ROAD_CLASSES }],
+    filters: [{ operator: '!in', property: 'class', values: [...MAJOR_ROAD_CLASSES, ...LOCAL_ROAD_CLASSES] }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.roadFill, width: 2.5 },
   },
   {
     type: 'line',
     id: 'major-road-casing',
     sourceLayer: 'road',
-    minZoom: 7,
+    minZoom: 9,
     filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadCasing, width: 7 },
   },
@@ -90,17 +91,29 @@ export const PLAYGROUND_LAYERS = [
     type: 'line',
     id: 'major-road-fill',
     sourceLayer: 'road',
-    minZoom: 7,
+    minZoom: 9,
     filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadFill, width: 4.5 },
   },
+  ...(['casing', 'fill'] as const).map(part => ({
+    type: 'line' as const, id: `local-road-${part}`, sourceLayer: 'road', minZoom: 15,
+    filters: [{ operator: 'in' as const, property: 'class', values: LOCAL_ROAD_CLASSES }],
+    paint: { color: part === 'casing' ? PLAYGROUND_STYLE_TOKENS.roadCasing : PLAYGROUND_STYLE_TOKENS.roadFill,
+      width: part === 'casing' ? 4.5 : 2.5 },
+  })),
+  ...(['casing', 'fill'] as const).map(part => ({
+    type: 'line' as const, id: `overview-road-${part}`, sourceLayer: 'road', minZoom: 5, maxZoom: 8,
+    filters: [{ operator: 'in' as const, property: 'class', values: MAJOR_ROAD_CLASSES }],
+    paint: { color: part === 'casing' ? PLAYGROUND_STYLE_TOKENS.majorRoadCasing : PLAYGROUND_STYLE_TOKENS.majorRoadFill,
+      width: part === 'casing' ? 5 : 3 },
+  })),
   {
     type: 'line',
     id: 'transportation-casing',
     sourceLayer: 'transportation',
     minZoom: 5,
     maxZoom: 8,
-    filters: [{ operator: '==', property: 'class', value: 'trunk' }],
+    filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadCasing, width: 5 },
   },
   {
@@ -109,7 +122,7 @@ export const PLAYGROUND_LAYERS = [
     sourceLayer: 'transportation',
     minZoom: 5,
     maxZoom: 8,
-    filters: [{ operator: '==', property: 'class', value: 'trunk' }],
+    filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadFill, width: 3 },
   },
 ] as const satisfies readonly MapLayerOptions[];

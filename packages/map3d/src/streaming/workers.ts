@@ -1,7 +1,7 @@
 import type { PaintRequest, PaintResponse } from './protocol.js';
 
 interface Job { request: PaintRequest; resolve: (result: PaintResponse) => void; reject: (error: Error) => void }
-/** Worker 固定并发；输入 buffer 与输出 bitmap 均转移所有权。 */
+/** Worker 固定并发；输入数据及输出背景位图、面与线的缓冲均转移所有权。 */
 export class PaintWorkers {
   private readonly slots: { worker: Worker; job: Job | undefined }[] = [];
   private readonly queue: Job[] = [];

@@ -48,8 +48,11 @@ export function selectTiles(camera: PerspectiveCamera, frame: MapCameraFrame, or
     const pad = b.span * (margin - 1) / 2;
     box.min.set(x - pad, -.01, z - pad); box.max.set(x + b.span + pad, .01, z + b.span + pad);
     if (!frustum.intersectsBox(box)) { result.culled++; continue; }
-    const desired = Math.min(maxZoom, Math.max(minZoom, Math.floor(variable
-      ? localTileZoom(view.zoom, frame.distance, distance, frame.position.y, camera.fov) : view.zoom)));
+    const fogT = Math.min(1, Math.max(0, (distance - fog.start) / (fog.end - fog.start)));
+    const opacity = fogT * fogT * (3 - 2 * fogT);
+    const localZoom = variable ? localTileZoom(view.zoom, frame.distance, distance, frame.position.y, camera.fov) : view.zoom;
+    // 清晰区域保持相机对应的数据语义，达到 90% 雾遮挡后才允许远景降级。
+    const desired = Math.min(maxZoom, Math.max(minZoom, Math.floor(opacity < .9 ? Math.max(view.zoom, localZoom) : localZoom)));
     if (a.z < desired) { stack.push(...childrenOf(a)); continue; }
     if (!exactVisible(x, z, b.span)) { result.culled++; result.fogCulled++; continue; }
     center.set(x + b.span / 2, 0, z + b.span / 2).project(camera);

@@ -28,6 +28,8 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     <div class="controls"><button id="raf-baseline">浏览器刷新基线（5秒）</button><button id="fps-benchmark">运行帧率对照（60秒）</button><button id="benchmark">运行 60 秒验收</button><button id="rapid-capture">首屏与快速交互验收</button><button id="tile-labels" aria-pressed="false">显示瓦片编号</button><button id="export">导出诊断 JSON</button></div><p id="benchmark-status" role="status">拖动平移 · 滚轮缩放 · 右键拖动旋转和倾斜</p></section>
     <footer>CPU 帧耗时为主线程工作时间；FPS 来自实际帧间隔。缓存命中统计瓦片进入可见集或请求集合时的就绪数据复用；内存数值为瓦片估算与渲染器登记值。</footer></div>`;
   document.body.append(panel);
+  const pitchButton = document.createElement('button'); pitchButton.id = 'pitch-benchmark'; pitchButton.textContent = '大倾角与海面验收';
+  panel.querySelector('#rapid-capture')!.after(pitchButton);
   const fields = new Map<string, HTMLElement>();
   const rows: Record<string, readonly [string, string][]> = {
     frame: [['cpu', 'CPU 帧 / P95'], ['interval', '帧间隔 P95 / 输入 P95'], ['draws', 'Draw calls / 三角形'], ['phases', '选择 / 提交 / 回收 P95'], ['worker', 'Worker P95 / 上传 P95'], ['workerJobs', 'Worker 活动 / 等待']],
@@ -114,6 +116,11 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     }
     if (button.id === 'tile-labels') { const enabled = overlay.toggle(); button.setAttribute('aria-pressed', String(enabled)); button.textContent = enabled ? '隐藏瓦片编号' : '显示瓦片编号'; return; }
     if (running) return;
+    if (button.id === 'pitch-benchmark') {
+      running = true; button.disabled = true;
+      void import('./pitchBenchmark.js').then(({ runPitchBenchmark }) => runPitchBenchmark(map, text => { status.textContent = text; })).catch(error => { status.textContent = String(error); })
+        .finally(() => { running = false; button.disabled = false; }); return;
+    }
     if (button.id === 'raf-baseline') {
       running = true; button.disabled = true;
       void measureRafBaseline(map, text => { status.textContent = text; }).catch(error => { status.textContent = String(error); }).finally(() => { running = false; button.disabled = false; }); return;

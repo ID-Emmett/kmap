@@ -6,9 +6,11 @@ import { createLineSurface } from './lineSurface.js';
 import { lineBytes, linePixelScale, type LineData } from './lines.js';
 import { coverSources, type CoverPatch } from './renderCover.js';
 import { PatchGeometry } from './patchGeometry.js';
+import { fillBytes, type FillData } from './fills.js';
+import { createFillSurface } from './fillSurface.js';
 
-interface DrawInstance { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; lines: undefined | ReturnType<typeof createLineSurface>; address: Address; resource: Surface; primary: boolean }
-/** 一个来源对应一个区域面批次；颜色绘制同时写入道路使用的 stencil 归属。 */
+interface DrawInstance { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; lines: undefined | ReturnType<typeof createLineSurface>; fills: undefined | ReturnType<typeof createFillSurface>; address: Address; resource: Surface; primary: boolean }
+/** 一个来源对应区域、面、线批次；部分区域背景绘制同时写入内容使用的 stencil 归属。 */
 export class TileSurfaces {
   readonly fogCenter = uniform(new Vector3()).setGroup(renderGroup);
   readonly fogStart = uniform(1).setGroup(renderGroup); readonly fogEnd = uniform(2).setGroup(renderGroup); readonly fogColor;
@@ -25,7 +27,7 @@ export class TileSurfaces {
     this.fogColor = uniform(background).setGroup(renderGroup);
     scene.fogNode = fog(this.fogColor, smoothstep(this.fogStart, this.fogEnd, positionWorld.sub(this.fogCenter).length()));
   }
-  create(bitmap: ImageBitmap, address: Address, data?: LineData) {
+  create(bitmap: ImageBitmap, address: Address, data?: LineData, fillData?: FillData) {
     const map = new Texture(bitmap); map.colorSpace = SRGBColorSpace;
     map.flipY = false; map.generateMipmaps = true; map.anisotropy = 4; map.needsUpdate = true;
     const material = new MeshBasicNodeMaterial({ map, depthTest: false, depthWrite: false,
@@ -34,15 +36,17 @@ export class TileSurfaces {
     const geometry = new PatchGeometry(); geometry.update(address, [address]);
     const mesh = new Mesh(geometry, material); mesh.frustumCulled = false; mesh.visible = false; mesh.matrixAutoUpdate = false;
     const lines = data?.segments.length ? createLineSurface(data) : undefined;
-    if (lines) { lines.mesh.renderOrder = 1; mesh.add(lines.mesh); }
-    const resource = { mesh, map, bitmap, lines, bytes: Math.ceil(bitmap.width * bitmap.height * 4 * 4 / 3) + lineBytes(data), cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) };
+    if (lines) { lines.mesh.renderOrder = 2; mesh.add(lines.mesh); }
+    const fills = fillData?.indices.length ? createFillSurface(fillData) : undefined;
+    if (fills) mesh.add(fills.mesh);
+    const resource = { mesh, map, bitmap, lines, fills, bytes: Math.ceil(bitmap.width * bitmap.height * 4 * 4 / 3) + lineBytes(data) + fillBytes(fillData), cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) };
     this.resources.add(resource); return resource;
   }
   commit(patches: readonly CoverPatch[], resources: ReadonlyMap<string, { surface?: Surface }>, origin: MapOrigin): void {
     const draws = coverSources(patches); const active = new Set(draws.map(d => keyOf(d.address)));
     for (const [id, i] of this.instances) if (!active.has(id)) {
       this.scene.remove(i.mesh); i.mesh.visible = false;
-      if (!i.primary) { i.mesh.geometry.dispose(); i.mesh.material.dispose(); i.lines?.mesh.material.dispose(); }
+      if (!i.primary) { i.mesh.geometry.dispose(); i.mesh.material.dispose(); i.lines?.mesh.material.dispose(); i.fills?.mesh.material.dispose(); }
       this.instances.delete(id);
     }
     let stencil = 0;
@@ -55,20 +59,30 @@ export class TileSurfaces {
         const primary = ![...this.instances.values()].some(i => i.resource === resource && i.primary);
         const mesh = primary ? resource.mesh : new Mesh(new PatchGeometry(), resource.mesh.material.clone());
         let lines = primary ? resource.lines : undefined;
+        let fills = primary ? resource.fills : undefined;
+        if (!primary && resource.fills) {
+          const fillMesh = new Mesh(resource.fills.mesh.geometry, resource.fills.mesh.material.clone());
+          fillMesh.frustumCulled = false; fillMesh.renderOrder = 1;
+          const state = { viewZoom: { value: 15 } }; fillMesh.userData.fillState = state;
+          mesh.add(fillMesh); fills = { ...resource.fills, mesh: fillMesh, ...state };
+        }
         if (!primary && resource.lines) {
           const lineMesh = new Mesh(resource.lines.mesh.geometry, resource.lines.mesh.material.clone());
-          lineMesh.frustumCulled = false; lineMesh.renderOrder = 1;
+          lineMesh.frustumCulled = false; lineMesh.renderOrder = 2;
           const state = { pixelScale: { value: 1 / 256 }, viewZoom: { value: 15 } };
           lineMesh.userData.lineState = state; mesh.add(lineMesh); lines = { ...resource.lines, mesh: lineMesh, ...state };
         }
-        instance = { mesh, lines, address: draw.address, resource, primary };
+        instance = { mesh, lines, fills, address: draw.address, resource, primary };
         mesh.matrixAutoUpdate = false; mesh.frustumCulled = false; this.instances.set(id, instance); this.scene.add(mesh);
       }
-      const stencilClip = clipped && !!instance.lines;
-      if (stencilClip && ++stencil > 255) throw new Error('部分区域线来源超过 stencil 容量。');
+      const stencilClip = clipped && (!!instance.lines || !!instance.fills);
+      if (stencilClip && ++stencil > 255) throw new Error('部分区域来源超过 stencil 容量。');
       instance.mesh.geometry.update(draw.address, draw.cells);
       instance.mesh.visible = true; instance.mesh.material.stencilRef = stencil; instance.mesh.material.stencilWrite = stencilClip;
+      // 原生面使用全局背景；部分区域需要背景批次同步写入 stencil 归属。
+      instance.mesh.material.visible = !instance.fills || stencilClip;
       if (instance.lines) { instance.lines.mesh.material.stencilRef = stencil; instance.lines.mesh.material.stencilWrite = stencilClip; }
+      if (instance.fills) { instance.fills.mesh.material.stencilRef = stencil; instance.fills.mesh.material.stencilWrite = stencilClip; }
       this.place(instance.mesh, draw.address, origin);
     }
     this.originX = origin.meters.x; this.originY = origin.meters.y;
@@ -78,6 +92,7 @@ export class TileSurfaces {
     for (const i of this.instances.values()) {
       if (moved) this.place(i.mesh, i.address, origin);
       if (i.lines) { i.lines.pixelScale.value = linePixelScale(i.address.z, viewZoom); i.lines.viewZoom.value = viewZoom; }
+      if (i.fills) i.fills.viewZoom.value = viewZoom;
     }
     this.originX = origin.meters.x; this.originY = origin.meters.y;
   }
@@ -88,12 +103,13 @@ export class TileSurfaces {
   release(surface: Surface): void {
     this.resources.delete(surface); surface.mesh.geometry.dispose();
     surface.lines?.mesh.geometry.dispose(); surface.lines?.mesh.material.dispose();
+    surface.fills?.mesh.geometry.dispose(); surface.fills?.mesh.material.dispose();
     this.scene.remove(surface.mesh); surface.mesh.material.dispose(); surface.map.dispose(); surface.bitmap.close();
   }
   dispose(): void {
     for (const i of this.instances.values()) {
       this.scene.remove(i.mesh);
-      if (!i.primary) { i.mesh.geometry.dispose(); i.mesh.material.dispose(); i.lines?.mesh.material.dispose(); }
+      if (!i.primary) { i.mesh.geometry.dispose(); i.mesh.material.dispose(); i.lines?.mesh.material.dispose(); i.fills?.mesh.material.dispose(); }
     }
     this.instances.clear();
   }

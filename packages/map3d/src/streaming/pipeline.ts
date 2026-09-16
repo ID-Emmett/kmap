@@ -6,6 +6,8 @@ import { Samples } from './samples.js';
 import { TILE_LIMITS } from './limits.js';
 import { resultBytes, TileStore, type TileEntry } from './tileStore.js';
 import { lineBytes } from './lines.js';
+import { fillBytes } from './fills.js';
+import { PATCH_RECTANGLE_BYTES } from './patchGeometry.js';
 
 /** 网络、Worker 和上传分别准入，已解码数据可在 CPU 等待新的可见需求。 */
 export class TilePipeline {
@@ -83,8 +85,7 @@ export class TilePipeline {
     entry.reservedBytes = reservation;
     const buffer = entry.buffer!; delete entry.buffer; entry.state = 'painting';
     try {
-      const result = await this.workers.run({ address: entry.address, buffer, layers: this.options.layers,
-        size: entry.address.z >= this.options.source.maxZoom - 2 ? 512 : 256, background: this.background });
+      const result = await this.workers.run({ address: entry.address, buffer, layers: this.options.layers, background: this.background });
       if (!this.alive(entry)) { result.bitmap?.close(); return; }
       if (!Number.isFinite(entry.priority)) {
         this.discardedBytes += resultBytes(result); result.bitmap?.close(); this.store.release(entry); this.log('discard-build', entry.key); return;
@@ -105,11 +106,11 @@ export class TilePipeline {
     if (preferred > 0) queue.unshift(queue.splice(preferred, 1)[0]!);
     for (const entry of queue) {
       const result = entry.result; if (!result?.bitmap) continue;
-      const gpu = Math.ceil(result.bitmap.width * result.bitmap.height * 4 * 4 / 3) + lineBytes(result.lines);
+      const gpu = Math.ceil(result.bitmap.width * result.bitmap.height * 4 * 4 / 3) + lineBytes(result.lines) + fillBytes(result.fills) + PATCH_RECTANGLE_BYTES;
       if (count && (bytes + gpu > TILE_LIMITS.uploadBytes || performance.now() - start >= TILE_LIMITS.uploadMs)) break;
-      if (!this.store.makeRoom(0, gpu, 0, entry.priority, entry.key)) continue;
+      if (!this.store.makeRoom(PATCH_RECTANGLE_BYTES, gpu, 0, entry.priority, entry.key)) continue;
       const time = performance.now();
-      const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines);
+      const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills);
       this.renderer.initTexture(surface.map);
       entry.surface = surface; this.store.available.add(entry.key); delete entry.result; entry.state = 'ready'; entry.touched = now;
       this.uploadTime.add(performance.now() - time); this.requestTime.add(performance.now() - entry.startedAt); this.changed(); this.log('ready', entry.key);

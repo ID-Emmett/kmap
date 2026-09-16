@@ -80,6 +80,10 @@ async function bootstrap(): Promise<void> {
   try {
     resize();
     await map.initialize();
+    if (new URLSearchParams(window.location.search).get('capture') === 'pitch') {
+      const { runPitchBenchmark } = await import('./pitchBenchmark.js');
+      void runPitchBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });
+    }
     if (new URLSearchParams(window.location.search).get('capture') === 'sea') {
       const { runSeaBenchmark } = await import('./seaBenchmark.js');
       void runSeaBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });

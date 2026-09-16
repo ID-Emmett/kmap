@@ -1,10 +1,12 @@
 import { BufferGeometry, DynamicDrawUsage, Float32BufferAttribute, Uint16BufferAttribute } from 'three/webgpu';
 import { keyOf, type Address } from './address.js';
 
+export const PATCH_RECTANGLE_BYTES = 4 * 5 * Float32Array.BYTES_PER_ELEMENT + 6 * Uint16Array.BYTES_PER_ELEMENT;
+
 /** 网格所有权固定于一个来源实例，矩形缓冲按实际区域数量增长。 */
 export class PatchGeometry extends BufferGeometry {
   private signature = ''; private capacity = 0;
-  get bytes(): number { return this.capacity * 92; }
+  get bytes(): number { return this.capacity * PATCH_RECTANGLE_BYTES; }
   update(source: Address, cells: readonly Address[]): void {
     const signature = cells.map(keyOf).join('|'); if (signature === this.signature) return;
     this.signature = signature;

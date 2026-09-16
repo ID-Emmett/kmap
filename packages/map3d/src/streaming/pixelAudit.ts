@@ -1,9 +1,10 @@
-import { Vector3, type PerspectiveCamera } from 'three/webgpu';
+import { Color, Vector3, type PerspectiveCamera } from 'three/webgpu';
 import type { MapOrigin } from '../spatial/types.js';
 import { contains, tileBounds } from './address.js';
 import type { StreamingEngine } from './engine.js';
+import { sampleFill } from './fillSample.js';
 
-/** 显式诊断读取画布像素和原始面纹理；此操作包含同步 GPU 回读。 */
+/** 显式诊断对照真实画布与来源面几何；此操作包含同步 GPU 回读。 */
 export function auditPixels(canvas: HTMLCanvasElement, camera: PerspectiveCamera, origin: MapOrigin, engine: StreamingEngine) {
   const width = 48, height = 27;
   const output = new OffscreenCanvas(width, height);
@@ -29,9 +30,16 @@ export function auditPixels(canvas: HTMLCanvasElement, camera: PerspectiveCamera
     const b = tileBounds(patch.source);
     const u = (point.x + origin.meters.x - b.west) / b.span, v = (b.north - origin.meters.y + point.z) / b.span;
     sourceContext.drawImage(surface.bitmap, Math.floor(u * surface.bitmap.width), Math.floor(v * surface.bitmap.height), 1, 1, 0, 0, 1, 1);
-    const source = Array.from(sourceContext.getImageData(0, 0, 1, 1).data).slice(0, 3);
+    let source = Array.from(sourceContext.getImageData(0, 0, 1, 1).data).slice(0, 3);
+    if (surface.fills) {
+      const background = new Color(source[0]! / 255, source[1]! / 255, source[2]! / 255).convertSRGBToLinear();
+      const sample = sampleFill(surface.fills.data, u - .5, v - .5,
+        engine.surfaces.instances.get(`${patch.source.z}/${patch.source.x}/${patch.source.y}`)?.fills?.viewZoom.value ?? patch.source.z,
+        [background.r, background.g, background.b]);
+      if (sample) { const color = new Color(...sample).convertLinearToSRGB(); source = [color.r, color.g, color.b].map(c => Math.round(c * 255)); }
+    }
     const actual = Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3));
-    // 蓝色面纹理被接近背景色的片元替代时，记录完整来源与材质裁剪状态。
+    // 蓝色来源被接近背景色的片元替代时，记录完整来源与材质裁剪状态。
     if (source[2]! - source[0]! > 35 && actual[0]! > 230 && actual[2]! - actual[0]! < 15) {
       const instance = engine.surfaces.instances.get(`${patch.source.z}/${patch.source.x}/${patch.source.y}`);
       result.push({ x, y, source, actual, patch, uv: [u, v], clipped: instance?.mesh.material.stencilWrite,

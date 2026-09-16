@@ -39,7 +39,9 @@ describe('流式地图空间与数据契约', () => {
       expect(leaf.z).toBeLessThanOrEqual(17);
       const p = tileBounds(parentOf(leaf));
       const pd = distanceToGroundBox(p.west - origin.meters.x, origin.meters.y - p.north, p.span, frame.position);
-      const parentDesired = pitch > 56 ? Math.floor(localTileZoom(view.zoom, frame.distance, pd, frame.position.y, camera.fov)) : 15;
+      const t = Math.min(1, Math.max(0, (pd - selection.fogStart) / (selection.fogEnd - selection.fogStart)));
+      const parentLocal = pitch > 56 ? localTileZoom(view.zoom, frame.distance, pd, frame.position.y, camera.fov) : 15;
+      const parentDesired = Math.floor(t * t * (3 - 2 * t) < .9 ? Math.max(view.zoom, parentLocal) : parentLocal);
       expect(leaf.z - 1).toBeLessThan(parentDesired);
     }
   });
@@ -47,7 +49,7 @@ describe('流式地图空间与数据契约', () => {
     const view = { center: { lng: 116.39, lat: 39.9 }, zoom: 15, bearing: 0, pitch: 60 };
     const viewport = { width: 2560, height: 1305 }; const camera = new PerspectiveCamera();
     const origin = selectMapOrigin(view.center, 15); const frame = updateMapCamera(camera, view, viewport, origin);
-    const selected = selectTiles(camera, frame, origin, view, viewport, 0, 17);
+    const selected = selectTiles(camera, frame, origin, view, viewport, 0, 17, 1, 80);
     const t = (selected.cutoff - selected.fogStart) / (selected.fogEnd - selected.fogStart);
     expect(t * t * (3 - 2 * t)).toBeCloseTo(.98, 5);
     const world = 40075016.68557849;
@@ -69,7 +71,7 @@ describe('流式地图空间与数据契约', () => {
     const view = { center: { lng: 116.39, lat: 39.9 }, zoom: 16, bearing: 45, pitch: 60 };
     const viewport = { width: 2560, height: 1440 }; const camera = new PerspectiveCamera();
     const origin = selectMapOrigin(view.center, 16); const frame = updateMapCamera(camera, view, viewport, origin);
-    const selected = selectTiles(camera, frame, origin, view, viewport, 0, 17);
+    const selected = selectTiles(camera, frame, origin, view, viewport, 0, 17, 1, 80);
     expect(selected.leaves.length).toBeLessThanOrEqual(80);
     // 下半屏逐点核验局部投影细节，完全入雾区域单独剔除。
     for (const y of [-.9, -.5, 0]) for (const x of [-.8, -.4, 0, .4, .8]) {
