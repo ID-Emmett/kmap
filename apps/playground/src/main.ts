@@ -80,9 +80,13 @@ async function bootstrap(): Promise<void> {
   try {
     resize();
     await map.initialize();
-    if (new URLSearchParams(window.location.search).get('capture') === 'transitions') {
-      const { runTransitionBenchmark } = await import('./transitionBenchmark.js');
-      void runTransitionBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });
+    if (new URLSearchParams(window.location.search).get('capture') === 'sea') {
+      const { runSeaBenchmark } = await import('./seaBenchmark.js');
+      void runSeaBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });
+    }
+    if (new URLSearchParams(window.location.search).get('capture') === 'rapid') {
+      const { runRapidBenchmark } = await import('./rapidBenchmark.js');
+      void runRapidBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });
     }
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     ready = true;

@@ -15,6 +15,9 @@ output = directory / (report_path.stem + '-video-review')
 output.mkdir(exist_ok=True)
 subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), '-hide_banner', '-loglevel', 'error', '-i', str(video), '-vf', 'fps=10,scale=640:-2', '-q:v', '3', str(output / '%05d.jpg')], check=True)
 frames = sorted(output.glob('[0-9][0-9][0-9][0-9][0-9].jpg'))
+expected_ms = report.get('durationMs', max((f['atMs'] for f in report.get('renderFrames', [])), default=0))
+if expected_ms and len(frames) * 100 < expected_ms * .9:
+    raise RuntimeError(f'录像时长不足：{len(frames) / 10:.1f}s / 预期 {expected_ms / 1000:.1f}s')
 stages = report.get('stages', [])
 def stage_at(t):
     matches = [s['name'] for s in stages if s['atMs'] <= t * 1000]

@@ -32,8 +32,8 @@ export function flightView(from: ViewState, to: ViewState, progress: number, vie
 export async function flyToCity(map: Map3D, destination: ViewState, duration = 12000, cancelled = () => false, onFrame?: (progress: number) => void): Promise<void> {
   const from = map.getView(); const width = map.getDiagnostics().viewport.width;
   const overview = flightView(from, destination, .5, width);
-  map.prefetchViews([{ ...overview, zoom: Math.max(0, overview.zoom - 2), pitch: 0 }], { ttlMs: duration + 2000, priority: -100 });
-  map.prefetchViews([{ ...destination, zoom: Math.max(0, destination.zoom - 1) }, destination], { ttlMs: duration + 2000, priority: 75 });
+  map.prefetchViews([{ ...overview, zoom: Math.max(0, overview.zoom - 2), pitch: 0 }], { ttlMs: duration + 2000, priority: -100, limit: 4 });
+  map.prefetchViews([{ ...destination, zoom: Math.max(0, destination.zoom - 1) }, destination], { ttlMs: duration + 2000, priority: 75, limit: 8 });
   const start = performance.now(); let prefetchedAt = -Infinity;
   while (true) {
     if (cancelled()) throw new Error('飞行已取消。');
@@ -41,8 +41,13 @@ export async function flyToCity(map: Map3D, destination: ViewState, duration = 1
     const progress = Math.min(1, (now - start) / duration);
     if (now - prefetchedAt >= 250) {
       prefetchedAt = now;
-      for (const [seconds, priority] of [[.5, 0], [1.1, 10]] as const) {
-        map.prefetchViews([flightView(from, destination, Math.min(1, progress + seconds * 1000 / duration), width)], { priority });
+      const latency = (map.getDiagnostics().tiles?.requestTime.p95 ?? 0) / 1000;
+      const near = Math.min(1, Math.max(.5, latency));
+      const far = Math.min(2.4, Math.max(1.5, latency * 2));
+      for (const [seconds, priority] of [[near, 0], [far, 10]] as const) {
+        const future = flightView(from, destination, Math.min(1, progress + seconds * 1000 / duration), width);
+        if (priority === 10) map.prefetchViews([{ ...future, zoom: Math.max(0, future.zoom - 2) }], { priority: -20, limit: 8, ttlMs: 1400 });
+        else map.prefetchViews([future], { priority, limit: 16 });
       }
     }
     map.setView(flightView(from, destination, progress, width)); onFrame?.(progress);

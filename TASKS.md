@@ -53,11 +53,11 @@
 | T043 | Production Cutover and Runtime Deletion | DONE | 实施会话 | T042 |
 | T044 | Post-Deletion Regression and Release Verification | BACKLOG | 实施会话 | T042, T043, T045, T046 |
 | T045 | NovaTileEngine Initial Coverage Refinement Fix | DONE | 实施会话 | T041, T043 |
-| T046 | Tile System Full Lifecycle and Streaming Repair | VERIFYING | 实施会话 | T043, T045 |
+| T046 | Tile System Full Lifecycle and Streaming Repair | IN_PROGRESS | 实施会话 | T043, T045 |
 
 ## 当前任务
 
-T046 当前承担标准瓦片系统修复、性能优化和 Playground 指标面板，状态为 VERIFYING。其浏览器验收使用真实 KYE 数据和 WebGPU，入口为 `http://127.0.0.1:5173/`。当前实施边界与证据要求见 `tasks/T046-tile-system-full-lifecycle-repair.md`。
+T046 当前承担标准瓦片系统修复、性能优化和 Playground 指标面板，状态为 IN_PROGRESS。其浏览器验收使用真实 KYE 数据和 WebGPU，入口为 `http://127.0.0.1:6661/`。当前实施边界与证据要求见 `tasks/T046-tile-system-full-lifecycle-repair.md`。
 
 T031～T041 状态为 DONE，T043 生产切换和 T045 初始覆盖修复状态为 DONE。
 

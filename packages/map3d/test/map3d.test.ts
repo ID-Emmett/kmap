@@ -78,7 +78,7 @@ describe('Map3D 生命周期与流式覆盖', () => {
     vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
     const fetcher = vi.fn(async (url: string) => Number(new URL(url).pathname.split('/')[1]) === 12 ? new Response(null, { status: 204 }) : new Response(new Uint8Array([1])));
     vi.stubGlobal('fetch', fetcher);
-    const budget = 96 * 1048576;
+    const budget = 48 * 1048576;
     const map = new Map3D({ ...options(), cache: { maxGpuBytes: budget, maxCpuBytes: budget } });
     maps.push(map); map.resize({ width: 1280, height: 720 }); await map.initialize(); await tick();
     map.prefetchViews([
@@ -135,7 +135,7 @@ describe('Map3D 生命周期与流式覆盖', () => {
     const fetcher = vi.fn(async () => new Response(new Uint8Array([1]))); vi.stubGlobal('fetch', fetcher);
     const map = new Map3D({ ...options(), cache: { maxTileEntries: 100 } }); maps.push(map);
     map.resize({ width: 1280, height: 720 }); await map.initialize(); await tick();
-    for (let i = 1; i <= 4; i++) { map.setView({ center: { lng: 116.39 + i * .03, lat: 39.9 } }); await tick(); }
+    for (let i = 1; i <= 8; i++) { map.setView({ center: { lng: 116.39 + i * .03, lat: 39.9 } }); await tick(); }
     expect(map.getDiagnostics().tiles?.cache.entries).toBe(100);
     const starts = fetcher.mock.calls.length;
     map.prefetchViews([{ center: { lng: 121.47, lat: 31.23 }, zoom: 12, pitch: 0, bearing: 0 }], { priority: -100, ttlMs: 30000 });

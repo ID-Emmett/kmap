@@ -1,4 +1,4 @@
-import { DoubleSide, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, MeshBasicNodeMaterial, PlaneGeometry } from 'three/webgpu';
+import { DoubleSide, EqualStencilFunc, InstancedBufferAttribute, InstancedBufferGeometry, KeepStencilOp, Mesh, MeshBasicNodeMaterial, PlaneGeometry } from 'three/webgpu';
 import { Fn, attribute, float, fwidth, max, positionLocal, smoothstep, uniform, uv, vec2, vec3, vec4 } from 'three/tsl';
 import type { LineData } from './lines.js';
 
@@ -27,7 +27,8 @@ function createLineMaterial() {
   const radius = style.x.mul(.5);
   const along = uv().x.mul(length.add(radius.mul(2))).sub(radius);
   const across = uv().y.mul(2).sub(1).mul(radius.add(1));
-  const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: DoubleSide });
+  const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: DoubleSide,
+    stencilWrite: true, stencilWriteMask: 0, stencilFunc: EqualStencilFunc, stencilZPass: KeepStencilOp });
   material.forceSinglePass = true;
   material.positionNode = Fn(() => {
     const direction = delta.normalize();

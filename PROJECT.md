@@ -29,7 +29,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 - `z15/26978/12416` MVT fixture 用于验证道路、地块、建筑和属性过滤；真实浏览器使用 KYE 网络瓦片。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
 - 当前可见集由视锥、地面距离和屏幕采样尺度选择；数据源最细三级面纹理使用 512 像素，其余层级使用 256 像素，线宽随当前视图连续计算，远侧层级按投影尺度合并。
-- StreamingEngine 采用 12 请求流水线、至多 4 Worker、384 条目与各 256 MiB CPU/GPU 预算，每帧上传至多 1 张纹理。
+- StreamingEngine 采用 12 请求流水线、至多 4 Worker、256 条目与各 256 MiB CPU/GPU 预算，每帧上传至多 1 张纹理。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
 ## MVP 基线
@@ -57,7 +57,7 @@ KYE Tile
 - Worker 协议、transferable buffer/ImageBitmap 和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。
-- StreamingEngine 采用视锥与屏幕尺度 LOD、祖先覆盖、相邻和路线预取、LRU 缓存、父子淡入淡出及逐帧纹理预算。
+- StreamingEngine 采用视锥与局部投影 LOD、祖先覆盖、有限预测和路线预取、LRU 缓存、互斥区域直接接替及逐帧纹理预算。
 - pan 与 bearing/pitch 旋转在释放后具有基于帧时间的有界惯性；wheel zoom 合并为连续帧更新。
 - pitch 增大时，远处地图使用共享 TSL 距离雾渐隐；选片和邻接预取使用同一截止半径，城市飞行的目的地预取具有独立时效。
 

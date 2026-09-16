@@ -1,9 +1,10 @@
 import type { Map3D, ViewState } from '@kmap/map3d';
 import { CITIES } from './cityFlight.js';
+import { captureRenderFrames, summarizeFrames } from './frameAcceptance.js';
 import { createMapRecorder } from './recording.js';
 
 /** 首帧开始保留录像，重复快速缩放和平移以检查覆盖内容与线宽稳定性。 */
-export async function runTransitionBenchmark(map: Map3D, progress: (value: string) => void) {
+export async function runRapidBenchmark(map: Map3D, progress: (value: string) => void) {
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas')!;
   const stream = canvas.captureStream(60);
   const recorder = createMapRecorder(stream);
@@ -15,7 +16,7 @@ export async function runTransitionBenchmark(map: Map3D, progress: (value: strin
   const longFrames: unknown[] = [];
   const observer = new PerformanceObserver(list => longFrames.push(...list.getEntries().map(entry => entry.toJSON())));
   observer.observe({ type: 'long-animation-frame', buffered: false });
-  let lastStage = ''; recorder.start(1000);
+  let lastStage = 'initial'; const rendered = captureRenderFrames(map, start, () => lastStage); recorder.start(1000);
   while (performance.now() - start < 26000) {
     const now = await new Promise<number>(resolve => requestAnimationFrame(resolve));
     const elapsed = now - start;
@@ -34,16 +35,15 @@ export async function runTransitionBenchmark(map: Map3D, progress: (value: strin
     if (view) map.setView(view);
     if (stage === 'settled') map.setView(CITIES.beijing);
   }
-  observer.disconnect();
+  rendered.stop(); observer.disconnect();
   await new Promise<void>(resolve => { recorder.onstop = () => resolve(); recorder.stop(); }); stream.getTracks().forEach(track => track.stop());
-  const moving = intervals.filter(f => f.stage.startsWith('rapid'));
-  const values = moving.map(f => f.ms).sort((a, b) => a - b);
-  const percentile = (p: number) => values[Math.ceil(values.length * p) - 1] ?? 0;
-  const frameSummary = { count: values.length, p95: percentile(.95), p99: percentile(.99), max: Math.max(...values), over33ms: values.filter(v => v > 33.34).length / values.length };
+  const moving = rendered.frames.filter(f => f.stage.startsWith('rapid'));
+  const frameSummary = summarizeFrames(moving);
   const motion = samples.filter(s => s.stage.startsWith('rapid'));
-  const assertions = { webgpu: map.getBackend() === 'webgpu', frameP95: frameSummary.p95 <= 18.5, frameP99: frameSummary.p99 <= 25,
+  const assertions = { webgpu: map.getBackend() === 'webgpu', frameP95: frameSummary.p95 <= 6.25, frameP99: frameSummary.p99 <= 6.25,
+    stable160fps: frameSummary.minWindowFps >= 160,
     longFrames: frameSummary.over33ms <= .01, no100msStall: frameSummary.max < 100,
-    coverage: motion.every(s => s.diagnostics.tiles?.uncoveredCells === 0),
+    coverage: moving.every(s => s.uncovered === 0),
     motionDetail: motion.filter(s => (s.diagnostics.tiles?.displayZoomGap ?? Infinity) <= 2).length / Math.max(1, motion.length) >= .95,
     noExtremeOverzoom: motion.every(s => (s.diagnostics.tiles?.displayZoomGap ?? Infinity) <= 3),
     finalReady: map.getDiagnostics().tiles?.targetMissing === 0,
@@ -56,10 +56,10 @@ export async function runTransitionBenchmark(map: Map3D, progress: (value: strin
   const videoResponse = await fetch('/__kmap/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
   if (!videoResponse.ok) throw new Error('瞬时画面录像保存失败。');
   const video = await videoResponse.json() as { file: string };
-  const result = { at: new Date().toISOString(), kind: 'startup-rapid-transitions', backend: map.getBackend(), video: video.file, videoMimeType: recorder.mimeType, stages, intervals, samples, longFrames, frameSummary, assertions, passed: Object.values(assertions).every(Boolean), visualReview: 'pending' };
+  const result = { at: new Date().toISOString(), kind: 'startup-rapid', backend: map.getBackend(), video: video.file, videoMimeType: recorder.mimeType, stages, renderFrames: rendered.frames, covers: rendered.covers, intervals, samples, longFrames, frameSummary, assertions, passed: Object.values(assertions).every(Boolean), visualReview: 'pending' };
   const response = await fetch('/__kmap/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
   if (!response.ok) throw new Error('瞬时画面时序保存失败。');
   const saved = await response.json() as { file: string };
-  document.documentElement.dataset.kmapTransitionBenchmark = JSON.stringify({ evidence: saved.file, frameSummary, assertions });
+  document.documentElement.dataset.kmapRapidBenchmark = JSON.stringify({ evidence: saved.file, frameSummary, assertions });
   progress(`首屏与快速交互记录已保存：${saved.file}`);
 }

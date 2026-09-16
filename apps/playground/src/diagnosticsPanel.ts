@@ -1,6 +1,8 @@
 import type { Map3D } from '@kmap/map3d';
 import { runBrowserBenchmark } from './browserBenchmark.js';
 import { CITIES, flyToCity } from './cityFlight.js';
+import { measureRafBaseline } from './rafBaseline.js';
+import { createTileOverlay } from './tileOverlay.js';
 import { captureGestures } from './gestureCapture.js';
 
 type Diagnostics = ReturnType<Map3D['getDiagnostics']>;
@@ -10,6 +12,7 @@ const count = (n = 0): string => n.toLocaleString('en-US');
 
 /** 以 4Hz 更新的性能面板；每个数值单独更新，保持控件焦点与滚动位置。 */
 export function createDiagnosticsPanel(map: Map3D): () => void {
+  const overlay = createTileOverlay(map);
   const panel = document.createElement('aside');
   panel.className = 'diagnostics';
   panel.setAttribute('aria-label', '地图性能面板');
@@ -22,15 +25,15 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     <section><h2>相机与覆盖</h2><dl id="camera-metrics"></dl></section>
     <section><h2>复现与采样</h2><div class="controls"><button data-view="home">初始视图</button><button data-view="out">缩小一级</button><button data-view="in">放大一级</button><button data-view="rotate">旋转 45°</button>${[0, 20, 40, 60].map((pitch) => `<button data-pitch="${pitch}">倾角 ${pitch}°</button>`).join('')}</div>
     <div class="controls"><button id="city-flight">城市飞行：北京 → 上海 → 北京</button><button id="fly-guangzhou">飞往广州</button><button id="gesture-capture">记录手势 30 秒</button></div>
-    <div class="controls"><button id="benchmark">运行 60 秒验收</button><button id="transition-capture">首屏与快速交互验收</button><button id="export">导出诊断 JSON</button></div><p id="benchmark-status" role="status">拖动平移 · 滚轮缩放 · 右键拖动旋转和倾斜</p></section>
+    <div class="controls"><button id="raf-baseline">浏览器刷新基线（5秒）</button><button id="fps-benchmark">运行帧率对照（60秒）</button><button id="benchmark">运行 60 秒验收</button><button id="rapid-capture">首屏与快速交互验收</button><button id="tile-labels" aria-pressed="false">显示瓦片编号</button><button id="export">导出诊断 JSON</button></div><p id="benchmark-status" role="status">拖动平移 · 滚轮缩放 · 右键拖动旋转和倾斜</p></section>
     <footer>CPU 帧耗时为主线程工作时间；FPS 来自实际帧间隔。缓存命中统计瓦片进入可见集或请求集合时的就绪数据复用；内存数值为瓦片估算与渲染器登记值。</footer></div>`;
   document.body.append(panel);
   const fields = new Map<string, HTMLElement>();
   const rows: Record<string, readonly [string, string][]> = {
     frame: [['cpu', 'CPU 帧 / P95'], ['interval', '帧间隔 P95 / 输入 P95'], ['draws', 'Draw calls / 三角形'], ['phases', '选择 / 提交 / 回收 P95'], ['worker', 'Worker P95 / 上传 P95'], ['workerJobs', 'Worker 活动 / 等待']],
-    tile: [['cover', '目标 / 已显示 / 过渡'], ['missing', '目标待就绪 / 覆盖缺口'], ['queue', '请求排队 / 活动'], ['requests', '累计请求 / 取消排队'], ['requestTime', '请求链路 P95 / HTTP P95'], ['network', 'HTTP 次数 / 重试 / 取消'], ['networkBytes', 'MVT 解压字节 / 错误'], ['upload', '上传排队 / 活动'], ['empty', '空瓦片 / 失败'], ['levels', '目标层级 : 数量']],
+    tile: [['cover', '目标 / 已显示'], ['missing', '目标待就绪 / 覆盖缺口'], ['queue', '请求排队 / 活动'], ['requests', '累计请求 / 取消排队'], ['requestTime', '请求链路 P95 / HTTP P95'], ['network', 'HTTP 次数 / 重试 / 取消'], ['networkBytes', 'MVT 解压字节 / 错误'], ['upload', '上传排队 / 活动'], ['empty', '空瓦片 / 失败'], ['levels', '目标层级 : 数量'], ['drawnLevels', '显示来源层级 : 数量'], ['selection', '理想 / 限额合并 / 雾剔除'], ['demand', '可见 / 回退 / 预取需求']],
     cache: [['cache', '驻留 / 预热 / 冷缓存'], ['hits', '命中 / 未命中 / 命中率'], ['entries', '条目 / 上限 / 淘汰'], ['cpuMemory', 'CPU 缓存 / 预算'], ['gpuMemory', 'GPU 瓦片 / 预算'], ['registry', '资源 / 引用 / 释放'], ['scene', '场景瓦片 / 对象'], ['geometry', '几何 / 纹理 / 渲染器内存'], ['pressure', '预算压力']],
-    camera: [['center', '经度 / 纬度'], ['view', 'Zoom / Bearing / Pitch'], ['position', '相机 XYZ（相对原点·米）'], ['origin', '原点 Mercator XY（米）'], ['viewport', '视口 / DPR'], ['cutoff', '加载半径 / 邻接层级差']],
+    camera: [['center', '经度 / 纬度'], ['view', 'Zoom / Bearing / Pitch'], ['position', '相机 XYZ（相对原点·米）'], ['origin', '原点 Mercator XY（米）'], ['viewport', '视口 / DPR'], ['cutoff', '相机雾截止 / 层级跨度']],
   };
   for (const [group, definitions] of Object.entries(rows)) {
     const dl = panel.querySelector(`#${group}-metrics`)!;
@@ -60,7 +63,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     set('phases', `${ms(t?.phases.plan?.p95)} / ${ms(t?.phases.cover?.p95)} / ${ms(t?.phases.resources?.p95)}`);
     set('worker', `${ms(t?.worker.p95)} / ${ms(t?.uploadTime.p95)}`);
     set('workerJobs', `${d.workers?.active ?? 0} / ${d.workers?.queued ?? 0}`);
-    set('cover', `${t?.target ?? 0} / ${t?.committed ?? 0} / ${t?.outgoing ?? 0}`);
+    set('cover', `${t?.target ?? 0} / ${t?.committed ?? 0}`);
     set('missing', `${t?.targetMissing ?? 0} / ${t?.uncoveredCells ?? 0}`);
     set('queue', `${t?.scheduler?.queued ?? 0} / ${t?.scheduler?.active ?? 0}`);
     set('requests', `${t?.scheduler?.requestStarts ?? 0} / ${t?.scheduler?.requestCancels ?? 0}`);
@@ -70,6 +73,9 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     set('upload', `${t?.upload?.queued ?? 0} / ${t?.upload?.active ?? 0}`);
     set('empty', `${stats.tiles.empty} / ${stats.tiles.failed}`);
     set('levels', Object.entries(t?.levels ?? {}).map(([z, n]) => `z${z}: ${n}`).join(' · '));
+    set('drawnLevels', Object.entries(t?.drawnLevels ?? {}).map(([z, n]) => `z${z}: ${n}`).join(' · '));
+    set('selection', `${t?.idealCount ?? 0} / ${t?.budgetReduced ?? 0} / ${t?.selection.fogCulled ?? 0}`);
+    set('demand', `${t?.demand.visible ?? 0} / ${t?.demand.fallback ?? 0} / ${t?.demand.predicted ?? 0}`);
     set('cache', `${cache?.resident ?? 0} / ${cache?.warm ?? 0} / ${cache?.cold ?? 0}`);
     set('hits', `${t?.cacheHits ?? 0} / ${t?.cacheMisses ?? 0} / ${((t?.cacheHitRate ?? 0) * 100).toFixed(1)}%`);
     set('entries', `${cache?.entries ?? 0} / ${cache?.maxEntries ?? 256} / ${cache?.evictions ?? 0}`);
@@ -106,7 +112,12 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
       });
       return;
     }
+    if (button.id === 'tile-labels') { const enabled = overlay.toggle(); button.setAttribute('aria-pressed', String(enabled)); button.textContent = enabled ? '隐藏瓦片编号' : '显示瓦片编号'; return; }
     if (running) return;
+    if (button.id === 'raf-baseline') {
+      running = true; button.disabled = true;
+      void measureRafBaseline(map, text => { status.textContent = text; }).catch(error => { status.textContent = String(error); }).finally(() => { running = false; button.disabled = false; }); return;
+    }
     if (button.id === 'gesture-capture') {
       button.disabled = true;
       void captureGestures(map, text => { status.textContent = text; }).catch(error => { status.textContent = String(error); }).finally(() => { button.disabled = false; });
@@ -128,21 +139,21 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
       return;
     }
     const view = map.getView();
-    if (button.id === 'transition-capture') { window.location.assign('/?capture=transitions'); return; }
+    if (button.id === 'rapid-capture') { window.location.assign('/?capture=rapid'); return; }
     if (button.dataset.pitch !== undefined) map.setView({ pitch: Number(button.dataset.pitch) });
     if (button.dataset.view === 'home') map.setView(home);
     if (button.dataset.view === 'in') map.setView({ zoom: view.zoom + 1 });
     if (button.dataset.view === 'out') map.setView({ zoom: view.zoom - 1 });
     if (button.dataset.view === 'rotate') map.setView({ bearing: view.bearing + 45 });
-    if (button.id === 'benchmark') {
+    if (button.id === 'benchmark' || button.id === 'fps-benchmark') {
       running = true; button.disabled = true;
-      void runBrowserBenchmark(map, (message) => { status.textContent = message; }, () => stopped).then((result) => {
+      void runBrowserBenchmark(map, (message) => { status.textContent = message; }, () => stopped, button.id === 'benchmark').then((result) => {
         document.documentElement.dataset.kmapBenchmark = JSON.stringify(result);
         status.textContent = result.passed ? '60 秒采样完成 · 功能断言通过' : '采样完成 · 详细结果见导出 JSON';
       }).catch((error: unknown) => { status.textContent = String(error); }).finally(() => { running = false; button.disabled = false; });
     }
   });
-  return () => { stopped = true; clearInterval(timer); panel.remove(); };
+  return () => { stopped = true; clearInterval(timer); overlay.close(); panel.remove(); };
 }
 
 function download(value: unknown): void {

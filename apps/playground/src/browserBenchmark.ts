@@ -1,14 +1,15 @@
 import type { Map3D, ViewState } from '@kmap/map3d';
 import { CITIES, flyToCity } from './cityFlight.js';
+import { captureRenderFrames, summarizeFrames } from './frameAcceptance.js';
 import { createMapRecorder } from './recording.js';
 
 /** 验收同时保留 60 FPS 视频、逐帧间隔、10Hz 图像与队列观测。 */
-export async function runBrowserBenchmark(map: Map3D, progress: (message: string) => void, cancelled: () => boolean) {
+export async function runBrowserBenchmark(map: Map3D, progress: (message: string) => void, cancelled: () => boolean, recordVideo = true) {
   if (map.getBackend() !== 'webgpu') throw new Error('验收要求 WebGPU 后端。');
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas')!;
-  const stream = canvas.captureStream(60);
-  const recorder = createMapRecorder(stream);
-  const chunks: Blob[] = []; recorder.ondataavailable = event => chunks.push(event.data);
+  const stream = recordVideo ? canvas.captureStream(60) : new MediaStream();
+  const recorder = recordVideo ? createMapRecorder(stream) : undefined;
+  const chunks: Blob[] = []; if (recorder) recorder.ondataavailable = event => chunks.push(event.data);
   const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
   const wait = async (ms: number) => { const end = performance.now() + ms; while (performance.now() < end) { if (cancelled()) throw new Error('验收已取消。'); await nextFrame(); } };
   const settle = async () => {
@@ -28,6 +29,14 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
   const samples: { atMs: number; stage: string; diagnostics: ReturnType<Map3D['getDiagnostics']> }[] = [];
   const intervals: { atMs: number; stage: string; ms: number }[] = [];
   let stage = 'initial'; let lastFrame = 0; let lastCapture = -Infinity; let recording = true; let frameHandle = 0;
+  const rendered = captureRenderFrames(map, start, () => stage);
+  const pixelAuditEnabled = recordVideo && new URLSearchParams(location.search).has('auditPixels');
+  const pixelAudits: unknown[] = []; let lastPixelAudit = 0;
+  const stopPixelAudit = map.observeFrames(() => {
+    if (!pixelAuditEnabled || map.getView().zoom > 10 || performance.now() - lastPixelAudit < 100) return;
+    lastPixelAudit = performance.now(); const defects = map.auditPixels();
+    if (defects.length) pixelAudits.push({ atMs: lastPixelAudit - start, view: map.getView(), defects });
+  });
   const capture = (now: number) => {
     if (!recording) return;
     if (lastFrame) intervals.push({ atMs: now - start, stage, ms: now - lastFrame }); lastFrame = now;
@@ -38,7 +47,7 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
     }
     frameHandle = requestAnimationFrame(capture);
   };
-  recorder.start(1000); frameHandle = requestAnimationFrame(capture);
+  recorder?.start(1000); frameHandle = requestAnimationFrame(capture);
   const stages: { name: string; atMs: number; diagnostics: ReturnType<Map3D['getDiagnostics']> }[] = [];
   const mark = (name: string) => { stage = name; progress(`连续视觉验收：${name}`); stages.push({ name, atMs: performance.now() - start, diagnostics: map.getDiagnostics() }); };
   try {
@@ -63,20 +72,21 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
     for (const pitch of [0, 20, 40, 60]) { mark(`pitch-${pitch}-settled`); map.setView({ pitch }); await settle(); await wait(500); }
     mark('final'); map.setView(CITIES.beijing); await settle(); await wait(Math.max(2000, 60000 - (performance.now() - start)));
   } finally {
-    recording = false; cancelAnimationFrame(frameHandle); observer.disconnect(); document.removeEventListener('visibilitychange', visibilityChanged);
-    await new Promise<void>(resolve => { recorder.onstop = () => resolve(); recorder.stop(); });
+    rendered.stop(); stopPixelAudit(); recording = false; cancelAnimationFrame(frameHandle); observer.disconnect(); document.removeEventListener('visibilitychange', visibilityChanged);
+    if (recorder) await new Promise<void>(resolve => { recorder.onstop = () => resolve(); recorder.stop(); });
     stream.getTracks().forEach(track => track.stop());
   }
-  const percentile = (values: number[], p: number) => { const sorted = [...values].sort((a, b) => a - b); return sorted[Math.ceil(sorted.length * p) - 1] ?? 0; };
-  const moving = intervals.filter(f => ['pan-zoom-rotate', 'beijing-to-shanghai', 'shanghai-to-beijing'].includes(f.stage));
-  const frameSummary = { count: moving.length, p95: percentile(moving.map(f => f.ms), .95), p99: percentile(moving.map(f => f.ms), .99), max: Math.max(...moving.map(f => f.ms)), over33ms: moving.filter(f => f.ms > 33.34).length / Math.max(1, moving.length) };
+  const moving = rendered.frames.filter(f => ['pan-zoom-rotate', 'beijing-to-shanghai', 'shanghai-to-beijing'].includes(f.stage));
+  const frameSummary = summarizeFrames(moving);
   const final = map.getDiagnostics();
   const motionSamples = samples.filter(s => ['pan-zoom-rotate', 'beijing-to-shanghai', 'shanghai-to-beijing'].includes(s.stage));
   const cacheA = stages.find(s => s.name === 'cache-A')!.diagnostics.tiles!;
   const cacheB = stages.find(s => s.name === 'cache-B')!.diagnostics.tiles!;
   const cacheReturn = stages.find(s => s.name === 'cache-A-return')!.diagnostics.tiles!;
   const assertions = {
-    webgpu: map.getBackend() === 'webgpu', motionFrameP95: frameSummary.p95 <= 18.5, motionFrameP99: frameSummary.p99 <= 25,
+    webgpu: map.getBackend() === 'webgpu', motionFrameP95: frameSummary.p95 <= 6.25, motionFrameP99: frameSummary.p99 <= 6.25,
+    stable160fps: frameSummary.minWindowFps >= 160,
+    renderedEveryRaf: rendered.frames.length >= intervals.length - 2,
     motionLongFrames: frameSummary.over33ms <= .01, no100msMotionStall: frameSummary.max < 100,
     finalCoverage: final.tiles?.targetMissing === 0 && final.tiles.uncoveredCells === 0,
     boundedRequests: samples.every(s => (s.diagnostics.tiles?.scheduler.active ?? 0) <= 12),
@@ -84,7 +94,7 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
     entryBudget: samples.every(s => (s.diagnostics.tiles?.cache.entries ?? 0) <= (s.diagnostics.tiles?.cache.maxEntries ?? 0)),
     cpuBudget: samples.every(s => (s.diagnostics.tiles?.cache.cpuBytes ?? 0) <= (s.diagnostics.tiles?.cache.maxCpuBytes ?? 0)),
     gpuBudget: samples.every(s => (s.diagnostics.tiles?.resources.gpuBytes ?? 0) <= (s.diagnostics.tiles?.resources.maxGpuBytes ?? Infinity)),
-    motionCoverage: visualFrames.filter(f => ['pan-zoom-rotate', 'beijing-to-shanghai', 'shanghai-to-beijing'].includes(f.stage)).every(f => f.uncovered === 0),
+    motionCoverage: moving.every(f => f.uncovered === 0),
     interactionCoverage: visualFrames.filter(f => f.stage !== 'initial').every(f => f.uncovered === 0),
     motionDetail: motionSamples.filter(s => (s.diagnostics.tiles?.displayZoomGap ?? Infinity) <= 2).length / Math.max(1, motionSamples.length) >= .95,
     noExtremeOverzoom: motionSamples.every(s => (s.diagnostics.tiles?.displayZoomGap ?? Infinity) <= 3),
@@ -93,12 +103,15 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
     cacheRevisitHits: cacheReturn.cacheHits > cacheA.cacheHits,
     cacheRevisitNoFetch: cacheReturn.network.starts === cacheB.network.starts,
   };
-  const videoResponse = await fetch('/__kmap/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
-  if (!videoResponse.ok) throw new Error('视频证据保存失败。');
-  const video = await videoResponse.json() as { file: string };
-  const result = { at: new Date().toISOString(), backend: map.getBackend(), durationMs: performance.now() - start, frameSummary, assertions, passed: Object.values(assertions).every(Boolean), video: video.file, visualReview: 'pending', visibility, stages, final, intervals, longFrames, samples, visualFrames };
+  let video = { file: '' };
+  if (recorder) {
+    const response = await fetch('/__kmap/video', { method: 'POST', body: new Blob(chunks, { type: recorder.mimeType }) });
+    if (!response.ok) throw new Error('视频证据保存失败。');
+    video = await response.json() as { file: string };
+  }
+  const result = { at: new Date().toISOString(), recordVideo, pixelAuditEnabled, backend: map.getBackend(), durationMs: performance.now() - start, frameSummary, renderFrames: rendered.frames, covers: rendered.covers, assertions, passed: Object.values(assertions).every(Boolean), video: video.file, visualReview: 'pending', visibility, stages, final, intervals, longFrames, samples, visualFrames, pixelAudits };
   const response = await fetch('/__kmap/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) });
   if (!response.ok) throw new Error('视觉与时序证据保存失败。');
   const saved = await response.json() as { file: string };
-  return { ...result, samples: [], visualFrames: [], intervals: [], evidence: saved.file };
+  return { ...result, renderFrames: [], covers: [], samples: [], visualFrames: [], intervals: [], evidence: saved.file };
 }
