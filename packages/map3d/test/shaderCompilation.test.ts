@@ -20,7 +20,8 @@ describe('TSL 双后端源码生成', () => {
       distances: new Float32Array([.25]), colors: new Float32Array([1, 1, 1]), paints: [{ color: '#fff', width: 5, dashArray: [2, 3] }] });
     const atlas = new GlyphAtlas({ glyphs: '', fontStack: '' }), label = new LabelSurface(atlas);
     const globe = new GlobeView({ canvas, source: { id: 'test', tiles: ['https://example.test/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17 }, layers: [] } as Map3DOptions);
-    const objects = [line.mesh, label.mesh, ...globe.scene.children];
+    const curvedLine = createLineSurface(line.data, true);
+    const objects = [line.mesh, curvedLine.mesh, label.mesh, ...globe.scene.children];
     for (const object of objects) {
       const backendBuilder = renderer.backend as typeof renderer.backend & { createNodeBuilder(object: Object3D, renderer: WebGPURenderer): ShaderBuilder };
       const builder = backendBuilder.createNodeBuilder(object, renderer);
@@ -35,6 +36,7 @@ describe('TSL 双后端源码生成', () => {
         expect(builder.fragmentShader).not.toMatch(/\[\s*uint\(/);
       }
     }
+    curvedLine.mesh.geometry.dispose(); curvedLine.mesh.material.dispose();
     line.mesh.geometry.dispose(); line.mesh.material.dispose(); label.dispose(); atlas.dispose(); globe.dispose();
   });
 });

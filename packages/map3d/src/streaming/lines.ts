@@ -1,10 +1,12 @@
+import { joinLineChains } from './lineChains.js';
+import { lineJoin } from './lineJoins.js';
 import { Color } from 'three/webgpu';
 import type { VectorTile } from '@mapbox/vector-tile';
 import type { LineLayerOptions, MapLayerOptions } from '../types.js';
 import { matches } from './paint.js';
 
 /** 每个线段作为一个胶囊实例；样式索引引用共享的连续缩放宽度表。 */
-export interface LineData { segments: Float32Array; styles: Float32Array; colors: Float32Array; distances: Float32Array; paints: LineLayerOptions['paint'][] }
+export interface LineData { segments: Float32Array; styles: Float32Array; colors: Float32Array; distances: Float32Array; joins?: Float32Array; caps?: Uint8Array; paints: LineLayerOptions['paint'][] }
 
 /** 亚像素折点简化：误差上限为数据层级的四分之一 CSS 像素。 */
 export function simplifyLine<T extends { x: number; y: number }>(points: T[], tolerance: number): T[] {
@@ -25,7 +27,7 @@ export function simplifyLine<T extends { x: number; y: number }>(points: T[], to
   return points.filter((_, i) => keep[i]);
 }
 
-export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[]): LineData & { features: number } {
+export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[], zoom = 24): LineData & { features: number } {
   type Point = { x: number; y: number };
   type Feature = { properties: Record<string, unknown>; rings: Point[][] };
   const cache = new Map<string, Feature[]>();
@@ -50,15 +52,23 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[])
       if (!matches(feature.properties, layer.filters)) continue;
       featureCount++;
       for (const ring of feature.rings) {
-        rings.push(ring);
-        for (let j = 1; j < ring.length; j++) if (ring[j - 1]!.x !== ring[j]!.x || ring[j - 1]!.y !== ring[j]!.y) count++;
+        const curved = zoom < 6 ? ring.flatMap((a, i) => {
+          const b = ring[i + 1]; if (!b) return [a];
+          const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / source.extent * 128 / 2 ** zoom));
+          return Array.from({ length: steps }, (_, n) => ({ x: a.x + (b.x - a.x) * n / steps, y: a.y + (b.y - a.y) * n / steps }));
+        }) : ring;
+        rings.push(curved.filter((p, i) => !i || p.x !== curved[i - 1]!.x || p.y !== curved[i - 1]!.y));
+        for (let j = 1; j < curved.length; j++) if (curved[j - 1]!.x !== curved[j]!.x || curved[j - 1]!.y !== curved[j]!.y) count++;
       }
     }
-    batches.push({ layer, color: new Color(layer.paint.color), extent: source.extent, rings });
+    const combined = layer.paint.dashArray ? rings : joinLineChains(rings).map(ring => simplifyLine(ring, source.extent / 512));
+    for (const ring of rings) count -= Math.max(0, ring.length - 1);
+    for (const ring of combined) count += Math.max(0, ring.length - 1);
+    batches.push({ layer, color: new Color(layer.paint.color), extent: source.extent, rings: combined });
   }
   // 已知容量的 TypedArray 直接写入，描边和填色共享解码后的中心线。
   const segments = new Float32Array(count * 4); const styles = new Float32Array(count * 4); const colors = new Float32Array(count * 3);
-  const distances = new Float32Array(count);
+  const distances = new Float32Array(count), joins = new Float32Array(count * 4), caps = new Uint8Array(count * 2);
   let index = 0;
   for (const { layer, color, extent, rings } of batches) {
     const styleIndex = paints.indexOf(layer.paint);
@@ -68,6 +78,10 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[])
         const a = ring[j - 1]!; const b = ring[j]!;
         if (a.x === b.x && a.y === b.y) continue;
         const p = index * 4; const c = index * 3;
+        const closed = ring[0]!.x === ring.at(-1)!.x && ring[0]!.y === ring.at(-1)!.y;
+        joins.set([...lineJoin(ring[j - 2] ?? (closed ? ring.at(-2) : undefined), a, b),
+          ...lineJoin(a, b, ring[j + 1] ?? (closed ? ring[1] : undefined))], p);
+        caps[index * 2] = !closed && j === 1 ? 1 : 0; caps[index * 2 + 1] = !closed && j === ring.length - 1 ? 1 : 0;
         segments[p] = a.x / extent - .5; segments[p + 1] = a.y / extent - .5; segments[p + 2] = b.x / extent - .5; segments[p + 3] = b.y / extent - .5;
         styles[p] = styleIndex; styles[p + 1] = layer.paint.opacity ?? 1; styles[p + 2] = layer.minZoom ?? 0; styles[p + 3] = layer.maxZoom ?? 24;
         distances[index] = cumulative; cumulative += Math.hypot(b.x - a.x, b.y - a.y) / extent;
@@ -75,9 +89,9 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[])
       }
     }
   }
-  return { segments, styles, colors, distances, paints, features: featureCount };
+  return { segments, styles, colors, distances, joins, caps, paints, features: featureCount };
 }
 
-export const lineBytes = (lines?: LineData): number => lines ? lines.segments.byteLength + lines.styles.byteLength + lines.colors.byteLength + lines.distances.byteLength : 0;
+export const lineBytes = (lines?: LineData): number => lines ? lines.segments.byteLength + lines.styles.byteLength + lines.colors.byteLength + lines.distances.byteLength + (lines.joins?.byteLength ?? 0) + (lines.caps?.byteLength ?? 0) : 0;
 /** 将当前视图 CSS 像素换算到数据瓦片局部坐标。 */
 export const linePixelScale = (tileZoom: number, viewZoom: number): number => 2 ** (tileZoom - viewZoom) / 256;

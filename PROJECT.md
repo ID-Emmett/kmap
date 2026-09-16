@@ -18,7 +18,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 
 ## 当前事实基线
 
-- 海洋补充源、flat 线样式、SDF 中文标签、屏幕碰撞与低缩放地球已完成源码和自动测试验证；双后端浏览器验收状态见 `docs/evidence/map-stability/README.md`。
+- 球面矢量瓦片、跨层级地名、SDF 中文与道路连接的实现和双后端浏览器证据见 `docs/evidence/map-refinement/README.md`。
 
 - TypeScript 7.0.2，strict，ESM。
 - pnpm workspace 负责 Monorepo 依赖和命令编排。
@@ -56,7 +56,7 @@ KYE Tile
 - Camera 平移、连续 Zoom、Bearing、Pitch 和可见 Tile Coverage。
 - XYZ 世界副本、请求去重、队列取消、204 祖先覆盖、有限重试和按字节约束的 LRU。
 - Polygon/Line/建筑挤出、属性过滤、kind 分类色、米制连续缩放线宽和虚线；建筑从 zoom 15.74 开始显示。
-- Symbol 点/道路文字、KYE SDF 字形、优先级/碰撞/跨瓦片去重，以及根瓦片驱动的完整地球与星空。
+- Symbol 点/道路文字、KYE SDF 字形、优先级/碰撞/跨瓦片去重，以及同场景球面投影的矢量瓦片地球。
 - Worker 协议、transferable buffer/ImageBitmap 和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。

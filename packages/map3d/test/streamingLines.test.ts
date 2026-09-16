@@ -37,6 +37,6 @@ describe('跨数据层级的矢量线宽', () => {
     for (let i = 0; i < lines.styles.length; i += 4) {
       expect(lines.styles[i]).toBe(0); expect(lines.styles[i + 1]).toBeCloseTo(.9); expect(lines.styles[i + 2]).toBe(7);
     }
-    expect(lineBytes(lines)).toBe(lines.segments.length / 4 * 48);
+    expect(lineBytes(lines)).toBe(lines.segments.length / 4 * 66);
   });
 });

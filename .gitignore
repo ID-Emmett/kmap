@@ -35,3 +35,9 @@ docs/evidence/streaming-rebuild/*
 .env.*
 !.env.example
 package-lock.json
+
+!docs/evidence/map-refinement/
+docs/evidence/map-refinement/*
+!docs/evidence/map-refinement/README.md
+!docs/evidence/map-refinement/data-audit.json
+!docs/evidence/map-refinement/verification-summary.json

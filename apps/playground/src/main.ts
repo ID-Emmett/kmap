@@ -28,6 +28,7 @@ async function bootstrap(): Promise<void> {
     source: {
       id: 'kye-main',
       overlays: [
+        { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf'], minZoom: 6, maxZoom: 6, sourceLayer: 'place', targetLayer: 'place' },
         { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water/{z}/{x}/{y}.pbf'], minZoom: 0, maxZoom: 6, sourceLayer: 'water', targetLayer: 'ocean_base', onlyWhenPrimaryEmpty: true },
         { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/{z}/{x}/{y}.pbf'], minZoom: 7, maxZoom: 7, sourceLayer: 'water', targetLayer: 'ocean' },
         { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_admin_pro/{z}/{x}/{y}.pbf'], minZoom: 2, maxZoom: 14, sourceLayer: 'border', targetLayer: 'province_border' },
@@ -86,6 +87,10 @@ async function bootstrap(): Promise<void> {
   try {
     resize();
     await map.initialize();
+    if (new URLSearchParams(window.location.search).get('capture') === 'refinement') {
+      const { runRefinementBenchmark } = await import('./refinementBenchmark.js');
+      void runRefinementBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });
+    }
     if (new URLSearchParams(window.location.search).get('capture') === 'stability') {
       const { runStabilityBenchmark } = await import('./stabilityBenchmark.js');
       void runStabilityBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });

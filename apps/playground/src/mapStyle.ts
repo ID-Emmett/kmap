@@ -37,9 +37,12 @@ export const BUILDING_CATEGORY_COLORS = {
   '6002': '#D6DCCB', '7001': '#E4D4CD', '9002': '#DADDE1', '9004': '#D5DDE0',
 } as const;
 
-const ordinary = ['secondary', 'secondary_link', 'tertiary', 'tertiary_link', 'street', 'street_limited', 'primary_link', 'trunk_link', 'motorway_link'];
+const ordinary = ['secondary', 'secondary_link'];
 const roads = [
   { id: 'local-road', classes: LOCAL_ROAD_CLASSES, width: 5, minZoom: 15 },
+  { id: 'street-road', classes: ['street', 'street_limited'], width: 7, minZoom: 13 },
+  { id: 'tertiary-road', classes: ['tertiary', 'tertiary_link'], width: 9, minZoom: 12 },
+  { id: 'link-road', classes: ['primary_link', 'trunk_link', 'motorway_link'], width: 9, minZoom: 11 },
   { id: 'road', classes: ordinary, width: 9, minZoom: 10 },
   { id: 'major-road', classes: ['primary'], width: 14, minZoom: 9 },
   { id: 'trunk-road', classes: ['trunk'], width: 20, minZoom: 7 },
@@ -56,12 +59,13 @@ export const PLAYGROUND_LAYERS: readonly MapLayerOptions[] = [
   { type: 'fill', id: 'water-fill', sourceLayer: 'water', minZoom: 0, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
   { type: 'line', id: 'waterway-line', sourceLayer: 'waterway', minZoom: 5,
     paint: { color: PLAYGROUND_STYLE_TOKENS.waterway, ...roadWidth(5) } },
-  ...(['casing', 'fill'] as const).flatMap(part => roads.map(road => ({
-    type: 'line' as const, id: `${road.id}-${part}`, sourceLayer: 'road', minZoom: road.minZoom,
-    filters: [{ operator: 'in' as const, property: 'class', values: road.classes }, { operator: '!=' as const, property: 'brunnel', value: 'tunnel' }],
+  ...(['ground', 'bridge'] as const).flatMap(level => (['casing', 'fill'] as const).flatMap(part => roads.map(road => ({
+    type: 'line' as const, id: `${road.id}-${part}${level === 'bridge' ? '-bridge' : ''}`, sourceLayer: 'road', minZoom: road.minZoom,
+    filters: [{ operator: 'in' as const, property: 'class', values: road.classes }, { operator: '!=' as const, property: 'brunnel', value: 'tunnel' },
+      { operator: level === 'bridge' ? '==' as const : '!=' as const, property: 'brunnel', value: 'bridge' }],
     paint: { color: road.width >= 14 ? PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'majorRoadCasing' : 'majorRoadFill']
       : PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'roadCasing' : 'roadFill'], ...roadWidth(road.width, part === 'casing') },
-  }))),
+  })))),
   ...(['casing', 'fill'] as const).map(part => ({ type: 'line' as const, id: `transportation-${part}`, sourceLayer: 'transportation', minZoom: 5, maxZoom: 8,
     filters: [{ operator: 'in' as const, property: 'class', values: MAJOR_ROAD_CLASSES }],
     paint: { color: PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'majorRoadCasing' : 'majorRoadFill'], ...roadWidth(20, part === 'casing') } })),
@@ -89,7 +93,7 @@ export const PLAYGROUND_LAYERS: readonly MapLayerOptions[] = [
     paint: { color: PLAYGROUND_STYLE_TOKENS.building, heightProperty: 'height', colorProperty: 'kind', categoryColors: BUILDING_CATEGORY_COLORS } },
   { type: 'symbol', id: 'place-label', sourceLayer: 'place', minZoom: 0,
     layout: { textFields: ['name', 'name_en'], textSize: 17, priority: 0 }, paint: { color: '#52606A', haloWidth: 1.5 } },
-  { type: 'symbol', id: 'poi-label', sourceLayer: 'poi_label', minZoom: 14,
+  { type: 'symbol', id: 'poi-label', sourceLayer: 'poi_label', minZoom: 8,
     layout: { textFields: ['short_name', 'name'], textSize: 13, priority: 100, minZoomProperty: 'level',
       priorityByClass: { rail_metro: -70, airport: -80, hospital: -55, school: -20 } }, paint: { color: '#65716F', haloWidth: 1.2 } },
   { type: 'symbol', id: 'road-label', sourceLayer: 'road', minZoom: 13,

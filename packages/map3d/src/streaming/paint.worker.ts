@@ -1,3 +1,4 @@
+import { tessellateFills } from '../globe/tessellation.js';
 import { decodeTileSources } from './tileSources.js';
 import { buildBuildings } from './buildings.js';
 import { buildLines } from './lines.js';
@@ -9,7 +10,9 @@ scope.onmessage = ({ data }) => {
   const started = performance.now();
   try {
     const tile = decodeTileSources(data.buffer, data.address, data.overlays);
-    const fills = buildFills(tile, data.layers); const lines = buildLines(tile, data.layers);
+    const builtFills = buildFills(tile, data.layers);
+    const fills = { ...tessellateFills(builtFills, data.spherical ? data.address.z : 24), features: builtFills.features };
+    const lines = buildLines(tile, data.layers, data.spherical ? data.address.z : 24);
     const buildings = buildBuildings(tile, data.layers, data.address);
     const labels = buildLabels(tile, data.layers);
     // 一像素背景纹理使区域面与数据几何拥有统一的资源生命周期。
@@ -17,7 +20,7 @@ scope.onmessage = ({ data }) => {
     context.fillStyle = data.background; context.fillRect(0, 0, 1, 1);
     const bitmap = canvas.transferToImageBitmap();
     scope.postMessage({ id: data.id, bitmap, lines, fills, buildings, labels, features: fills.features + lines.features + buildings.features + labels.length, paintMs: performance.now() - started, empty: data.buffer.byteLength === 0 },
-      [bitmap, lines.segments.buffer, lines.styles.buffer, lines.colors.buffer, lines.distances.buffer, buildings.positions.buffer, buildings.normals.buffer, buildings.colors.buffer, buildings.styles.buffer, buildings.indices.buffer, fills.positions.buffer, fills.colors.buffer, fills.styles.buffer, fills.indices.buffer]);
+      [bitmap, lines.segments.buffer, lines.styles.buffer, lines.colors.buffer, lines.distances.buffer, ...(lines.joins ? [lines.joins.buffer as ArrayBuffer] : []), ...(lines.caps ? [lines.caps.buffer as ArrayBuffer] : []), buildings.positions.buffer, buildings.normals.buffer, buildings.colors.buffer, buildings.styles.buffer, buildings.indices.buffer, fills.positions.buffer, fills.colors.buffer, fills.styles.buffer, fills.indices.buffer]);
   } catch (error) {
     scope.postMessage({ id: data.id, error: String(error), features: 0, paintMs: performance.now() - started, empty: false }, []);
   }

@@ -1,0 +1,61 @@
+{
+  "source": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf",
+  "center": [
+    116.394653,
+    39.90552
+  ],
+  "verified": "2026-09-16",
+  "pointLayers": {
+    "z4": {
+      "place": 362
+    },
+    "z5": {
+      "place": 325
+    },
+    "z6": {
+      "place": 117
+    },
+    "z7": {},
+    "z8": {
+      "poi_label": 2
+    },
+    "z10": {
+      "poi_label": 40
+    },
+    "z12": {
+      "poi_label": 110
+    }
+  },
+  "z10Road": {
+    "features": 35835,
+    "segments": 39459,
+    "classes": {
+      "secondary": 27350,
+      "trunk": 48,
+      "light_rail": 205,
+      "motorway": 30,
+      "primary": 6234,
+      "trunk_link": 915,
+      "rail": 148,
+      "urban_link": 42,
+      "motorway_link": 863
+    }
+  },
+  "poiLevels": [
+    {
+      "z": 8,
+      "name": "北京大兴国际机场",
+      "level": 8
+    },
+    {
+      "z": 10,
+      "name": "天安门",
+      "level": 9
+    },
+    {
+      "z": 12,
+      "name": "王府井(地铁站)",
+      "level": 12
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     lib: {
-      entry: { 'paint.worker': resolve(import.meta.dirname, 'src/streaming/paint.worker.ts'), 'globe.worker': resolve(import.meta.dirname, 'src/globe/globe.worker.ts') },
+      entry: { 'paint.worker': resolve(import.meta.dirname, 'src/streaming/paint.worker.ts') },
       fileName: (_format, name) => `${name}.js`,
       formats: ['es'],
     },

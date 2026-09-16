@@ -40,11 +40,13 @@ export function buildLabels(tile: VectorTile, layers: readonly MapLayerOptions[]
       const classPriority = layer.layout.priorityByClass?.[String(p.class)] ?? 0;
       labels.push({ text, x: (a.x + b.x) / 2 / source.extent, y: (a.y + b.y) / 2 / source.extent,
         endX: b.x / source.extent, endY: b.y / source.extent, line,
-        key: `${layer.id}:${String(p.osmId ?? p.osm_id ?? p.admin_code ?? p.id ?? '')}:${text}`,
+        key: `${layer.id}:${String(p.osmId ?? p.osm_id ?? p.admin_code ?? p.id ?? feature.id ?? '')}:${text}`,
         priority: (layer.layout.priority ?? 100) + classPriority + (Number.isFinite(rank) ? Math.log2(Math.max(0, rank) + 1) * 2 : 10),
         minZoom: Math.max(layer.minZoom ?? 0, Number.isFinite(dataZoom) ? dataZoom : 0), maxZoom: (layer.maxZoom ?? 24) + 1, size: layer.layout.textSize ?? 14,
         color: layer.paint.color ?? '#46515a', haloColor: layer.paint.haloColor ?? '#ffffff', haloWidth: layer.paint.haloWidth ?? 1.2 });
     }
   }
-  return labels.sort((a, b) => a.priority - b.priority || a.key.localeCompare(b.key)).slice(0, 256);
+  // 点与道路分别保留候选容量，视图层级过滤在全屏布局阶段执行。
+  const sorted = labels.sort((a, b) => a.priority - b.priority || a.key.localeCompare(b.key));
+  return [...sorted.filter(l => !l.line).slice(0, 512), ...sorted.filter(l => l.line).slice(0, 512)];
 }

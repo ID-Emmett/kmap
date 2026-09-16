@@ -18,8 +18,10 @@ export function lineWidth(paint: LineLayerOptions['paint'], zoom: number): numbe
   return stops.at(-1)![1];
 }
 
+export const lineStyleCapacity = (count: number): number => count <= 32 ? 32 : count <= 64 ? 64 : 128;
+
 export function createLineState(data: LineData) {
-  const widths = new Float32Array(Math.max(1, data.paints.length) * 4), dashes = new Float32Array(widths.length);
+  const widths = new Float32Array(lineStyleCapacity(data.paints.length) * 4), dashes = new Float32Array(widths.length);
   data.paints.forEach((paint, i) => {
     if (paint.dashArray && ![2, 4].includes(paint.dashArray.length)) throw new Error('dashArray 必须包含 2 或 4 个长度。');
     paint.dashArray?.forEach((n, j) => { dashes[i * 4 + j] = n; });

@@ -46,6 +46,7 @@ export class GlyphAtlas {
     this.glyphs.set(glyph.id, { ...metrics, u: this.x / this.size, v: this.y / this.size, w, h });
     this.x += w + 1; this.row = Math.max(this.row, h); this.dirty = true; this.revision++; return true;
   }
+  tick(): void { if (this.failed.size) this.pump(); }
   private pump(): void {
     if (this.disposed) return;
     const ranges = new Set([...this.wanted].filter(code => !this.glyphs.has(code) && !this.unavailable.has(code)).map(code => code >>> 8));

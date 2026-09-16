@@ -1,3 +1,5 @@
+import { selectGlobeTiles } from '../globe/cover.js';
+import { GLOBE_END } from '../globe/globeCamera.js';
 import { PerspectiveCamera, type WebGPURenderer } from 'three/webgpu';
 import { updateMapCamera, type MapCameraFrame } from '../rendering/mapCamera.js';
 import type { MapOrigin } from '../spatial/types.js';
@@ -60,13 +62,14 @@ export class StreamingEngine {
     const startedFrame = performance.now(); let planned = false;
     if (this.viewDirty && now - this.lastPlan >= 16) {
       planned = true; const started = performance.now();
-      this.predict(origin, view, viewport, now);
+      const spherical = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
+      if (!spherical) this.predict(origin, view, viewport, now);
       // 条目较小的实例为缓存、回退和在途工作保留独立容量。
       const limit = Math.min(TILE_LIMITS.visible, Math.max(8, Math.floor(this.maxEntries * .6)));
-      this.selection = selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, limit);
+      this.selection = spherical ? selectGlobeTiles(camera, origin, view, this.options.source.maxZoom, limit) : selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, limit);
       const signature = this.selection.leaves.map(keyOf).sort().join('|');
       if (signature !== this.selectionSignature) {
-        this.prepareOverview(origin, view, viewport); this.selectionSignature = signature;
+        if (spherical) this.overview = []; else this.prepareOverview(origin, view, viewport); this.selectionSignature = signature;
         this.demandDirty = true; this.coverDirty = true;
       }
       this.previousView = view; this.lastPlan = now; this.viewDirty = false;
@@ -129,6 +132,7 @@ export class StreamingEngine {
   }
   private readyKeys() { return this.store.available; }
   private plan(now: number): void {
+    this.pipeline.invalidate();
     const previous = new Set(this.wanted); this.wanted.clear();
     const available = this.readyKeys(); const cover = resolveRenderCover(this.selection.leaves, available, this.options.source.minZoom, this.selection.visible);
     const demands = new Map<string, { address: Address; kind: DemandKind; priority: number }>();

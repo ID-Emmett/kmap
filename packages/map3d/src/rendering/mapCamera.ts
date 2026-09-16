@@ -1,3 +1,4 @@
+import { GLOBE_START } from '../globe/globeCamera.js';
 import {
   PerspectiveCamera,
   Vector3,
@@ -40,6 +41,7 @@ export function updateMapCamera(
   view: ViewState,
   viewport: ViewportSize,
   origin: MapOrigin,
+  globe = false,
 ): MapCameraFrame {
   const normalizedView = normalizeViewState(view);
   const normalizedViewport = normalizeViewport(viewport);
@@ -48,8 +50,14 @@ export function updateMapCamera(
   const metersPerPixel = getMapMetersPerPixel(normalizedView.zoom);
   const verticalSpan = metersPerPixel * normalizedViewport.height;
   const halfFovRadians = (MAP_CAMERA_FOV * Math.PI) / 360;
-  const distance = verticalSpan / (2 * Math.tan(halfFovRadians));
-  const pitch = (normalizedView.pitch * Math.PI) / 180;
+  let distance = verticalSpan / (2 * Math.tan(halfFovRadians));
+  if (globe && normalizedView.zoom < GLOBE_START) {
+    const radius = WEB_MERCATOR_WORLD_SIZE / (2 * Math.PI * Math.cos(normalizedView.center.lat * Math.PI / 180));
+    const fit = 1 / Math.sin(Math.atan(Math.tan(halfFovRadians) * Math.min(1, normalizedViewport.width / normalizedViewport.height))) / .82;
+    const start = getMapMetersPerPixel(GLOBE_START) * normalizedViewport.height / (2 * Math.tan(halfFovRadians));
+    distance = radius * (fit - 1) * (start / (radius * (fit - 1))) ** (normalizedView.zoom / GLOBE_START);
+  }
+  const pitch = (normalizedView.pitch * Math.PI) / 180 * (globe ? Math.min(1, normalizedView.zoom / GLOBE_START) : 1);
   const bearing = (normalizedView.bearing * Math.PI) / 180;
   const horizontalDistance = Math.sin(pitch) * distance;
   const verticalDistance = Math.cos(pitch) * distance;

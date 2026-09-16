@@ -33,7 +33,7 @@ export function decodeTileSources(buffer: ArrayBuffer, address: Address, sources
     for (let i = 0; i < layer.length; i++) {
       const feature = layer.feature(i); const [minX, minY, maxX, maxY] = feature.bbox() as [number, number, number, number];
       const e = layer.extent;
-      if (scale > 1 && feature.type === 3 && (maxX * scale < dx * e || minX * scale > (dx + 1) * e || maxY * scale < dy * e || minY * scale > (dy + 1) * e)) continue;
+      if (scale > 1 && feature.type !== 2 && (maxX * scale < dx * e || minX * scale > (dx + 1) * e || maxY * scale < dy * e || minY * scale > (dy + 1) * e)) continue;
       features.push(feature);
     }
     tile.layers[source.targetLayer] = {

@@ -10,7 +10,6 @@ import { resultBytes, TileStore, type TileEntry } from './tileStore.js';
 import { lineBytes } from './lines.js';
 import { buildingBytes } from './buildings.js';
 import { fillBytes } from './fills.js';
-import { PATCH_RECTANGLE_BYTES } from './patchGeometry.js';
 import { OverlayCache } from './overlayCache.js';
 
 /** 网络、Worker 和上传分别准入，已解码数据可在 CPU 等待新的可见需求。 */
@@ -22,11 +21,15 @@ export class TilePipeline {
   starts = 0; cancels = 0; queueCancels = 0; retries = 0; errors = 0; bytes = 0; active = 0; discardedBytes = 0;
   disposed = false; private dispatch = 0; private buildDispatch = 0; private uploadDispatch = 0;
   predictionUrgentUntil = 0;
+  private dirty = true; private nextPump = 0;
+  invalidate(): void { this.dirty = true; }
   readonly recentErrors: { at: number; key: string; phase: 'request' | 'build'; message: string; attempt: number }[] = [];
   constructor(readonly store: TileStore, readonly options: Map3DOptions, readonly renderer: WebGPURenderer, readonly background: string,
     readonly changed: () => void, readonly log: (type: string, key: string) => void, readonly onError: (error: MapError) => void) {}
   private alive(entry: TileEntry): boolean { return !this.disposed && this.store.entries.get(entry.key) === entry; }
   pump(now: number): void {
+    if (!this.dirty && now < this.nextPump) return;
+    this.dirty = false; this.nextPump = now + 64;
     const entries = [...this.store.entries.values()];
     for (const e of entries) {
       if (Number.isFinite(e.priority) || this.store.protectedKeys.has(e.key)) continue;
@@ -102,7 +105,7 @@ export class TilePipeline {
       else if (controller.signal.aborted && controller.signal.reason !== 'timeout') {
         entry.state = 'queued'; entry.attempts = Math.max(0, entry.attempts - 1);
       } else this.fail(entry, error, 'request');
-    } finally { entry.reservedBytes = 0; clearTimeout(timeout); this.active--; if (entry.controller === controller) delete entry.controller; }
+    } finally { this.dirty = true; entry.reservedBytes = 0; clearTimeout(timeout); this.active--; if (entry.controller === controller) delete entry.controller; }
   }
   private async paint(entry: TileEntry): Promise<void> {
     const reservation = Math.max(TILE_LIMITS.buildBytes, entry.buffer!.byteLength * 4);
@@ -110,7 +113,7 @@ export class TilePipeline {
     entry.reservedBytes = reservation;
     const buffer = entry.buffer!; delete entry.buffer; entry.state = 'painting';
     try {
-      const result = await this.workers.run({ address: entry.address, buffer, layers: this.options.layers, background: this.background, overlays: this.options.source.overlays ?? [] });
+      const result = await this.workers.run({ address: entry.address, buffer, spherical: this.store.surfaces.spherical, layers: this.options.layers.filter(layer => entry.address.z === this.options.source.maxZoom || (layer.minZoom ?? 0) < entry.address.z + 1), background: this.background, overlays: this.options.source.overlays ?? [] });
       if (!this.alive(entry)) { result.bitmap?.close(); return; }
       if (!Number.isFinite(entry.priority)) {
         this.discardedBytes += resultBytes(result); result.bitmap?.close(); this.store.release(entry); this.log('discard-build', entry.key); return;
@@ -121,7 +124,7 @@ export class TilePipeline {
       }
       entry.features = result.features; entry.result = result; entry.state = 'upload'; entry.touched = performance.now(); this.log('built', entry.key);
     } catch (error) { if (this.alive(entry)) this.fail(entry, error, 'build'); }
-    finally { entry.reservedBytes = 0; }
+    finally { this.dirty = true; entry.reservedBytes = 0; }
   }
   upload(now: number): void {
     const start = performance.now(); let bytes = 0; let count = 0;
@@ -131,10 +134,11 @@ export class TilePipeline {
     if (preferred > 0) queue.unshift(queue.splice(preferred, 1)[0]!);
     for (const entry of queue) {
       const result = entry.result; if (!result?.bitmap) continue;
+      const patchBytes = this.store.surfaces.patchBytes(entry.address);
       const stateBytes = surfaceStateBytes(result.lines, result.buildings);
-      const gpu = Math.ceil(result.bitmap.width * result.bitmap.height * 4 * 4 / 3) + lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + PATCH_RECTANGLE_BYTES + stateBytes;
+      const gpu = Math.ceil(result.bitmap.width * result.bitmap.height * 4 * 4 / 3) + lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + patchBytes + stateBytes;
       if (count && (bytes + gpu > TILE_LIMITS.uploadBytes || performance.now() - start >= TILE_LIMITS.uploadMs)) break;
-      if (!this.store.makeRoom(PATCH_RECTANGLE_BYTES + stateBytes, gpu, 0, entry.priority, entry.key)) continue;
+      if (!this.store.makeRoom(patchBytes + stateBytes, gpu, 0, entry.priority, entry.key)) continue;
       const time = performance.now();
       const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills, result.buildings, result.labels);
       this.renderer.initTexture(surface.map);

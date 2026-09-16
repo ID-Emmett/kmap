@@ -1,0 +1,666 @@
+{
+  "at": "2026-09-16",
+  "checks": {
+    "pnpm check": "passed: SDK 116 + Playground 5",
+    "pnpm ai:check": "passed",
+    "git diff --check": "passed"
+  },
+  "matrix": {
+    "webgl2": {
+      "raw": "docs/evidence/streaming-rebuild/webgpu-2026-09-16T15-24-52-008Z.json",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "errors": [],
+      "scenarios": [
+        {
+          "name": "z0",
+          "settled": true,
+          "fps": 99.78,
+          "cpuP95": 4.2,
+          "intervalP95": 17.7,
+          "uncoveredFrames": 0,
+          "labels": [
+            14,
+            15
+          ],
+          "triangles": 368048,
+          "maxCpuBytes": 21796431,
+          "maxGpuBytes": 17951012,
+          "maxEntries": 29
+        },
+        {
+          "name": "z2",
+          "settled": true,
+          "fps": 111.8,
+          "cpuP95": 3.2,
+          "intervalP95": 17.5,
+          "uncoveredFrames": 0,
+          "labels": [
+            27,
+            30
+          ],
+          "triangles": 368114,
+          "maxCpuBytes": 21796431,
+          "maxGpuBytes": 17951012,
+          "maxEntries": 29
+        },
+        {
+          "name": "z4",
+          "settled": true,
+          "fps": 89.32,
+          "cpuP95": 9.6,
+          "intervalP95": 23.3,
+          "uncoveredFrames": 0,
+          "labels": [
+            61,
+            65
+          ],
+          "triangles": 127701,
+          "maxCpuBytes": 63522556,
+          "maxGpuBytes": 28468900,
+          "maxEntries": 85
+        },
+        {
+          "name": "z4.5",
+          "settled": true,
+          "fps": 104.0,
+          "cpuP95": 7.6,
+          "intervalP95": 17.6,
+          "uncoveredFrames": 0,
+          "labels": [
+            72,
+            77
+          ],
+          "triangles": 112240,
+          "maxCpuBytes": 67436301,
+          "maxGpuBytes": 32728680,
+          "maxEntries": 119
+        },
+        {
+          "name": "z5",
+          "settled": true,
+          "fps": 94.82,
+          "cpuP95": 9.8,
+          "intervalP95": 17.7,
+          "uncoveredFrames": 0,
+          "labels": [
+            76,
+            92
+          ],
+          "triangles": 266066,
+          "maxCpuBytes": 81604552,
+          "maxGpuBytes": 44960742,
+          "maxEntries": 221
+        },
+        {
+          "name": "z5.5",
+          "settled": true,
+          "fps": 115.78,
+          "cpuP95": 3.6,
+          "intervalP95": 12,
+          "uncoveredFrames": 0,
+          "labels": [
+            78,
+            94
+          ],
+          "triangles": 227232,
+          "maxCpuBytes": 87138234,
+          "maxGpuBytes": 48078032,
+          "maxEntries": 231
+        },
+        {
+          "name": "z6",
+          "settled": true,
+          "fps": 114.22,
+          "cpuP95": 2.3,
+          "intervalP95": 11.9,
+          "uncoveredFrames": 0,
+          "labels": [
+            71,
+            91
+          ],
+          "triangles": 107560,
+          "maxCpuBytes": 63015307,
+          "maxGpuBytes": 57759246,
+          "maxEntries": 256
+        },
+        {
+          "name": "z8",
+          "settled": true,
+          "fps": 92.82,
+          "cpuP95": 3.2,
+          "intervalP95": 17.7,
+          "uncoveredFrames": 0,
+          "labels": [
+            10,
+            21
+          ],
+          "triangles": 77013,
+          "maxCpuBytes": 50839653,
+          "maxGpuBytes": 48516878,
+          "maxEntries": 256
+        },
+        {
+          "name": "z10",
+          "settled": true,
+          "fps": 78.03,
+          "cpuP95": 5.5,
+          "intervalP95": 17.9,
+          "uncoveredFrames": 0,
+          "labels": [
+            48,
+            127
+          ],
+          "triangles": 127149,
+          "maxCpuBytes": 98008506,
+          "maxGpuBytes": 58893930,
+          "maxEntries": 246
+        },
+        {
+          "name": "z12",
+          "settled": true,
+          "fps": 80.35,
+          "cpuP95": 5,
+          "intervalP95": 17.8,
+          "uncoveredFrames": 0,
+          "labels": [
+            89,
+            225
+          ],
+          "triangles": 219803,
+          "maxCpuBytes": 108568704,
+          "maxGpuBytes": 73636212,
+          "maxEntries": 256
+        },
+        {
+          "name": "z13",
+          "settled": true,
+          "fps": 44.58,
+          "cpuP95": 16.5,
+          "intervalP95": 29.5,
+          "uncoveredFrames": 0,
+          "labels": [
+            162,
+            205
+          ],
+          "triangles": 174938,
+          "maxCpuBytes": 83761492,
+          "maxGpuBytes": 78743090,
+          "maxEntries": 256
+        },
+        {
+          "name": "z14",
+          "settled": true,
+          "fps": 67.41,
+          "cpuP95": 10.2,
+          "intervalP95": 23.7,
+          "uncoveredFrames": 0,
+          "labels": [
+            133,
+            179
+          ],
+          "triangles": 49053,
+          "maxCpuBytes": 89306829,
+          "maxGpuBytes": 80909256,
+          "maxEntries": 246
+        },
+        {
+          "name": "z15",
+          "settled": true,
+          "fps": 74.71,
+          "cpuP95": 8.4,
+          "intervalP95": 23.5,
+          "uncoveredFrames": 0,
+          "labels": [
+            111,
+            150
+          ],
+          "triangles": 23838,
+          "maxCpuBytes": 125003660,
+          "maxGpuBytes": 101533024,
+          "maxEntries": 256
+        },
+        {
+          "name": "z17",
+          "settled": true,
+          "fps": 72.67,
+          "cpuP95": 4.6,
+          "intervalP95": 23.5,
+          "uncoveredFrames": 0,
+          "labels": [
+            20,
+            33
+          ],
+          "triangles": 16399,
+          "maxCpuBytes": 128129174,
+          "maxGpuBytes": 96103320,
+          "maxEntries": 256
+        },
+        {
+          "name": "pitch60",
+          "settled": true,
+          "fps": 71.19,
+          "cpuP95": 11,
+          "intervalP95": 29.4,
+          "uncoveredFrames": 0,
+          "labels": [
+            68,
+            80
+          ],
+          "triangles": 165596,
+          "maxCpuBytes": 136323012,
+          "maxGpuBytes": 98635338,
+          "maxEntries": 256
+        },
+        {
+          "name": "pitch75",
+          "settled": true,
+          "fps": 85.17,
+          "cpuP95": 3.8,
+          "intervalP95": 17.7,
+          "uncoveredFrames": 0,
+          "labels": [
+            34,
+            44
+          ],
+          "triangles": 36638,
+          "maxCpuBytes": 111262081,
+          "maxGpuBytes": 94644516,
+          "maxEntries": 251
+        },
+        {
+          "name": "dateline",
+          "settled": true,
+          "fps": 94.64,
+          "cpuP95": 2.7,
+          "intervalP95": 17.6,
+          "uncoveredFrames": 0,
+          "labels": [
+            0,
+            3
+          ],
+          "triangles": 367986,
+          "maxCpuBytes": 118732633,
+          "maxGpuBytes": 109983344,
+          "maxEntries": 256
+        },
+        {
+          "name": "north",
+          "settled": true,
+          "fps": 84.67,
+          "cpuP95": 3.4,
+          "intervalP95": 17.7,
+          "uncoveredFrames": 0,
+          "labels": [
+            5,
+            6
+          ],
+          "triangles": 368016,
+          "maxCpuBytes": 118732633,
+          "maxGpuBytes": 109983344,
+          "maxEntries": 256
+        }
+      ]
+    },
+    "webgpu": {
+      "raw": "docs/evidence/streaming-rebuild/webgpu-2026-09-16T15-26-54-746Z.json",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "errors": [],
+      "scenarios": [
+        {
+          "name": "z0",
+          "settled": true,
+          "fps": 165.01,
+          "cpuP95": 3.8,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            14,
+            15
+          ],
+          "triangles": 368048,
+          "maxCpuBytes": 21796431,
+          "maxGpuBytes": 17951012,
+          "maxEntries": 29
+        },
+        {
+          "name": "z2",
+          "settled": true,
+          "fps": 170.01,
+          "cpuP95": 2.9,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            27,
+            30
+          ],
+          "triangles": 368114,
+          "maxCpuBytes": 21796431,
+          "maxGpuBytes": 17951012,
+          "maxEntries": 29
+        },
+        {
+          "name": "z4",
+          "settled": true,
+          "fps": 162.34,
+          "cpuP95": 6,
+          "intervalP95": 6.1,
+          "uncoveredFrames": 0,
+          "labels": [
+            62,
+            66
+          ],
+          "triangles": 127701,
+          "maxCpuBytes": 64275175,
+          "maxGpuBytes": 28468900,
+          "maxEntries": 86
+        },
+        {
+          "name": "z4.5",
+          "settled": true,
+          "fps": 159,
+          "cpuP95": 7.5,
+          "intervalP95": 11.7,
+          "uncoveredFrames": 0,
+          "labels": [
+            71,
+            76
+          ],
+          "triangles": 112236,
+          "maxCpuBytes": 67371442,
+          "maxGpuBytes": 32728680,
+          "maxEntries": 120
+        },
+        {
+          "name": "z5",
+          "settled": true,
+          "fps": 146.38,
+          "cpuP95": 9.6,
+          "intervalP95": 11.8,
+          "uncoveredFrames": 0,
+          "labels": [
+            76,
+            92
+          ],
+          "triangles": 82765,
+          "maxCpuBytes": 81241609,
+          "maxGpuBytes": 46360852,
+          "maxEntries": 221
+        },
+        {
+          "name": "z5.5",
+          "settled": true,
+          "fps": 169.0,
+          "cpuP95": 3.3,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            78,
+            95
+          ],
+          "triangles": 224572,
+          "maxCpuBytes": 79975399,
+          "maxGpuBytes": 48466380,
+          "maxEntries": 233
+        },
+        {
+          "name": "z6",
+          "settled": true,
+          "fps": 169.34,
+          "cpuP95": 3.4,
+          "intervalP95": 6.1,
+          "uncoveredFrames": 0,
+          "labels": [
+            71,
+            93
+          ],
+          "triangles": 107560,
+          "maxCpuBytes": 59002045,
+          "maxGpuBytes": 53205358,
+          "maxEntries": 243
+        },
+        {
+          "name": "z8",
+          "settled": true,
+          "fps": 169.34,
+          "cpuP95": 2.9,
+          "intervalP95": 6.1,
+          "uncoveredFrames": 0,
+          "labels": [
+            10,
+            21
+          ],
+          "triangles": 77013,
+          "maxCpuBytes": 83128010,
+          "maxGpuBytes": 57330902,
+          "maxEntries": 256
+        },
+        {
+          "name": "z10",
+          "settled": true,
+          "fps": 165.0,
+          "cpuP95": 3.8,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            47,
+            123
+          ],
+          "triangles": 127149,
+          "maxCpuBytes": 96503867,
+          "maxGpuBytes": 63248230,
+          "maxEntries": 256
+        },
+        {
+          "name": "z12",
+          "settled": true,
+          "fps": 162.02,
+          "cpuP95": 4.1,
+          "intervalP95": 6.1,
+          "uncoveredFrames": 0,
+          "labels": [
+            90,
+            233
+          ],
+          "triangles": 174033,
+          "maxCpuBytes": 115948087,
+          "maxGpuBytes": 73865370,
+          "maxEntries": 256
+        },
+        {
+          "name": "z13",
+          "settled": true,
+          "fps": 164.35,
+          "cpuP95": 5.7,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            164,
+            211
+          ],
+          "triangles": 78650,
+          "maxCpuBytes": 86622098,
+          "maxGpuBytes": 78475500,
+          "maxEntries": 255
+        },
+        {
+          "name": "z14",
+          "settled": true,
+          "fps": 168.67,
+          "cpuP95": 6.3,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            128,
+            182
+          ],
+          "triangles": 49053,
+          "maxCpuBytes": 102634526,
+          "maxGpuBytes": 94317308,
+          "maxEntries": 256
+        },
+        {
+          "name": "z15",
+          "settled": true,
+          "fps": 169.67,
+          "cpuP95": 4.4,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            111,
+            151
+          ],
+          "triangles": 23838,
+          "maxCpuBytes": 129469128,
+          "maxGpuBytes": 101505498,
+          "maxEntries": 256
+        },
+        {
+          "name": "z17",
+          "settled": true,
+          "fps": 170.01,
+          "cpuP95": 3.1,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            20,
+            34
+          ],
+          "triangles": 16399,
+          "maxCpuBytes": 135664315,
+          "maxGpuBytes": 98027908,
+          "maxEntries": 256
+        },
+        {
+          "name": "pitch60",
+          "settled": true,
+          "fps": 164.68,
+          "cpuP95": 5.4,
+          "intervalP95": 6.1,
+          "uncoveredFrames": 0,
+          "labels": [
+            66,
+            88
+          ],
+          "triangles": 165612,
+          "maxCpuBytes": 132510066,
+          "maxGpuBytes": 98440834,
+          "maxEntries": 256
+        },
+        {
+          "name": "pitch75",
+          "settled": true,
+          "fps": 170,
+          "cpuP95": 3,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            34,
+            44
+          ],
+          "triangles": 36648,
+          "maxCpuBytes": 104887386,
+          "maxGpuBytes": 96721472,
+          "maxEntries": 256
+        },
+        {
+          "name": "dateline",
+          "settled": true,
+          "fps": 169.34,
+          "cpuP95": 2.7,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            0,
+            3
+          ],
+          "triangles": 367986,
+          "maxCpuBytes": 117483686,
+          "maxGpuBytes": 109262980,
+          "maxEntries": 256
+        },
+        {
+          "name": "north",
+          "settled": true,
+          "fps": 168.68,
+          "cpuP95": 3,
+          "intervalP95": 6,
+          "uncoveredFrames": 0,
+          "labels": [
+            5,
+            6
+          ],
+          "triangles": 368016,
+          "maxCpuBytes": 117483686,
+          "maxGpuBytes": 109262980,
+          "maxEntries": 256
+        }
+      ]
+    }
+  },
+  "warmWebgl2": {
+    "raw": "docs/evidence/streaming-rebuild/webgpu-2026-09-16T15-31-33-074Z.json",
+    "fps": 120.99,
+    "cpuP95": 5,
+    "uncoveredFrames": 0
+  },
+  "uiInteraction": "docs/evidence/streaming-rebuild/webgpu-2026-09-16T15-32-25-384Z.json",
+  "cpuProfile": "docs/evidence/streaming-rebuild/webgpu-2026-09-16T15-29-12-886Z.json",
+  "sourceHashes": {
+    "apps/playground/src/main.ts": "b78c8b9a2b500ccf845d44741f14d28ce794c31560e4bf197714bd64a0e433ea",
+    "apps/playground/src/mapStyle.ts": "875ba8fde17020061ecbb0adc0f27211ab0d459b84b9d6b87cd338194a8e2b6d",
+    "packages/map3d/src/Map3D.ts": "188a7842b719f5f124486ac14485d69145456b13d8a3a026b4b7afdb53c8716b",
+    "packages/map3d/src/globe/globeView.ts": "578dfc5a7e9b3bd9ab3947b2d2bee1f5ff70b3c8591ae7180b74db6c637a3f9c",
+    "packages/map3d/src/labels/candidates.ts": "e870f67aaa7e403caa5b6dba99b50bd9d429dea59164d3a57f3c7aaa45877303",
+    "packages/map3d/src/labels/glyphAtlas.ts": "035f171505d9d389ff03c18c0874b8bb88bbe4714127bf3a56722e4561bd28b8",
+    "packages/map3d/src/labels/labelSurface.ts": "4942c4364bca18c81a375ae04489f92b12cf13b27f47d6ea27736b4d31659165",
+    "packages/map3d/src/labels/labelSystem.ts": "2924d0e69d4ff0ff0910e36f3105d74d4c0f89a045d8fc144256284782239916",
+    "packages/map3d/src/rendering/mapCamera.ts": "2421b681826997719d9e3ae4594acda50e5700438160e0538a8e547ec1e5594d",
+    "packages/map3d/src/streaming/engine.ts": "919c0b91416ec8abfca157203d918e510856e2e50d4122f671c6f2d0507cb523",
+    "packages/map3d/src/streaming/fillSurface.ts": "ecfeee6fda7e54f77d0a5b61308d53f7bad7c281494caeb10f52a3292530c470",
+    "packages/map3d/src/streaming/lineStyle.ts": "3596d54fa49b4856963852f35ba533a7ce24b9afa2d7fc43a143292f0702dfcc",
+    "packages/map3d/src/streaming/lineSurface.ts": "ca569f10f1e87a162ba705dce748ac96c52737104bb66d9bbb21fa3dda31c037",
+    "packages/map3d/src/streaming/lines.ts": "9ebd0d260b80f92b289df128a5bc7d23c8223dd29d859fcead143eca0519eca8",
+    "packages/map3d/src/streaming/paint.worker.ts": "987b61a54dc3852a74cda75e7a91be6300f8e87f80399a278cf165605ecbc825",
+    "packages/map3d/src/streaming/patchGeometry.ts": "bd81e91badd76aea581f1cbd9a86e7f7d46d0342019e8a021e8d8222f826d745",
+    "packages/map3d/src/streaming/pipeline.ts": "54eeed4babe1f20961ad0ee682c63daedec9a72b79201c846f3765dea1d0493b",
+    "packages/map3d/src/streaming/protocol.ts": "8a4180ddd41fd8d217abc6a0635fa191ed02511004e896662d7ab299ffd5b9ce",
+    "packages/map3d/src/streaming/surface.ts": "00dae468bc7762563e85042f69354bc815a79196a43bfb79a73db4b7868d5066",
+    "packages/map3d/src/streaming/surfaceBytes.ts": "ef7c42c1fdb244e46d74cdd7c6e39e91abb748d1877da6ada2993dadaa023f86",
+    "packages/map3d/src/streaming/tileSources.ts": "88c3998e53b64f93d433529f85b51c004560c7d3fbd041856cb426de6bd00ebe",
+    "packages/map3d/test/shaderCompilation.test.ts": "a0f7e043ae1f33f07f73b50ef5372d730118d9a78d2b5d11802d22adf1e8458f",
+    "packages/map3d/test/streamingLines.test.ts": "c5553e81b9fc6656fbca88c49524b4d2e80170a70ed1a13e74a8b523d621979d",
+    "packages/map3d/vite.worker.config.ts": "90bfdc527a6c673dab22bc9089a43b509a3af86e872627b25fe4d1f8465d8597",
+    "apps/playground/src/refinementBenchmark.ts": "f2d725fa63683b081cb2b5cb9e8d6bcf2b7367d53ce20450c983da93b4fe6855",
+    "packages/map3d/src/globe/cover.ts": "bb73ac1e88ee0cd28c7838894423b93e8a82924cbb3b7d80aee40dcf785c6b11",
+    "packages/map3d/src/globe/projection.ts": "9d522de6171ad8e26465796e59a60a9441cf884411063f448c3ce78fc2d73791",
+    "packages/map3d/src/globe/tessellation.ts": "21f289d39be78ea0b7049286686570fc8f32b8938ba2943844d9c49f4cf7d227",
+    "packages/map3d/src/streaming/lineChains.ts": "168bf220e6f74f8b26341c3f7764e36c64a42ad129efe6dbc8124b2e4de5be08",
+    "packages/map3d/src/streaming/lineJoins.ts": "046cef86350494409274d0d8d7527b6560e80c8d604626369b878e21a38c7f9d",
+    "packages/map3d/test/mapRefinement.test.ts": "80996b91fde468a4da45d1b1348649c49380e40ec75a26b01edc1d12fa4dcb75"
+  },
+  "visualReview": {
+    "reviewedScreenshots": 36,
+    "reviewer": "model",
+    "artifacts": [
+      "webgpu-contact.jpg",
+      "webgl2-contact.jpg"
+    ],
+    "humanAcceptance": "pending"
+  },
+  "browserDispose": {
+    "sceneChildren": 0,
+    "glyphs": 0,
+    "cpuBytes": 0,
+    "gpuBytes": 0,
+    "objects": 0,
+    "visibleTiles": 0
+  }
+}
