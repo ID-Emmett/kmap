@@ -12,7 +12,7 @@ export function tileDiagnostics(engine: StreamingEngine) {
   return {
     buildings: { batches: [...engine.surfaces.instances.values()].filter(i => i.buildings?.mesh.visible).length,
       features: [...engine.surfaces.instances.values()].reduce((sum, i) => sum + (i.buildings?.mesh.visible ? i.buildings.features : 0), 0) },
-    idle, phase: idle ? 'idle' : 'streaming', target: engine.selection.leaves.length, committed: resident,
+    idle, phase: idle ? 'idle' : 'stream', target: engine.selection.leaves.length, committed: resident,
     drawnLevels: Object.fromEntries([...new Set(engine.patches.map(p => p.source.z))].map(z => [z, new Set(engine.patches.filter(p => p.source.z === z).map(p => p.key)).size])),
     idealCount: engine.selection.ideal.length, budgetReduced: engine.selection.budgetReduced, patches: engine.patches.length,
     targetMissing: engine.targetMissing, uncoveredCells: engine.uncovered, displayZoomGap: engine.displayZoomGap, pendingDetailGap: engine.pendingDetailGap, coverageComplete: engine.uncovered === 0 && engine.selection.leaves.length > 0, levels,
