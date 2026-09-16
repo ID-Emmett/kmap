@@ -8,6 +8,7 @@ export type {
   LayerPropertyValue,
   LayerFilter,
   LineLayerOptions,
+  SymbolLayerOptions,
   LngLat,
   MapLayerOptions,
   MapError,

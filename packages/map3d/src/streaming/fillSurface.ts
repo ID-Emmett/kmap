@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, DoubleSide, EqualStencilFunc, KeepStencilOp, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
-import { Fn, attribute, max, positionLocal, uniform, vec4 } from 'three/tsl';
+import { Fn, attribute, max, positionLocal, uniform, varying, vec4 } from 'three/tsl';
 import type { FillData } from './fills.js';
 
 /** 原生矢量面在同一次绘制内完成三角形覆盖，样式可见范围按相机缩放求值。 */
@@ -15,7 +15,7 @@ export function createFillSurface(data: FillData) {
 }
 
 const viewZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.fillState.viewZoom.value);
-const style = attribute<'vec3'>('fillStyle', 'vec3');
+const style = varying(attribute<'vec3'>('fillStyle', 'vec3')).setInterpolation('flat');
 const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: DoubleSide,
   stencilWrite: true, stencilWriteMask: 0, stencilFunc: EqualStencilFunc, stencilZPass: KeepStencilOp });
 material.forceSinglePass = true; material.positionNode = positionLocal;

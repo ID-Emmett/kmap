@@ -1,0 +1,122 @@
+{
+  "date": "2026-09-16",
+  "status": "implementation-tested-browser-validation-pending",
+  "commands": [
+    {
+      "command": "pnpm check",
+      "result": "passed",
+      "sdkTests": 105,
+      "playgroundTests": 5,
+      "typecheck": "passed",
+      "sdkBuild": "passed",
+      "playgroundBuild": "passed"
+    },
+    {
+      "command": "pnpm ai:check",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @kmap/playground typecheck; pnpm --filter @kmap/playground test; pnpm --filter @kmap/playground build",
+      "result": "passed",
+      "scope": "final stability harness validation"
+    }
+  ],
+  "shaderEvidence": {
+    "backends": [
+      "webgpu",
+      "webgl2"
+    ],
+    "objects": [
+      "line",
+      "sdf-text",
+      "globe",
+      "atmosphere",
+      "stars"
+    ],
+    "scope": "TSL source generation; driver compilation and output pending",
+    "path": "docs/evidence/map-stability/shaders/"
+  },
+  "browser": {
+    "status": "not-executed",
+    "connectorError": "unsupported Codex auth method: apikey",
+    "computerUseError": "Could not determine the current browser URL on Windows with enough confidence to enforce policy; Computer Use stopped",
+    "webgpu": "http://127.0.0.1:6661/?capture=stability",
+    "webgl2": "http://127.0.0.1:6661/?renderer=webgl2&capture=stability",
+    "performanceComparison": "pending"
+  },
+  "fixtures": [
+    {
+      "file": "packages/map3d/test/fixtures/kye-ocean-z7-108-54.mvt",
+      "bytes": 30084,
+      "sha256": "d454f571850b2cccbf7a1a432f9e2c3b966a8ea3887ad470d58ef1e83ddf076d"
+    },
+    {
+      "file": "packages/map3d/test/fixtures/kye-glyph-19968-20223.pbf",
+      "bytes": 208806,
+      "sha256": "8a163cc28486d8a9650361ff2b95848787920d91866f9a3f9ddaa05a24c10c28"
+    },
+    {
+      "file": "packages/map3d/test/fixtures/kye-water-z6-54-27.mvt",
+      "bytes": 950,
+      "sha256": "211becb5dc9c2cddf410e31cc802db867c5cf01021730b08f546d26a01e8e2e3"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "file": "packages/map3d/src/Map3D.ts",
+      "sha256": "fd74cc3a0833abc39541521dc4da5c28b8c38bfe51a22eed90e68d80bfb8df17"
+    },
+    {
+      "file": "packages/map3d/src/streaming/lineSurface.ts",
+      "sha256": "ce163bc22f7b53f7e4332305a0731347736e49cfc0839ba3d02088de2d9438b5"
+    },
+    {
+      "file": "packages/map3d/src/streaming/pipeline.ts",
+      "sha256": "ad0396799834dff3cdb2adb770d04295da3276777d41a4487219e14842c8e30b"
+    },
+    {
+      "file": "apps/playground/src/stabilityBenchmark.ts",
+      "sha256": "20e318dd601ce8b7c6e41fb1a8830749bc5ee301c63560bdff597eaa890ff2a8"
+    },
+    {
+      "file": "packages/map3d/src/labels/candidates.ts",
+      "sha256": "d655f973970473e945455b883dcb3082a556169a94fb8ed7311f390080edaf5d"
+    },
+    {
+      "file": "packages/map3d/src/labels/collision.ts",
+      "sha256": "3274dc678d6dccbbc2771c774b774c9a08c88bd46dfd433ce3dcbea256d1395e"
+    },
+    {
+      "file": "packages/map3d/src/labels/glyphAtlas.ts",
+      "sha256": "5c51dd270bfbee5236fbd3b704c081d253bf61f621a4483fa7ab424eda2dfd58"
+    },
+    {
+      "file": "packages/map3d/src/labels/glyphs.ts",
+      "sha256": "30f1e340a8a459e0ca77a96fa7dcfcedb1b9688233bce26590de80adbcff1807"
+    },
+    {
+      "file": "packages/map3d/src/labels/labelSurface.ts",
+      "sha256": "4e4d028ee057d5266a9cc862ca0d461e56611dc47a1a17c0e8c970ddd614c6ed"
+    },
+    {
+      "file": "packages/map3d/src/labels/labelSystem.ts",
+      "sha256": "8603bb864a43915055ec81f713bba3053ec4ac1f4f954d16b435079ab8e2852b"
+    },
+    {
+      "file": "packages/map3d/src/globe/globe.worker.ts",
+      "sha256": "75e05cdeb7083ae2261314d43e47b20a7318d1df8e25ee694673f08b0d762aeb"
+    },
+    {
+      "file": "packages/map3d/src/globe/globeCamera.ts",
+      "sha256": "ee6cc16704d7ccb93fe23b98b219f310a0d7cf85dec03a9bdb8f9c4a736ac9d8"
+    },
+    {
+      "file": "packages/map3d/src/globe/globeView.ts",
+      "sha256": "b0c2f96b4835e565b613935f2b0c2ffe3427b592da2a4aa355c1e93c15f844ca"
+    }
+  ]
+}

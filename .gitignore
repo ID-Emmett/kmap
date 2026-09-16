@@ -19,6 +19,14 @@ docs/evidence/map-quality/*
 !docs/evidence/map-quality/references.json
 !docs/evidence/map-quality/road-width-measurements.json
 !docs/evidence/map-quality/verification-summary.json
+!docs/evidence/map-stability/
+docs/evidence/map-stability/*
+!docs/evidence/map-stability/README.md
+!docs/evidence/map-stability/source-audit.json
+!docs/evidence/map-stability/sea-holes-audit.json
+!docs/evidence/map-stability/label-data.json
+!docs/evidence/map-stability/references.json
+!docs/evidence/map-stability/verification-summary.json
 !docs/evidence/streaming-rebuild/
 docs/evidence/streaming-rebuild/*
 !docs/evidence/streaming-rebuild/oversized-roads-fix.md

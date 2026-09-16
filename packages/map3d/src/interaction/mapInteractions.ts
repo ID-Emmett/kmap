@@ -70,6 +70,8 @@ export interface InteractionFrameScheduler {
 }
 
 export interface MapInteractionControllerOptions {
+  /** 低缩放拖拽围绕地球中心旋转。 */
+  globe?: boolean;
   target: InteractionTarget;
   getView: () => ViewState;
   setView: (view: Partial<ViewState>) => void;
@@ -227,7 +229,7 @@ export class MapInteractionController {
     event.preventDefault();
     const view = this.#options.getView();
     const next = active.mode === 'pan'
-      ? panViewByPixels(view, this.#options.getViewport(), deltaX, deltaY)
+      ? panViewByPixels(view, this.#options.getViewport(), deltaX, deltaY, this.#options.globe)
       : rotateViewByPixels(view, deltaX, deltaY);
     const timeMs = getEventTime(pointer, this.#scheduler);
     recordPointerSample(

@@ -1,5 +1,5 @@
 import { Vector4, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
-import { Fn, Loop, attribute, uniformArray, float, max, normalWorld, positionLocal, uniform, vec3, vec4 } from 'three/tsl';
+import { Fn, Loop, attribute, uniformArray, float, max, normalWorld, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
 import type { BuildingData } from './buildings.js';
 import type { Address } from './address.js';
 
@@ -30,6 +30,7 @@ export function createBuildingSurface(data: BuildingData) {
 
 const viewZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.buildingState.viewZoom.value);
 const style = attribute<'vec3'>('buildingStyle', 'vec3');
+const zoomRange = varying(style.xy).setInterpolation('flat');
 const clips = uniformArray(Array.from({ length: 256 }, () => new Vector4()), 'vec4' as const).onObjectUpdate(frame => frame?.object?.userData.buildingState.clips);
 const clipCount = uniform(0, 'int').onObjectUpdate(({ object }) => object!.userData.buildingState.clipCount);
 // 底图透明队列先绘制；建筑在同一队列末尾以不透明 alpha 和深度写入合成。
@@ -38,7 +39,7 @@ material.forceSinglePass = true;
 material.positionNode = positionLocal;
 material.colorNode = Fn(() => {
   max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();
-  viewZoom.lessThan(style.x).or(viewZoom.greaterThanEqual(style.y)).discard();
+  viewZoom.lessThan(zoomRange.x).or(viewZoom.greaterThanEqual(zoomRange.y)).discard();
   const inside = float(0).toVar();
   Loop({ start: 0, end: clipCount, type: 'int' }, ({ i }) => {
     const rect = clips.element(i);

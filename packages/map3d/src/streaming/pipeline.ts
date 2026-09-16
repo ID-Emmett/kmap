@@ -11,9 +11,11 @@ import { lineBytes } from './lines.js';
 import { buildingBytes } from './buildings.js';
 import { fillBytes } from './fills.js';
 import { PATCH_RECTANGLE_BYTES } from './patchGeometry.js';
+import { OverlayCache } from './overlayCache.js';
 
 /** 网络、Worker 和上传分别准入，已解码数据可在 CPU 等待新的可见需求。 */
 export class TilePipeline {
+  readonly overlays = new OverlayCache();
   readonly workers = new PaintWorkers();
   readonly workerTime = new Samples(); readonly uploadTime = new Samples(); readonly httpTime = new Samples(); readonly requestTime = new Samples();
   httpStarts = 0;
@@ -64,17 +66,25 @@ export class TilePipeline {
       const requests = [{ url: requestUrl(entry.address, templates), enabled: true }, ...(this.options.source.overlays ?? []).map(source => ({
         url: requestUrl(overlayAddress(entry.address, source), source.tiles), enabled: entry.address.z >= source.minZoom,
       }))];
-      for (const request of requests) {
-        if (!request.enabled) { buffers.push(new ArrayBuffer(0)); continue; }
-        const httpStarted = performance.now(); this.httpStarts++;
-        const response = await fetch(request.url, { signal: controller.signal });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const part = response.status === 204 ? new ArrayBuffer(0) : await readTileBody(response, TILE_LIMITS.requestBytes - accumulated, bytes => {
-          const reserve = (accumulated + bytes) * 3;
-          if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
-          entry.reservedBytes = reserve;
-        });
-        this.httpTime.add(performance.now() - httpStarted);
+      for (const [index, request] of requests.entries()) {
+        if (!request.enabled || (index > 0 && this.options.source.overlays?.[index - 1]?.onlyWhenPrimaryEmpty && buffers[0]!.byteLength > 0)) { buffers.push(new ArrayBuffer(0)); continue; }
+        const read = async (signal: AbortSignal): Promise<ArrayBuffer> => {
+          const httpStarted = performance.now(); this.httpStarts++;
+          const response = await fetch(request.url, { signal });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const buffer = response.status === 204 ? new ArrayBuffer(0) : await readTileBody(response, index ? 2 * 1024 * 1024 : TILE_LIMITS.requestBytes, bytes => {
+            if (index) return;
+            const reserve = bytes * 3;
+            if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
+            entry.reservedBytes = reserve;
+          });
+          this.httpTime.add(performance.now() - httpStarted); return buffer;
+        };
+        const part = index ? await this.overlays.read(request.url, controller.signal, read) : await read(controller.signal);
+        if (accumulated + part.byteLength > TILE_LIMITS.requestBytes) throw new Error('MVT 组合响应超出预算。');
+        const reserve = (accumulated + part.byteLength) * 3;
+        if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
+        entry.reservedBytes = reserve;
         buffers.push(part); accumulated += part.byteLength;
       }
       const buffer = buffers.every(b => !b.byteLength) ? new ArrayBuffer(0) : buffers.length > 1 ? packTileSources(buffers) : buffers[0]!;
@@ -126,7 +136,7 @@ export class TilePipeline {
       if (count && (bytes + gpu > TILE_LIMITS.uploadBytes || performance.now() - start >= TILE_LIMITS.uploadMs)) break;
       if (!this.store.makeRoom(PATCH_RECTANGLE_BYTES + stateBytes, gpu, 0, entry.priority, entry.key)) continue;
       const time = performance.now();
-      const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills, result.buildings);
+      const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills, result.buildings, result.labels);
       this.renderer.initTexture(surface.map);
       entry.surface = surface; this.store.available.add(entry.key); delete entry.result; entry.state = 'ready'; entry.touched = now;
       this.uploadTime.add(performance.now() - time); this.requestTime.add(performance.now() - entry.startedAt); this.changed(); this.log('ready', entry.key);
@@ -144,7 +154,7 @@ export class TilePipeline {
       recoverable: entry.attempts < 3, tileKey: { sourceId: this.options.source.id, ...entry.address }, cause: error });
     if (entry.attempts < 3) { entry.state = 'queued'; this.retries++; }
   }
-  dispose(): void { this.disposed = true; this.workers.dispose(); for (const e of this.store.entries.values()) e.controller?.abort(); }
+  dispose(): void { this.disposed = true; this.workers.dispose(); this.overlays.dispose(); for (const e of this.store.entries.values()) e.controller?.abort(); }
 }
 
 /** 限制解压后的 MVT 响应体，流读取期间由条目预留上限预算。 */

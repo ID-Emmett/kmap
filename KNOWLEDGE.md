@@ -25,6 +25,8 @@
 
 ## 当前高信号事实
 
+- KYE 主源部分海面瓦片返回 204；专用海洋来源、中文 glyph PBF 和字段样本已验证。当前实现与浏览器验收边界见 `docs/evidence/map-stability/README.md`，文字方案见 `docs/research/map-label-system-2026-09-16.md`。
+
 - KYE 主瓦片是标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096；部分专用空瓦片返回 HTTP 204。
 - 当前 MVP 使用真实 KYE 主 MVT、Worker 矢量面、中心线实例与挤出建筑、Three.js TSL 视图线宽、StreamingEngine 和浅色 Playground。
 - 当前瓦片架构、数据响应与验证事实见 `docs/knowledge/streaming.md`。

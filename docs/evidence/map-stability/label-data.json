@@ -1,0 +1,121 @@
+{
+  "road": {
+    "features": 386,
+    "named": 129,
+    "fields": {
+      "brunnel": 386,
+      "level": 386,
+      "name": 129,
+      "subclass": 386,
+      "id": 386,
+      "class": 386,
+      "oneway": 385,
+      "layer": 385,
+      "name_en": 129,
+      "rwcolor": 1,
+      "service": 1
+    },
+    "examples": [
+      {
+        "brunnel": "",
+        "level": 15,
+        "name": "大宴乐胡同",
+        "subclass": "unclassified",
+        "id": "633002",
+        "class": "unclassified",
+        "oneway": 0,
+        "layer": 0,
+        "name_en": "Da Yan Le Hu Tong"
+      },
+      {
+        "brunnel": "",
+        "level": 9,
+        "name": "西长安街",
+        "subclass": "primary",
+        "id": "630253",
+        "class": "primary",
+        "oneway": -1,
+        "layer": 0,
+        "name_en": "Xi Chang An Jie"
+      },
+      {
+        "brunnel": "",
+        "level": 9,
+        "name": "西长安街",
+        "subclass": "primary",
+        "id": "32092787",
+        "class": "primary",
+        "oneway": -1,
+        "layer": 0,
+        "name_en": "Xi Chang An Jie"
+      },
+      {
+        "brunnel": "",
+        "level": 13,
+        "name": "后红井胡同",
+        "subclass": "tertiary",
+        "id": "15594653",
+        "class": "tertiary",
+        "oneway": 0,
+        "layer": 0,
+        "name_en": "Hou Hong Jing Hu Tong"
+      }
+    ]
+  },
+  "poi_label": {
+    "features": 17,
+    "named": 17,
+    "fields": {
+      "level": 17,
+      "osmId": 17,
+      "cityCode": 17,
+      "name": 17,
+      "subclass": 17,
+      "rank": 17,
+      "short_name": 17,
+      "class": 17
+    },
+    "examples": [
+      {
+        "level": 13,
+        "osmId": "50783537",
+        "cityCode": "1101",
+        "name": "北京一六一中高中部",
+        "subclass": "Middle",
+        "rank": 7,
+        "short_name": "北京一六一中高中部",
+        "class": "school"
+      },
+      {
+        "level": 12,
+        "osmId": "21117962",
+        "cityCode": "1101",
+        "name": "天安门西(地铁站)",
+        "subclass": "subway",
+        "rank": 519,
+        "short_name": "天安门西",
+        "class": "rail_metro"
+      },
+      {
+        "level": 15,
+        "osmId": "1347058",
+        "cityCode": "1101",
+        "name": "国家大剧院-停车场",
+        "subclass": "parking",
+        "rank": 519,
+        "short_name": "国家大剧院-停车场",
+        "class": "parking"
+      },
+      {
+        "level": 15,
+        "osmId": "507090504",
+        "cityCode": "1101",
+        "name": "皇苑艺术馆",
+        "subclass": "amenity",
+        "rank": 519,
+        "short_name": "皇苑艺术馆",
+        "class": "art_gallery"
+      }
+    ]
+  }
+}

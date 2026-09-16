@@ -16,6 +16,7 @@ import { MAX_SAFE_TILE_ZOOM } from '../spatial/validation.js';
 import { normalizeViewState } from '../spatial/viewState.js';
 import type { ViewportSize, ViewState } from '../types.js';
 import type { InteractionDisplacement } from './inertia.js';
+import { GLOBE_START } from '../globe/globeCamera.js';
 
 /** 按屏幕拖拽的地面射线差更新中心，支持 bearing/pitch。 */
 export function panViewByPixels(
@@ -23,9 +24,16 @@ export function panViewByPixels(
   viewport: ViewportSize,
   deltaX: number,
   deltaY: number,
+  globe = false,
 ): ViewState {
   const normalizedView = normalizeViewState(view);
   const normalizedViewport = normalizeViewport(viewport);
+  if (globe && normalizedView.zoom < GLOBE_START) {
+    const degrees = 180 / (Math.min(normalizedViewport.width, normalizedViewport.height) * .82 * 2 ** (normalizedView.zoom * .5));
+    const bearing = normalizedView.bearing * Math.PI / 180;
+    return normalizeViewState({ center: { lng: normalizedView.center.lng - (deltaX * Math.cos(bearing) + deltaY * Math.sin(bearing)) * degrees,
+      lat: normalizedView.center.lat + (deltaY * Math.cos(bearing) - deltaX * Math.sin(bearing)) * degrees } }, normalizedView);
+  }
   const originZoom = Math.min(
     MAX_SAFE_TILE_ZOOM,
     Math.floor(normalizedView.zoom),

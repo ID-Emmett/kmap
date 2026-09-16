@@ -47,6 +47,8 @@ const roads = [
 ];
 
 export const PLAYGROUND_LAYERS: readonly MapLayerOptions[] = [
+  { type: 'fill', id: 'ocean-base', sourceLayer: 'ocean_base', paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
+  { type: 'fill', id: 'ocean-fill', sourceLayer: 'ocean', minZoom: 7, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
   { type: 'fill', id: 'landuse-neutral', sourceLayer: 'landuse', minZoom: 5,
     filters: [{ operator: '!=', property: 'class', value: 'grass' }], paint: { color: PLAYGROUND_STYLE_TOKENS.landuseNeutral } },
   { type: 'fill', id: 'landuse-vegetation', sourceLayer: 'landuse', minZoom: 5,
@@ -85,6 +87,14 @@ export const PLAYGROUND_LAYERS: readonly MapLayerOptions[] = [
   { type: 'fill-extrusion', id: 'building-3d', sourceLayer: 'building', minZoom: 15.74,
     filters: [{ operator: '!=', property: 'type', value: 'building:part' }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.building, heightProperty: 'height', colorProperty: 'kind', categoryColors: BUILDING_CATEGORY_COLORS } },
+  { type: 'symbol', id: 'place-label', sourceLayer: 'place', minZoom: 0,
+    layout: { textFields: ['name', 'name_en'], textSize: 17, priority: 0 }, paint: { color: '#52606A', haloWidth: 1.5 } },
+  { type: 'symbol', id: 'poi-label', sourceLayer: 'poi_label', minZoom: 14,
+    layout: { textFields: ['short_name', 'name'], textSize: 13, priority: 100, minZoomProperty: 'level',
+      priorityByClass: { rail_metro: -70, airport: -80, hospital: -55, school: -20 } }, paint: { color: '#65716F', haloWidth: 1.2 } },
+  { type: 'symbol', id: 'road-label', sourceLayer: 'road', minZoom: 13,
+    filters: [{ operator: '!in', property: 'class', values: ['rail', 'light_rail', 'major_rail', 'minor_rail', 'service_rail', 'ferry'] }],
+    layout: { textFields: ['name', 'name_en'], textSize: 12, priority: 50, placement: 'line' }, paint: { color: '#817660', haloWidth: 1.2 } },
 ];
 
 export const PLAYGROUND_STYLE = Object.freeze({ backgroundColor: PLAYGROUND_STYLE_TOKENS.canvas, layers: PLAYGROUND_LAYERS });

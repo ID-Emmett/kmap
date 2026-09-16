@@ -6,6 +6,8 @@
 
 ## 当前结论
 
+- 2026-09-16 海洋补全、虚线稳定性、SDF 文字与低缩放地球实现进入验证，数据和自动测试证据见 `docs/evidence/map-stability/README.md`；当前双后端浏览器验收因自动化通道阻断而待执行。
+
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
 - 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、米制线宽、加载、缓存、帧提交和资源回收。
 - 当前画质支持 75° 强雾与统一目标层级、15.74 建筑门槛、kind 分类色、国省界和连续虚线；证据入口为 `docs/evidence/map-quality/README.md`。

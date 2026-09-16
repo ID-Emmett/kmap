@@ -28,10 +28,18 @@ export function decodeTileSources(buffer: ArrayBuffer, address: Address, sources
     const layer = next().layers[source.sourceLayer]; if (!layer) continue;
     const ancestor = overlayAddress(address, source), scale = 2 ** (address.z - ancestor.z);
     const dx = address.x - ancestor.x * scale, dy = address.y - ancestor.y * scale;
+    // 祖先面补充层只保留与子瓦片相交的 Feature；线保留缓冲段与累计长度。
+    const features: VectorTileFeature[] = [];
+    for (let i = 0; i < layer.length; i++) {
+      const feature = layer.feature(i); const [minX, minY, maxX, maxY] = feature.bbox() as [number, number, number, number];
+      const e = layer.extent;
+      if (scale > 1 && feature.type === 3 && (maxX * scale < dx * e || minX * scale > (dx + 1) * e || maxY * scale < dy * e || minY * scale > (dy + 1) * e)) continue;
+      features.push(feature);
+    }
     tile.layers[source.targetLayer] = {
-      extent: layer.extent, length: layer.length, version: layer.version, name: source.targetLayer,
+      extent: layer.extent, length: features.length, version: layer.version, name: source.targetLayer,
       feature: (index: number): VectorTileFeature => {
-        const feature = layer.feature(index);
+        const feature = Object.create(features[index]!) as VectorTileFeature;
         const geometry = feature.loadGeometry.bind(feature);
         feature.loadGeometry = () => geometry().map(ring => ring.map(p => { p.x = p.x * scale - dx * layer.extent; p.y = p.y * scale - dy * layer.extent; return p; }));
         return feature;

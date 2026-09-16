@@ -18,6 +18,8 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 
 ## 当前事实基线
 
+- 海洋补充源、flat 线样式、SDF 中文标签、屏幕碰撞与低缩放地球已完成源码和自动测试验证；双后端浏览器验收状态见 `docs/evidence/map-stability/README.md`。
+
 - TypeScript 7.0.2，strict，ESM。
 - pnpm workspace 负责 Monorepo 依赖和命令编排。
 - Vite 8.2.2 统一构建 SDK 与 Playground。
@@ -54,6 +56,7 @@ KYE Tile
 - Camera 平移、连续 Zoom、Bearing、Pitch 和可见 Tile Coverage。
 - XYZ 世界副本、请求去重、队列取消、204 祖先覆盖、有限重试和按字节约束的 LRU。
 - Polygon/Line/建筑挤出、属性过滤、kind 分类色、米制连续缩放线宽和虚线；建筑从 zoom 15.74 开始显示。
+- Symbol 点/道路文字、KYE SDF 字形、优先级/碰撞/跨瓦片去重，以及根瓦片驱动的完整地球与星空。
 - Worker 协议、transferable buffer/ImageBitmap 和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。
@@ -63,11 +66,11 @@ KYE Tile
 
 Non-Goals：
 
-- 文字/Glyph/Sprite、完整 Mapbox Style v8。
-- Terrain、Globe、Picking、Overlay 和业务 MVT/Geobuf。
+- Sprite、完整 Mapbox Style v8、曲线逐字排版和复杂文字 shaping。
+- Terrain、Picking、Overlay 和业务 MVT/Geobuf。
 - Raster、离线包、跨 Tile 合批和自动设备丢失恢复。
 
-文字名称相对原 MVP 被移出，避免在 Tile Runtime 证据形成前引入 shaping、atlas、碰撞和多语言 fallback。该范围变化由 D013 确认。
+文字当前契约与数据依据见 `docs/research/map-label-system-2026-09-16.md`。
 
 ## 公共 API 基线
 

@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://cdn.jsdelivr.net/gh/maplibre/maplibre-gl-js@v5.6.2/src/style/load_glyph_range.ts",
+    "status": 200,
+    "sha256": "3269c29ab75c4687cb80ec7c5f694229afea4e883210865504b68e5ae7d5a44c",
+    "bytes": 1034
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/gh/maplibre/maplibre-gl-js@v5.6.2/src/symbol/collision_index.ts",
+    "status": 200,
+    "sha256": "16bf6b333638ab1b574ec73705a3db61cd325e75dac86202b61522164184a1f2",
+    "bytes": 28106
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/gh/maplibre/maplibre-gl-js@v5.6.2/src/render/glyph_manager.ts",
+    "status": 200,
+    "sha256": "eaef7bc98697e5c1ce321de5f50a04694b7d8a608f0ba6fef87dbe7990e8bf19",
+    "bytes": 7557
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/gh/maplibre/maplibre-gl-js@v5.6.2/src/render/glyph_atlas.ts",
+    "status": 200,
+    "sha256": "e44e898e7250209e5b327aa04d38432760e65967a43fc479b924d741b43d2700",
+    "bytes": 2152
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/gh/maplibre/maplibre-gl-js@v5.6.2/src/symbol/placement.ts",
+    "status": 200,
+    "sha256": "a250d00e8e523ac25f56f10baa53f8f27d2662d5c44622e66a1506435e29687b",
+    "bytes": 61696
+  }
+]

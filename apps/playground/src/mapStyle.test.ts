@@ -38,8 +38,8 @@ describe('Playground light basemap style', () => {
     const landuse = tile.layers.landuse;
     expect(landuse).toBeDefined();
 
-    const vegetationFilter = PLAYGROUND_LAYERS[1]?.filters;
-    const neutralFilter = PLAYGROUND_LAYERS[0]?.filters;
+    const vegetationFilter = PLAYGROUND_LAYERS.find(layer => layer.id === 'landuse-vegetation')!.filters;
+    const neutralFilter = PLAYGROUND_LAYERS.find(layer => layer.id === 'landuse-neutral')!.filters;
     const vegetationCount = landuse?.features.filter((feature) =>
       matchesLayerFilters(feature.properties, vegetationFilter),
     ).length;

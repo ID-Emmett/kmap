@@ -1,0 +1,272 @@
+[
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/0/0/0.pbf",
+    "status": 200,
+    "bytes": 82169,
+    "layers": {
+      "landcover_0": {
+        "count": 6,
+        "examples": [
+          {
+            "class": "snow"
+          },
+          {
+            "class": "snow"
+          },
+          {
+            "class": "crop"
+          }
+        ]
+      },
+      "hillshade": {
+        "count": 6,
+        "examples": [
+          {
+            "class": "shadow",
+            "level": 89
+          },
+          {
+            "class": "shadow",
+            "level": 78
+          },
+          {
+            "class": "shadow",
+            "level": 67
+          }
+        ]
+      },
+      "water": {
+        "count": 24,
+        "examples": [
+          {
+            "class": "ocean"
+          },
+          {
+            "class": "ocean"
+          },
+          {
+            "class": "lake"
+          }
+        ]
+      },
+      "landcover": {
+        "count": 11,
+        "examples": [
+          {
+            "class": "ice",
+            "subclass": "glacier"
+          },
+          {
+            "class": "ice",
+            "subclass": "glacier"
+          },
+          {
+            "class": "ice",
+            "subclass": "glacier"
+          }
+        ]
+      },
+      "boundary": {
+        "count": 1458,
+        "examples": [
+          {
+            "admin_level": 2,
+            "disputed": 0,
+            "maritime": 0,
+            "ogc_fid": 501
+          },
+          {
+            "admin_level": 2,
+            "disputed": 0,
+            "maritime": 0,
+            "ogc_fid": 6000
+          },
+          {
+            "admin_level": 2,
+            "disputed": 0,
+            "maritime": 0,
+            "ogc_fid": 6000
+          }
+        ]
+      },
+      "place": {
+        "count": 5,
+        "examples": [
+          {
+            "class": "country",
+            "iso_a2": "CN",
+            "name": "中华人民共和国",
+            "rank": 1
+          },
+          {
+            "class": "sea",
+            "name": "南海",
+            "rank": 1
+          },
+          {
+            "class": "sea",
+            "name": "东海",
+            "rank": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/107/54.pbf",
+    "status": 200,
+    "bytes": 44728,
+    "layers": {
+      "landuse": {
+        "count": 66,
+        "examples": [
+          {
+            "area": "140135144.60",
+            "level": 7,
+            "osmId": "40000259049",
+            "subclass": "grassland",
+            "class": "grass"
+          },
+          {
+            "area": "141997835.54",
+            "level": 7,
+            "osmId": "40000258241",
+            "subclass": "grassland",
+            "class": "grass"
+          },
+          {
+            "area": "141903213.60",
+            "level": 7,
+            "osmId": "40000260796",
+            "subclass": "grassland",
+            "class": "grass"
+          }
+        ]
+      },
+      "water": {
+        "count": 843,
+        "examples": [
+          {
+            "area": 12440662.735807179,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 669963
+          },
+          {
+            "area": 144927652.1139282,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 669383
+          },
+          {
+            "area": 144820289.6519312,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 617232
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/9/430/219.pbf",
+    "status": 200,
+    "bytes": 3609,
+    "layers": {
+      "water": {
+        "count": 77,
+        "examples": [
+          {
+            "area": 142670841.61748096,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 621045
+          },
+          {
+            "area": 142573548.2769147,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 619421
+          },
+          {
+            "area": 142476347.0220421,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 618253
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/107/54.pbf",
+    "status": 200,
+    "bytes": 36493,
+    "layers": {
+      "water": {
+        "count": 891,
+        "examples": [
+          {
+            "level": 7,
+            "class": "ocean",
+            "waterId": 173837576
+          },
+          {
+            "level": 7,
+            "class": "ocean",
+            "waterId": 173838370
+          },
+          {
+            "level": 7,
+            "class": "ocean",
+            "waterId": 173835544
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water/0/0/0.pbf",
+    "status": 200,
+    "bytes": 9518,
+    "layers": {
+      "water": {
+        "count": 2,
+        "examples": [
+          {
+            "maxLevel": 1,
+            "level": 0,
+            "class": "ocean"
+          },
+          {
+            "maxLevel": 1,
+            "level": 0,
+            "class": "ocean"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water/6/53/27.pbf",
+    "status": 200,
+    "bytes": 4081,
+    "layers": {
+      "water": {
+        "count": 1,
+        "examples": [
+          {
+            "maxLevel": 6,
+            "level": 5,
+            "class": "ocean"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles.kye-erp.com/maptiles/fonts/Microsoft%20YaHei%20Regular/19968-20223.pbf",
+    "status": 200,
+    "bytes": 208806
+  }
+]

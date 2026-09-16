@@ -14,6 +14,9 @@ import { debugTiles } from './streaming/tileDebug.js';
 import { auditPixels } from './streaming/pixelAudit.js';
 import { tileDiagnostics } from './streaming/diagnostics.js';
 import { selectTiles } from './streaming/selection.js';
+import { LabelSystem } from './labels/labelSystem.js';
+import { GlobeView } from './globe/globeView.js';
+import { GLOBE_END, GLOBE_START } from './globe/globeCamera.js';
 import type { Map3DOptions, MapEventMap, MapRuntimeStats, RenderBackend, ViewportSize, ViewState } from './types.js';
 
 /** Three.js 地图容器：相机交互、WebGPU 帧循环与瓦片流式合成。 */
@@ -27,6 +30,8 @@ export class Map3D {
   private readonly cpu = new Samples(); private readonly interval = new Samples(); private readonly input = new Samples();
   private readonly background: Color;
   private engine: StreamingEngine | undefined;
+  private labels: LabelSystem | undefined;
+  private globe: GlobeView | undefined;
   private viewport = normalizeViewport({ width: 1, height: 1 });
   private origin: MapOrigin; private cameraFrame: MapCameraFrame;
   private initializePromise: Promise<void> | undefined;
@@ -43,7 +48,8 @@ export class Map3D {
     const view = this.getView(); this.origin = selectMapOrigin(view.center, Math.max(0, Math.floor(view.zoom)));
     this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin);
     this.viewStore.onChange(v => { this.changedAt = performance.now(); this.applyView(v); this.events.emit('viewchange', { view: v }); });
-    this.interactions = new MapInteractionController({ target: options.canvas, getView: () => this.getView(), setView: v => this.viewStore.set(v), getViewport: () => this.viewport });
+    this.interactions = new MapInteractionController({ target: options.canvas, globe: options.globe !== false && options.source.minZoom === 0,
+      getView: () => this.getView(), setView: v => this.viewStore.set(v), getViewport: () => this.viewport });
   }
   initialize(): Promise<void> {
     if (this.disposed) return Promise.reject(createMapDisposedError());
@@ -54,6 +60,7 @@ export class Map3D {
     if (this.disposed) throw createMapDisposedError();
     const surfaces = new TileSurfaces(this.scene, this.background);
     this.engine = new StreamingEngine(this.options, surfaces, this.renderer, `#${this.background.getHexString()}`, error => this.events.emit('error', error));
+    if (this.options.labels && this.options.layers.some(layer => layer.type === 'symbol')) this.labels = new LabelSystem(this.options.labels, this.scene);
     this.initialized = true; this.applyView(this.getView()); this.start();
     this.events.emit('load', { backend: this.getBackend() });
   }
@@ -97,8 +104,16 @@ export class Map3D {
     if (this.lastFrame) this.interval.add(this.frameMs); this.lastFrame = now;
     if (this.changedAt) { this.input.add(start - this.changedAt); this.changedAt = 0; }
     this.engine?.update(this.camera, this.cameraFrame, this.origin, this.getView(), this.viewport, start);
+    const view = this.getView(), globeActive = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
+    if (globeActive) { this.globe ??= new GlobeView(this.options); this.globe.update(view, this.viewport); }
+    else this.globe?.releaseTarget();
+    if (this.labels) {
+      if (globeActive && view.zoom <= GLOBE_START) this.labels.surface.mesh.visible = false;
+      else if (this.engine) { this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.viewport, this.engine.revision, start, this.engine.selection.fogEnd); this.labels.surface.mesh.visible = this.labels.surface.count > 0; }
+    }
     this.engineMs = performance.now() - start;
-    this.renderer.render(this.scene, this.camera);
+    if (globeActive) this.globe!.render(this.renderer, this.scene, this.camera, this.viewport);
+    else this.renderer.render(this.scene, this.camera);
     this.renderMs = performance.now() - start - this.engineMs;
     this.cpuMs = performance.now() - start; this.cpu.add(this.cpuMs); this.frameId++;
     for (const observer of this.frameObservers) observer();
@@ -125,6 +140,12 @@ export class Map3D {
       render: { drawCalls: info.render.drawCalls, triangles: info.render.triangles },
       memory: { geometries: info.memory.geometries, textures: info.memory.textures, total: this.engine?.gpuBytes ?? 0 },
       workers: this.engine?.workers.getStats(), sceneTiles: this.engine?.shown.size ?? 0,
+      labels: this.labels ? { candidates: this.labels.candidates, placed: this.labels.placed, glyphs: this.labels.atlas.glyphs.size, glyphErrors: this.labels.atlas.errors,
+        missingGlyphs: this.labels.atlas.missing, layoutMs: this.labels.layoutMs, layouts: this.labels.layouts, quads: this.labels.surface.count,
+        atlasBytes: this.labels.atlas.size ** 2, pendingRanges: this.labels.atlas.pending.size, cachedRanges: this.labels.atlas.pages.size } : undefined,
+      overlayCacheBytes: this.engine?.pipeline.overlays.bytes ?? 0,
+      globe: { active: this.options.globe !== false && this.options.source.minZoom === 0 && this.getView().zoom < GLOBE_END,
+        ready: this.globe?.ready ?? false, errors: this.globe?.errors ?? 0 },
       tiles: this.engine ? tileDiagnostics(this.engine) : undefined };
   }
   /** 观察已完成提交的实际渲染帧，调用者负责采样和存储。 */
@@ -149,7 +170,7 @@ export class Map3D {
   }
   dispose(): void {
     if (this.disposed) return; this.disposed = true; this.stop(); this.interactions.dispose(); this.viewStore.dispose();
-    this.engine?.dispose(); this.engine = undefined; this.renderer.dispose(); this.events.clear(); this.frameObservers.clear(); this.initialized = false;
+    this.globe?.dispose(); this.labels?.dispose(); this.engine?.dispose(); this.engine = undefined; this.renderer.dispose(); this.events.clear(); this.frameObservers.clear(); this.initialized = false;
   }
   private assertLive(): void { if (this.disposed) throw createMapDisposedError(); }
 }

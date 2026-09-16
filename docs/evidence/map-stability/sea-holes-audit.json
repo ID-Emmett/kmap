@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/108/54.pbf",
+    "status": 204,
+    "bytes": 0,
+    "layers": {}
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/107/55.pbf",
+    "status": 204,
+    "bytes": 0,
+    "layers": {}
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/107/56.pbf",
+    "status": 204,
+    "bytes": 0,
+    "layers": {}
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/106/56.pbf",
+    "status": 204,
+    "bytes": 0,
+    "layers": {}
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/108/54.pbf",
+    "status": 200,
+    "bytes": 30084,
+    "layers": {
+      "water": {
+        "count": 797,
+        "properties": {
+          "level": 7,
+          "class": "ocean",
+          "waterId": 170897173
+        }
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/107/55.pbf",
+    "status": 200,
+    "bytes": 31350,
+    "layers": {
+      "water": {
+        "count": 769,
+        "properties": {
+          "level": 7,
+          "class": "ocean",
+          "waterId": 170896525
+        }
+      }
+    }
+  }
+]

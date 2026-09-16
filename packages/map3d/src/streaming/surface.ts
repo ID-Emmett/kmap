@@ -12,8 +12,9 @@ import { createFillSurface } from './fillSurface.js';
 import { buildingBytes, type BuildingData } from './buildings.js';
 import { createBuildingSurface, createBuildingState, setBuildingClip } from './buildingSurface.js';
 import { createLineState, updateLineState } from './lineStyle.js';
+import { labelBytes, type LabelCandidate } from '../labels/candidates.js';
 
-interface DrawInstance { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; lines: undefined | ReturnType<typeof createLineSurface>; fills: undefined | ReturnType<typeof createFillSurface>; buildings: undefined | ReturnType<typeof createBuildingSurface>; address: Address; resource: Surface; primary: boolean }
+interface DrawInstance { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; lines: undefined | ReturnType<typeof createLineSurface>; fills: undefined | ReturnType<typeof createFillSurface>; buildings: undefined | ReturnType<typeof createBuildingSurface>; address: Address; cells: Address[]; resource: Surface; primary: boolean }
 /** 一个来源对应区域、面、线批次；部分区域背景绘制同时写入内容使用的 stencil 归属。 */
 export class TileSurfaces {
   readonly fogCenter = uniform(new Vector3()).setGroup(renderGroup);
@@ -31,7 +32,7 @@ export class TileSurfaces {
     this.fogColor = uniform(background).setGroup(renderGroup);
     scene.fogNode = fog(this.fogColor, smoothstep(this.fogStart, this.fogEnd, positionWorld.sub(this.fogCenter).length()));
   }
-  create(bitmap: ImageBitmap, address: Address, data?: LineData, fillData?: FillData, buildingData?: BuildingData) {
+  create(bitmap: ImageBitmap, address: Address, data?: LineData, fillData?: FillData, buildingData?: BuildingData, labels: LabelCandidate[] = []) {
     const map = new Texture(bitmap); map.colorSpace = SRGBColorSpace;
     map.flipY = false; map.generateMipmaps = true; map.anisotropy = 4; map.needsUpdate = true;
     const material = new MeshBasicNodeMaterial({ map, depthTest: false, depthWrite: false,
@@ -46,7 +47,7 @@ export class TileSurfaces {
     const buildings = buildingData?.indices.length ? createBuildingSurface(buildingData) : undefined;
     if (buildings) mesh.add(buildings.mesh);
     const stateBytes = surfaceStateBytes(data, buildingData);
-    const resource = { mesh, map, bitmap, lines, fills, buildings, stateBytes, bytes: Math.ceil(bitmap.width * bitmap.height * 4 * 4 / 3) + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes, cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes };
+    const resource = { mesh, map, bitmap, lines, fills, buildings, labels, stateBytes, bytes: Math.ceil(bitmap.width * bitmap.height * 4 * 4 / 3) + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes, cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes + labelBytes(labels) };
     this.resources.add(resource); return resource;
   }
   commit(patches: readonly CoverPatch[], resources: ReadonlyMap<string, { surface?: Surface }>, origin: MapOrigin): void {
@@ -86,10 +87,11 @@ export class TileSurfaces {
           const state = createLineState(resource.lines.data);
           lineMesh.userData.lineState = state; mesh.add(lineMesh); lines = { ...resource.lines, mesh: lineMesh, ...state };
         }
-        instance = { mesh, lines, fills, buildings, address: draw.address, resource, primary };
+        instance = { mesh, lines, fills, buildings, address: draw.address, cells: draw.cells, resource, primary };
         mesh.matrixAutoUpdate = false; mesh.frustumCulled = false; this.instances.set(id, instance); this.scene.add(mesh);
       }
       const stencilClip = clipped && (!!instance.lines || !!instance.fills);
+      instance.cells = draw.cells;
       if (stencilClip && ++stencil > 255) throw new Error('部分区域来源超过 stencil 容量。');
       instance.mesh.geometry.update(draw.address, draw.cells);
       instance.mesh.visible = true; instance.mesh.material.stencilRef = stencil; instance.mesh.material.stencilWrite = stencilClip;

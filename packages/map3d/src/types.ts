@@ -63,6 +63,8 @@ export interface TileOverlaySource {
   maxZoom: number;
   sourceLayer: string;
   targetLayer: string;
+  /** 主源为空时加载该来源，提供具有实际几何的背景覆盖。 */
+  onlyWhenPrimaryEmpty?: boolean;
 }
 
 /** MVP 图层属性过滤器。 */
@@ -126,7 +128,14 @@ export interface ExtrusionLayerOptions extends BaseLayerOptions {
   };
 }
 
-export type MapLayerOptions = FillLayerOptions | LineLayerOptions | ExtrusionLayerOptions;
+/** MVT 文字按数据优先级、跨瓦片去重和屏幕碰撞布局。 */
+export interface SymbolLayerOptions extends BaseLayerOptions {
+  type: 'symbol';
+  layout: { textFields?: readonly string[]; textSize?: number; priority?: number; rankProperty?: string; minZoomProperty?: string;
+    priorityByClass?: Readonly<Record<string, number>>; placement?: 'point' | 'line' };
+  paint: { color?: string | number; haloColor?: string | number; haloWidth?: number };
+}
+export type MapLayerOptions = FillLayerOptions | LineLayerOptions | ExtrusionLayerOptions | SymbolLayerOptions;
 
 /** SDK 结构化错误代码。 */
 export type MapErrorCode =
@@ -221,6 +230,10 @@ export interface Map3DOptions {
   source: VectorTileSourceOptions;
   /** 按顺序渲染的 fill/line 与建筑挤出图层。 */
   layers: readonly MapLayerOptions[];
+  /** 标准 SDF glyph PBF 资源；按需加载 256 字符的 range。 */
+  labels?: { glyphs: string; fontStack: string; maxLabels?: number };
+  /** minZoom=0 的源在低缩放显示地球；默认启用，4.5–5.5 级渐变衔接平面地图。 */
+  globe?: boolean;
   renderer?: {
     /** 是否强制使用 WebGL2 后端。 */
     forceWebGL?: boolean;
