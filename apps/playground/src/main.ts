@@ -27,6 +27,7 @@ async function bootstrap(): Promise<void> {
     },
     source: {
       id: 'kye-main',
+      overlays: [{ tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_admin_pro/{z}/{x}/{y}.pbf'], minZoom: 2, maxZoom: 14, sourceLayer: 'border', targetLayer: 'province_border' }],
       tiles: [
         'https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf',
         'https://tiles1.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf',
@@ -80,6 +81,10 @@ async function bootstrap(): Promise<void> {
   try {
     resize();
     await map.initialize();
+    if (new URLSearchParams(window.location.search).get('capture') === 'quality') {
+      const { runQualityBenchmark } = await import('./qualityBenchmark.js');
+      void runQualityBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });
+    }
     if (new URLSearchParams(window.location.search).get('capture') === 'pitch') {
       const { runPitchBenchmark } = await import('./pitchBenchmark.js');
       void runPitchBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });

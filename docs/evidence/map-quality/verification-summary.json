@@ -1,0 +1,355 @@
+{
+  "qualityEvidence": "docs\\evidence\\streaming-rebuild\\webgpu-2026-09-16T09-46-47-717Z.json",
+  "qualityPassed": true,
+  "browser": "Codex in-app Chromium, real WebGPU",
+  "viewport": {
+    "width": 2560,
+    "height": 1305,
+    "pixelRatio": 1
+  },
+  "consoleErrorsSinceFinalCode": 0,
+  "scenarios": [
+    {
+      "name": "z15-hidden",
+      "passed": true,
+      "cpuP95": 2.0999999940395355,
+      "fps": 169.28828384002256,
+      "targetLevels": {
+        "14": 37
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 0,
+        "features": 0
+      },
+      "gpuMiB": 24.715940475463867
+    },
+    {
+      "name": "z15.739-hidden",
+      "passed": true,
+      "cpuP95": 3.1999999955296516,
+      "fps": 169.30022573363436,
+      "targetLevels": {
+        "15": 59
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 0,
+        "features": 0
+      },
+      "gpuMiB": 99.75732231140137
+    },
+    {
+      "name": "z15.74-visible",
+      "passed": true,
+      "cpuP95": 2.899999998509884,
+      "fps": 167.91436367452607,
+      "targetLevels": {
+        "15": 59
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 59,
+        "features": 43441
+      },
+      "gpuMiB": 101.34652328491211
+    },
+    {
+      "name": "z16-buildings",
+      "passed": true,
+      "cpuP95": 4.899999998509884,
+      "fps": 168.5985247629083,
+      "targetLevels": {
+        "16": 108
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 108,
+        "features": 20368
+      },
+      "gpuMiB": 132.0388069152832
+    },
+    {
+      "name": "z16-pitch75",
+      "passed": true,
+      "cpuP95": 3.5,
+      "fps": 169.93556609785466,
+      "targetLevels": {
+        "16": 66
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 66,
+        "features": 11049
+      },
+      "gpuMiB": 134.0175018310547
+    },
+    {
+      "name": "z16-pitch75-bearing135",
+      "passed": true,
+      "cpuP95": 5,
+      "fps": 167.20078027030797,
+      "targetLevels": {
+        "16": 67
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 67,
+        "features": 11716
+      },
+      "gpuMiB": 136.94048690795898
+    },
+    {
+      "name": "z17-buildings",
+      "passed": true,
+      "cpuP95": 5.200000002980232,
+      "fps": 168.58668165214965,
+      "targetLevels": {
+        "17": 112
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 98,
+        "features": 3908
+      },
+      "gpuMiB": 88.34058380126953
+    },
+    {
+      "name": "z18-overzoom",
+      "passed": true,
+      "cpuP95": 3.1999999955296516,
+      "fps": 169.30022573363448,
+      "targetLevels": {
+        "17": 36
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 28,
+        "features": 341
+      },
+      "gpuMiB": 82.07848358154297
+    },
+    {
+      "name": "z14-roads",
+      "passed": true,
+      "cpuP95": 2.600000001490116,
+      "fps": 170.01983564749196,
+      "targetLevels": {
+        "14": 66
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 0,
+        "features": 0
+      },
+      "gpuMiB": 73.60785865783691
+    },
+    {
+      "name": "z16-roads",
+      "passed": true,
+      "cpuP95": 4.700000002980232,
+      "fps": 165.860400829302,
+      "targetLevels": {
+        "16": 72
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 72,
+        "features": 11250
+      },
+      "gpuMiB": 79.80720138549805
+    },
+    {
+      "name": "z18-roads",
+      "passed": true,
+      "cpuP95": 2.2000000029802322,
+      "fps": 170.007792023801,
+      "targetLevels": {
+        "17": 24
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 22,
+        "features": 539
+      },
+      "gpuMiB": 72.54428100585938
+    },
+    {
+      "name": "z5-country",
+      "passed": true,
+      "cpuP95": 3.100000001490116,
+      "fps": 168.5985247629083,
+      "targetLevels": {
+        "5": 66
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 0,
+        "features": 0
+      },
+      "gpuMiB": 67.14135360717773
+    },
+    {
+      "name": "z7-provinces",
+      "passed": true,
+      "cpuP95": 4.399999998509884,
+      "fps": 164.5300610132309,
+      "targetLevels": {
+        "7": 66
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 0,
+        "features": 0
+      },
+      "gpuMiB": 53.553470611572266
+    },
+    {
+      "name": "z9-pitch75",
+      "passed": true,
+      "cpuP95": 3.399999998509884,
+      "fps": 168.5985247629083,
+      "targetLevels": {
+        "9": 65
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 0,
+        "features": 0
+      },
+      "gpuMiB": 44.7143440246582
+    },
+    {
+      "name": "return-home",
+      "passed": true,
+      "cpuP95": 4.600000001490116,
+      "fps": 167.22408026755886,
+      "targetLevels": {
+        "15": 77
+      },
+      "uncovered": 0,
+      "targetMissing": 0,
+      "buildings": {
+        "batches": 0,
+        "features": 0
+      },
+      "gpuMiB": 110.32544136047363
+    }
+  ],
+  "continuousEvidence": "docs\\evidence\\streaming-rebuild\\webgpu-2026-09-16T09-45-12-798Z.json",
+  "continuous": {
+    "durationMs": 60013.29999999702,
+    "assertions": {
+      "webgpu": true,
+      "motionFrameP95": false,
+      "motionFrameP99": false,
+      "stable160fps": false,
+      "renderedEveryRaf": true,
+      "motionLongFrames": true,
+      "no100msMotionStall": true,
+      "finalCoverage": true,
+      "boundedRequests": true,
+      "boundedWorkers": true,
+      "entryBudget": true,
+      "cpuBudget": true,
+      "gpuBudget": true,
+      "motionCoverage": true,
+      "interactionCoverage": true,
+      "motionDetail": false,
+      "noExtremeOverzoom": true,
+      "cityArrivalsReady": true,
+      "noNetworkErrors": true,
+      "cacheRevisitHits": true,
+      "cacheRevisitNoFetch": true
+    },
+    "motionFrameP95": 6.5,
+    "motionFrameP99": 11.80000000000291,
+    "motionFrameMax": 25.5,
+    "minWindowFps": 120,
+    "motionDetailRatio": 0.8954081632653061
+  },
+  "sources": {
+    "packages/map3d/src/index.ts": "388db28d89e23b7bef96dd922bc4e1702ca77c7ebc563d1148e0392778a1e006",
+    "packages/map3d/src/Map3D.ts": "18d7634f43a1965f7ebebe81c0f9d32ae289d6620d4d2dc3f9c4dd275d62efeb",
+    "packages/map3d/src/types.ts": "0ca3a0abf6c6a8f0de1fecfd9a0607adfc30b1241ac37737262416685daee614",
+    "packages/map3d/src/interaction/eventHelpers.ts": "221060dcd4dca853aa6c24018a1b0a4980fc53bc79ea8dcfc9b0028ceed58a73",
+    "packages/map3d/src/interaction/inertia.ts": "34773bd6a9f6405334cd425da7a3da157b636a2d91b7ff9753f553cdf059a185",
+    "packages/map3d/src/interaction/mapInteractions.ts": "e872197ffc22743518ac5310998684c22ec75db8e167174ef8e4245be693c08e",
+    "packages/map3d/src/interaction/motionSnapshot.ts": "b31a7d3d74badc2b9f8c62f45c992e581a09ecb711f067a4f6629f4aff28c9d4",
+    "packages/map3d/src/interaction/pointerVelocity.ts": "a6d83785af68e0a4d3badaa315186c2e51a4e77b5cffcbd9b66f42a639855304",
+    "packages/map3d/src/interaction/viewTransforms.ts": "9a5c154b68971d3c1ccbf149c5e6a672a54e37c9fb99fd154aced21480a5368e",
+    "packages/map3d/src/rendering/mapCamera.ts": "e50bb06c549474c9c15cada19d70503d96453b9317225612825c8239d99ed927",
+    "packages/map3d/src/rendering/viewport.ts": "1114f40bde2833f0d33b900b112eb75cd5e34162ff849a0bad3c07d86d07d525",
+    "packages/map3d/src/runtime/errors.ts": "c2d6b9f86d47ee326053a7c509e9af43791dbdafb11f2bcb613183948ebd1a65",
+    "packages/map3d/src/runtime/events.ts": "5cb8ea849f34bf8fdba72fc24c977f0619b8b3b899a0c72e6e11993cd392f58c",
+    "packages/map3d/src/runtime/viewStateStore.ts": "2a1ea3881b68eeca1a1d93fd67d2d390680a3bd2431c247f31b19023c8ca74c3",
+    "packages/map3d/src/spatial/mapOrigin.ts": "4fa7e99923fb2c77dda9d63d7978a8fcecd52ef2d7f238a105bcd06d2f21a947",
+    "packages/map3d/src/spatial/mercator.ts": "b446ad72200a89b7fb2df2b828ca3a99ac10027ae7df332c2e16d4b06282a0b2",
+    "packages/map3d/src/spatial/types.ts": "af1b2ce0f82906b485d636aa0e84cc0cb89c849ce2fa35f5a13a959f60308ee2",
+    "packages/map3d/src/spatial/validation.ts": "c5595f25c750d893ce5624c7f7c036a897b5f97465d06ceca462fbbadd5d6e5a",
+    "packages/map3d/src/spatial/viewState.ts": "3099d1a4b136d66c5183c0cd1f5153598d4e49638e21a20fb96262770a119990",
+    "packages/map3d/src/streaming/address.ts": "afd02ddc514fd37fb1a7109c2cb8d1790b05b94f9af0863565106740f66a7be8",
+    "packages/map3d/src/streaming/availability.ts": "d65ed9f5b6144047cafc1864f7bbb5536928a63968f498ef1d0f231cb376376a",
+    "packages/map3d/src/streaming/buildings.ts": "4d5bd588af11659b6e5693b02969b269d1bdb0f58a6b840a983b71fe5182a4b1",
+    "packages/map3d/src/streaming/buildingSurface.ts": "f7797484cc259b74c9451373f1b5810aa90ae278216e815aabc6cd374c9537e2",
+    "packages/map3d/src/streaming/coverage.ts": "d6ede61075ba9b8fb88e779d5ad1f0e9c253de1e97ade1b5d883a752a5ffe2a2",
+    "packages/map3d/src/streaming/coveringTiles.ts": "a1128af25d0bdba9cc616e5d14631f66cc5d285eec3b43da23fa154559900e81",
+    "packages/map3d/src/streaming/diagnostics.ts": "72f457e4a3188e6db272fdd48a57372e3fef23b9802f25828b3a90a7981f5d74",
+    "packages/map3d/src/streaming/engine.ts": "b525457ef77df12743ed1a2aafd8339b555836f55d02307603e168a2ca2c58e8",
+    "packages/map3d/src/streaming/fallbackDemand.ts": "1da8d1023541b84c9370ce6ed927e5a7b7b1fcb8593f5cbb92b885695a86e35a",
+    "packages/map3d/src/streaming/fills.ts": "c1fb4ac3e898c6e3f1bba09c9e25a5a55a296e25d55c3e29d21e76a8d1a51317",
+    "packages/map3d/src/streaming/fillSample.ts": "c31795c5f1b9f8ba30c28585f8a78541940b3d38e5d2c132f15d34a849344f82",
+    "packages/map3d/src/streaming/fillSurface.ts": "d7477dec3c6b5700bc5a1920b8f71388fab0867c73eb1af2ca1d0993e0b9a2c8",
+    "packages/map3d/src/streaming/fog.ts": "4c364b05abbcdbdd7725dfbd791bc77b407c16eb9b2f238a120793b67bdb9af5",
+    "packages/map3d/src/streaming/groundVisibility.ts": "2ea98a3418aeb125c6d4cc379a96b691014ba7c7040ae480f8fe76206d60dd75",
+    "packages/map3d/src/streaming/limits.ts": "08c9d1f2f602d3abfd3af287378c08d9b241de51d8e6e045a188ed2f743c4876",
+    "packages/map3d/src/streaming/lines.ts": "d162fede4a33140e4af6b965cd88d074d78904f064e443dc0569884798b78e0b",
+    "packages/map3d/src/streaming/lineStyle.ts": "9645748cb9229c30ff91c9fa61fad5220248cde012bb3c00038ce487dde1b887",
+    "packages/map3d/src/streaming/lineSurface.ts": "b91b0f791c4c12dd39b73324b1e219f1221490125a1ccaa8413b2bfadf43298e",
+    "packages/map3d/src/streaming/paint.ts": "bc1ef13c35a32ae151ae1b6c0e4ab87804f752b2c8bf4de5339f9f1a23145f39",
+    "packages/map3d/src/streaming/paint.worker.ts": "e3c360dd778afe7076e2137d7f0cd57192139f5d069d27f2cfadbb0ff90f05a3",
+    "packages/map3d/src/streaming/patchGeometry.ts": "2037431648225b76c85784007d31dde037dcbfebd2374017acf74084bef06a2f",
+    "packages/map3d/src/streaming/pipeline.ts": "2b12743b51232b76e9b2c6e58f2165a5f56003a1b5ea4dc032094593ff7cca22",
+    "packages/map3d/src/streaming/pixelAudit.ts": "37f3520e635e01707ab88ccae558ca85292f7426ed100cd82d4ed5e7be88dbf0",
+    "packages/map3d/src/streaming/protocol.ts": "60d27a40804b378a48637a8715957eba70f84e3fffe1f615be3834cc842d7eb9",
+    "packages/map3d/src/streaming/renderCover.ts": "03072f5ddd11abfab166469b64d8d9dc29ff93ade65d9e019ff4088c1c9a20cd",
+    "packages/map3d/src/streaming/samples.ts": "d82759de0abec186fd720982bb7b9ee193579da466b3eb3756deb2620f6ba827",
+    "packages/map3d/src/streaming/selection.ts": "507be0cd2594ce2c39aad9c1aa3a54c341a96994deebebb926a7ff35cc087e2c",
+    "packages/map3d/src/streaming/surface.ts": "0815128033125ea87962bccc3fa17bf34f931e5eea8287fb54917a5b9aa017ab",
+    "packages/map3d/src/streaming/surfaceBytes.ts": "a727aa7006a0459e52043a701abb9050a027e8bc152d090552f8377e2b808c47",
+    "packages/map3d/src/streaming/tileDebug.ts": "0fa6de5fffaa98138d11f90d3e85d4acc4866f16b55e754e930726d7f73286c3",
+    "packages/map3d/src/streaming/tileSources.ts": "28b28614b13c9ee3fc42636ef8396267fcfeb748e4161190ecec9457e77d3cb1",
+    "packages/map3d/src/streaming/tileStore.ts": "61f5a0724981485823b73e26c91ab97b1c80481eabc29a3566d18037d38cf615",
+    "packages/map3d/src/streaming/workers.ts": "00ac1eb3909a1138fac7acfdbd74dae1c250ecdd5e8df6089f3200fae1404bf4",
+    "packages/map3d/src/nova-tile/coverage/groundFootprint.ts": "f1533552aa21031808a03fda1f03b736f9f3e3ea684aa5aa1a8f16762ff328c3",
+    "packages/map3d/src/nova-tile/coverage/index.ts": "4d04f1fd52d8425634362b0394a2c74ddf8a465ed23b7ce6f7c4d97ef0e450d9",
+    "apps/playground/src/browserBenchmark.ts": "9f05a8859658fa90c6c046a7f5e1b8a1073baf96f1697dc20457f1d11a95c89e",
+    "apps/playground/src/cityFlight.ts": "2f8a017854d57aabd3bd40f4a224c0fc5aa47b955ec8455850dd41b94b24510c",
+    "apps/playground/src/diagnosticsPanel.ts": "36f09e3fd40f0522024dfda64e4a48c4b10e7d1c4db7bf8d186a1b2649f00c39",
+    "apps/playground/src/frameAcceptance.ts": "164381996e96abc638824a1d9229c5712bd15918f4bc861ef0ae460a454bf797",
+    "apps/playground/src/gestureCapture.ts": "62191ad29601ecf569171e24d605747b37027bfb0ca074f74cb6490910b1f604",
+    "apps/playground/src/main.ts": "a944fc009c65b4694585f77fd6eb961d6ee309e735ec07c57a75ad03a3d93b65",
+    "apps/playground/src/mapStyle.ts": "832831faad7cd0737975fcd29503c5bbcded308d8e7595d7561cf67e303294ed",
+    "apps/playground/src/pitchBenchmark.ts": "c6384b2f28aeb58fbc99bfc88606f48d4a4d8273811e7569703cfc4acf93097a",
+    "apps/playground/src/qualityBenchmark.ts": "a27141753df99d355428f666da7937c11151f05a1c42a21f222a456838204a9d",
+    "apps/playground/src/rafBaseline.ts": "97dca475ffe3aee1da7f4c6a8a1efb99dff6105810f396cc37a611e14cbd3502",
+    "apps/playground/src/rapidBenchmark.ts": "37a7a04d7a371d3f3e7797159e9335f570874a13109f61f37a016fa273f523da",
+    "apps/playground/src/recording.ts": "2de005c0915e0e5e5149db591e91af5c598296bbaffdbbd955853d39bfc3e15d",
+    "apps/playground/src/seaBenchmark.ts": "a92a3d027d9163813c1d9669edc18a77871b30e977156308434f9861839d4b83",
+    "apps/playground/src/tileOverlay.ts": "6c18a8ff3fcf2876eb9d82ec4d74ec676ace3f51a8993fa61526a73068cede7c"
+  }
+}

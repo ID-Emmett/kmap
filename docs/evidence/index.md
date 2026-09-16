@@ -11,6 +11,10 @@
 - 大型 trace、截图和脚本不默认读取；只在 Task Context Packet 或人工问题明确要求时读取。
 - 新 evidence 文件应使用 `Txxx-*` 前缀，并在本索引追加一行摘要。
 
+## 当前画质证据
+
+[2026-09-16 五项画质验证](map-quality/README.md)：75° 强雾与同级目标、合批建筑和 15.74 门槛、kind 分类色、国省界与虚线、米制道路。真实 WebGPU 15 场景矩阵通过；60 秒连续交互的覆盖和预算通过，恒定 160fps 与运动细节比例的实测限制随原始证据记录。
+
 ## 任务证据索引
 
 公开地图引擎的固定版本覆盖、局部 LOD、雾、加载队列和缓存核验见 [2026-09-16 研究](../research/industry-tile-streaming-2026-09-16.md)。MapLibre、Mapbox、OpenLayers、Cesium、3DTilesRendererJS、3D Tiles 规范源码及论文作者页面的 URL/版本/SHA256 位于 `industry-tile-research-2026-09-15/`；该证据范围为资料核验。

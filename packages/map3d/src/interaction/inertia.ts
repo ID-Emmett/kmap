@@ -1,3 +1,4 @@
+import { MAX_MAP_PITCH } from '../spatial/viewState.js';
 import type { ViewState } from '../types.js';
 import {
   WEB_MERCATOR_WORLD_SIZE,
@@ -135,7 +136,7 @@ export function stopClampedVelocity(
       : velocity.panY;
   const pitch =
     (after.pitch === 0 && displacement.pitch < 0) ||
-    (after.pitch === 60 && displacement.pitch > 0)
+    (after.pitch === MAX_MAP_PITCH && displacement.pitch > 0)
       ? 0
       : velocity.pitch;
 

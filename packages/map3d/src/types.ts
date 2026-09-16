@@ -46,6 +46,8 @@ export interface VectorTileSourceOptions {
   minZoom: number;
   /** 数据源真实存在的最大整数层级。 */
   maxZoom: number;
+  /** 随主瓦片加载的补充矢量层；超出原生层级时重投影祖先几何。 */
+  overlays?: readonly TileOverlaySource[];
   /** 可选 WGS84 范围。 */
   bounds?: readonly [
     west: number,
@@ -53,6 +55,14 @@ export interface VectorTileSourceOptions {
     east: number,
     north: number,
   ];
+}
+
+export interface TileOverlaySource {
+  tiles: readonly string[];
+  minZoom: number;
+  maxZoom: number;
+  sourceLayer: string;
+  targetLayer: string;
 }
 
 /** MVP 图层属性过滤器。 */
@@ -87,17 +97,36 @@ export interface FillLayerOptions extends BaseLayerOptions {
   };
 }
 
-/** Line 图层；宽度单位为 CSS pixel。 */
+/** 地图平面线图层，支持米制宽度与连续缩放函数。 */
 export interface LineLayerOptions extends BaseLayerOptions {
   type: 'line';
   paint: {
     color: string | number;
     opacity?: number;
     width?: number;
+    /** 默认米制；pixel 用于兼容显式像素样式。 */
+    widthUnit?: 'meters' | 'pixels';
+    /** 米制宽度随 zoom 作指数插值；省略时使用固定 width。 */
+    widthStops?: readonly (readonly [zoom: number, width: number])[];
+    widthBase?: number;
+    /** 交替实线/空白长度，单位为当前线宽；支持 2 或 4 项。 */
+    dashArray?: readonly number[];
   };
 }
 
-export type MapLayerOptions = FillLayerOptions | LineLayerOptions;
+/** 瓦片内合批建筑挤出，源高度单位为真实米。 */
+export interface ExtrusionLayerOptions extends BaseLayerOptions {
+  type: 'fill-extrusion';
+  paint: {
+    color: string | number;
+    heightProperty?: string;
+    minHeightProperty?: string;
+    colorProperty?: string;
+    categoryColors?: Readonly<Record<string, string | number>>;
+  };
+}
+
+export type MapLayerOptions = FillLayerOptions | LineLayerOptions | ExtrusionLayerOptions;
 
 /** SDK 结构化错误代码。 */
 export type MapErrorCode =
@@ -190,7 +219,7 @@ export interface Map3DOptions {
   canvas: HTMLCanvasElement;
   /** 当前实例使用的单个 MVT Source。 */
   source: VectorTileSourceOptions;
-  /** 按顺序渲染的 fill/line 图层。 */
+  /** 按顺序渲染的 fill/line 与建筑挤出图层。 */
   layers: readonly MapLayerOptions[];
   renderer?: {
     /** 是否强制使用 WebGL2 后端。 */

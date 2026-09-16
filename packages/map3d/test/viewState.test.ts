@@ -20,7 +20,7 @@ describe('ViewState', () => {
       center: { lng: 540, lat: WEB_MERCATOR_MAX_LATITUDE },
       zoom: 0,
       bearing: 270,
-      pitch: 60,
+      pitch: 75,
     });
   });
 

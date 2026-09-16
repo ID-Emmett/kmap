@@ -23,111 +23,68 @@ export const MAJOR_ROAD_CLASSES = Object.freeze([
 ] as const);
 const LOCAL_ROAD_CLASSES = ['service', 'unclassified', 'pedestrian', 'path', 'footway', 'steps', 'track'] as const;
 
-/** 官方 Playground 的无文字浅色矢量底图图层配方。 */
-export const PLAYGROUND_LAYERS = [
-  {
-    type: 'fill',
-    id: 'landuse-neutral',
-    sourceLayer: 'landuse',
-    minZoom: 5,
-    filters: [{ operator: '!=', property: 'class', value: 'grass' }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.landuseNeutral },
-  },
-  {
-    type: 'fill',
-    id: 'landuse-vegetation',
-    sourceLayer: 'landuse',
-    minZoom: 5,
-    filters: [{ operator: '==', property: 'class', value: 'grass' }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.vegetation },
-  },
-  {
-    type: 'fill',
-    id: 'water-fill',
-    sourceLayer: 'water',
-    minZoom: 0,
-    paint: { color: PLAYGROUND_STYLE_TOKENS.water },
-  },
-  {
-    type: 'line',
-    id: 'waterway-line',
-    sourceLayer: 'waterway',
-    minZoom: 5,
-    paint: { color: PLAYGROUND_STYLE_TOKENS.waterway, opacity: 0.9, width: 2 },
-  },
-  {
-    type: 'fill',
-    id: 'building-fill',
-    sourceLayer: 'building',
-    minZoom: 15,
-    filters: [{ operator: 'has', property: 'buildingId' }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.building },
-  },
-  {
-    type: 'line',
-    id: 'road-casing',
-    sourceLayer: 'road',
-    minZoom: 9,
-    filters: [{ operator: '!in', property: 'class', values: [...MAJOR_ROAD_CLASSES, ...LOCAL_ROAD_CLASSES] }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.roadCasing, width: 4.5 },
-  },
-  {
-    type: 'line',
-    id: 'road-fill',
-    sourceLayer: 'road',
-    minZoom: 9,
-    filters: [{ operator: '!in', property: 'class', values: [...MAJOR_ROAD_CLASSES, ...LOCAL_ROAD_CLASSES] }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.roadFill, width: 2.5 },
-  },
-  {
-    type: 'line',
-    id: 'major-road-casing',
-    sourceLayer: 'road',
-    minZoom: 9,
-    filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadCasing, width: 7 },
-  },
-  {
-    type: 'line',
-    id: 'major-road-fill',
-    sourceLayer: 'road',
-    minZoom: 9,
-    filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadFill, width: 4.5 },
-  },
-  ...(['casing', 'fill'] as const).map(part => ({
-    type: 'line' as const, id: `local-road-${part}`, sourceLayer: 'road', minZoom: 15,
-    filters: [{ operator: 'in' as const, property: 'class', values: LOCAL_ROAD_CLASSES }],
-    paint: { color: part === 'casing' ? PLAYGROUND_STYLE_TOKENS.roadCasing : PLAYGROUND_STYLE_TOKENS.roadFill,
-      width: part === 'casing' ? 4.5 : 2.5 },
-  })),
-  ...(['casing', 'fill'] as const).map(part => ({
-    type: 'line' as const, id: `overview-road-${part}`, sourceLayer: 'road', minZoom: 5, maxZoom: 8,
-    filters: [{ operator: 'in' as const, property: 'class', values: MAJOR_ROAD_CLASSES }],
-    paint: { color: part === 'casing' ? PLAYGROUND_STYLE_TOKENS.majorRoadCasing : PLAYGROUND_STYLE_TOKENS.majorRoadFill,
-      width: part === 'casing' ? 5 : 3 },
-  })),
-  {
-    type: 'line',
-    id: 'transportation-casing',
-    sourceLayer: 'transportation',
-    minZoom: 5,
-    maxZoom: 8,
-    filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadCasing, width: 5 },
-  },
-  {
-    type: 'line',
-    id: 'transportation-fill',
-    sourceLayer: 'transportation',
-    minZoom: 5,
-    maxZoom: 8,
-    filters: [{ operator: 'in', property: 'class', values: MAJOR_ROAD_CLASSES }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS.majorRoadFill, width: 3 },
-  },
-] as const satisfies readonly MapLayerOptions[];
-
-export const PLAYGROUND_STYLE = Object.freeze({
-  backgroundColor: PLAYGROUND_STYLE_TOKENS.canvas,
-  layers: PLAYGROUND_LAYERS,
+/** 米制线宽 stop 控制概览制图概化，街区级保留真实地图平面宽度。 */
+const roadWidth = (meters: number, casing = false) => ({
+  widthUnit: 'meters' as const, widthBase: .5,
+  widthStops: [[5, (casing ? 1.3 : 1) * 1800], [10, (casing ? 1.3 : 1) * 180], [15, meters + (casing ? 2 : 0)], [20, meters + (casing ? 2 : 0)]] as const,
 });
+
+/** kind 原始代码颜色表；类别业务名称由上游数据字典定义。 */
+export const BUILDING_CATEGORY_COLORS = {
+  '1002': '#D5DFEB', '1102': '#E1E3E5', '1102_osm': '#E1E3E5',
+  '1202': '#DECFC2', '1204': '#DAD1C2', '1403': '#CEDCCE', '1506': '#CDD9E5',
+  '1601': '#D8D2E2', '2001': '#C7DCD8', '3002': '#DBD7CD', '4002': '#D0D9E5',
+  '6002': '#D6DCCB', '7001': '#E4D4CD', '9002': '#DADDE1', '9004': '#D5DDE0',
+} as const;
+
+const ordinary = ['secondary', 'secondary_link', 'tertiary', 'tertiary_link', 'street', 'street_limited', 'primary_link', 'trunk_link', 'motorway_link'];
+const roads = [
+  { id: 'local-road', classes: LOCAL_ROAD_CLASSES, width: 5, minZoom: 15 },
+  { id: 'road', classes: ordinary, width: 9, minZoom: 10 },
+  { id: 'major-road', classes: ['primary'], width: 14, minZoom: 9 },
+  { id: 'trunk-road', classes: ['trunk'], width: 20, minZoom: 7 },
+  { id: 'motorway-road', classes: ['motorway'], width: 26, minZoom: 5 },
+];
+
+export const PLAYGROUND_LAYERS: readonly MapLayerOptions[] = [
+  { type: 'fill', id: 'landuse-neutral', sourceLayer: 'landuse', minZoom: 5,
+    filters: [{ operator: '!=', property: 'class', value: 'grass' }], paint: { color: PLAYGROUND_STYLE_TOKENS.landuseNeutral } },
+  { type: 'fill', id: 'landuse-vegetation', sourceLayer: 'landuse', minZoom: 5,
+    filters: [{ operator: '==', property: 'class', value: 'grass' }], paint: { color: PLAYGROUND_STYLE_TOKENS.vegetation } },
+  { type: 'fill', id: 'water-fill', sourceLayer: 'water', minZoom: 0, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
+  { type: 'line', id: 'waterway-line', sourceLayer: 'waterway', minZoom: 5,
+    paint: { color: PLAYGROUND_STYLE_TOKENS.waterway, ...roadWidth(5) } },
+  ...(['casing', 'fill'] as const).flatMap(part => roads.map(road => ({
+    type: 'line' as const, id: `${road.id}-${part}`, sourceLayer: 'road', minZoom: road.minZoom,
+    filters: [{ operator: 'in' as const, property: 'class', values: road.classes }, { operator: '!=' as const, property: 'brunnel', value: 'tunnel' }],
+    paint: { color: road.width >= 14 ? PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'majorRoadCasing' : 'majorRoadFill']
+      : PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'roadCasing' : 'roadFill'], ...roadWidth(road.width, part === 'casing') },
+  }))),
+  ...(['casing', 'fill'] as const).map(part => ({ type: 'line' as const, id: `transportation-${part}`, sourceLayer: 'transportation', minZoom: 5, maxZoom: 8,
+    filters: [{ operator: 'in' as const, property: 'class', values: MAJOR_ROAD_CLASSES }],
+    paint: { color: PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'majorRoadCasing' : 'majorRoadFill'], ...roadWidth(20, part === 'casing') } })),
+  { type: 'line', id: 'tunnel', sourceLayer: 'road', minZoom: 10, filters: [{ operator: '==', property: 'brunnel', value: 'tunnel' }],
+    paint: { color: '#D8C9A2', ...roadWidth(10), dashArray: [2, 1] } },
+  { type: 'line', id: 'ferry', sourceLayer: 'road', minZoom: 9, filters: [{ operator: '==', property: 'class', value: 'ferry' }],
+    paint: { color: '#7AACC4', ...roadWidth(2), dashArray: [2, 3] } },
+  { type: 'line', id: 'rail-border', sourceLayer: 'road', minZoom: 9,
+    filters: [{ operator: 'in', property: 'class', values: ['rail', 'light_rail', 'major_rail', 'minor_rail', 'service_rail'] }],
+    paint: { color: '#A6ADB5', ...roadWidth(4) } },
+  { type: 'line', id: 'rail-dash', sourceLayer: 'road', minZoom: 9,
+    filters: [{ operator: 'in', property: 'class', values: ['rail', 'light_rail', 'major_rail', 'minor_rail', 'service_rail'] }],
+    paint: { color: '#FFFFFF', ...roadWidth(2), dashArray: [4, 6] } },
+  { type: 'line', id: 'boundary-country', sourceLayer: 'boundary',
+    filters: [{ operator: '==', property: 'admin_level', value: 2 }, { operator: '!in', property: 'ogc_fid', values: [5000, 6000] }],
+    paint: { color: '#C6959C', widthBase: .5, widthStops: [[3, 19000], [8, 1100], [14, 12], [20, 12]], dashArray: [6, 2] } },
+  { type: 'line', id: 'boundary-china', sourceLayer: 'boundary',
+    filters: [{ operator: 'in', property: 'ogc_fid', values: [500, 501] }],
+    paint: { color: '#CC8992', widthBase: .5, widthStops: [[3, 25000], [8, 1800], [14, 16], [20, 16]] } },
+  { type: 'line', id: 'province-boundary', sourceLayer: 'province_border', minZoom: 3,
+    filters: [{ operator: 'in', property: 'level', values: ['1', 1] }],
+    paint: { color: '#A7A0AE', widthBase: .5, widthStops: [[3, 10000], [8, 800], [14, 8], [20, 8]], dashArray: [2, 2, 6, 2] } },
+  { type: 'fill-extrusion', id: 'building-3d', sourceLayer: 'building', minZoom: 15.74,
+    filters: [{ operator: '!=', property: 'type', value: 'building:part' }],
+    paint: { color: PLAYGROUND_STYLE_TOKENS.building, heightProperty: 'height', colorProperty: 'kind', categoryColors: BUILDING_CATEGORY_COLORS } },
+];
+
+export const PLAYGROUND_STYLE = Object.freeze({ backgroundColor: PLAYGROUND_STYLE_TOKENS.canvas, layers: PLAYGROUND_LAYERS });

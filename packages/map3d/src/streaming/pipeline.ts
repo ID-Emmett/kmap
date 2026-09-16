@@ -1,11 +1,14 @@
+import { surfaceStateBytes } from './surfaceBytes.js';
 import type { WebGPURenderer } from 'three/webgpu';
 import type { Map3DOptions, MapError } from '../types.js';
+import { overlayAddress, packTileSources } from './tileSources.js';
 import { requestUrl } from './address.js';
 import { PaintWorkers } from './workers.js';
 import { Samples } from './samples.js';
 import { TILE_LIMITS } from './limits.js';
 import { resultBytes, TileStore, type TileEntry } from './tileStore.js';
 import { lineBytes } from './lines.js';
+import { buildingBytes } from './buildings.js';
 import { fillBytes } from './fills.js';
 import { PATCH_RECTANGLE_BYTES } from './patchGeometry.js';
 
@@ -13,6 +16,7 @@ import { PATCH_RECTANGLE_BYTES } from './patchGeometry.js';
 export class TilePipeline {
   readonly workers = new PaintWorkers();
   readonly workerTime = new Samples(); readonly uploadTime = new Samples(); readonly httpTime = new Samples(); readonly requestTime = new Samples();
+  httpStarts = 0;
   starts = 0; cancels = 0; queueCancels = 0; retries = 0; errors = 0; bytes = 0; active = 0; discardedBytes = 0;
   disposed = false; private dispatch = 0; private buildDispatch = 0; private uploadDispatch = 0;
   predictionUrgentUntil = 0;
@@ -51,19 +55,30 @@ export class TilePipeline {
   private async fetch(entry: TileEntry): Promise<void> {
     entry.startedAt = performance.now();
     entry.state = 'fetching'; entry.attempts++; entry.controller = new AbortController();
-    const controller = entry.controller; const started = performance.now(); this.active++; this.starts++; this.log('fetch', entry.key);
+    const controller = entry.controller; this.active++; this.starts++; this.log('fetch', entry.key);
     const timeout = setTimeout(() => controller.abort('timeout'), 8000);
     try {
       const templates = [...this.options.source.tiles];
       if (entry.attempts > 1) templates.push(...templates.splice(0, (entry.attempts - 1) % templates.length));
-      const response = await fetch(requestUrl(entry.address, templates), { signal: controller.signal });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const buffer = response.status === 204 ? new ArrayBuffer(0) : await readTileBody(response, TILE_LIMITS.requestBytes, bytes => {
-        const reserve = bytes * 2;
-        if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
-        entry.reservedBytes = reserve;
-      });
-      this.httpTime.add(performance.now() - started); this.bytes += buffer.byteLength;
+      const buffers: ArrayBuffer[] = []; let accumulated = 0;
+      const requests = [{ url: requestUrl(entry.address, templates), enabled: true }, ...(this.options.source.overlays ?? []).map(source => ({
+        url: requestUrl(overlayAddress(entry.address, source), source.tiles), enabled: entry.address.z >= source.minZoom,
+      }))];
+      for (const request of requests) {
+        if (!request.enabled) { buffers.push(new ArrayBuffer(0)); continue; }
+        const httpStarted = performance.now(); this.httpStarts++;
+        const response = await fetch(request.url, { signal: controller.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const part = response.status === 204 ? new ArrayBuffer(0) : await readTileBody(response, TILE_LIMITS.requestBytes - accumulated, bytes => {
+          const reserve = (accumulated + bytes) * 3;
+          if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
+          entry.reservedBytes = reserve;
+        });
+        this.httpTime.add(performance.now() - httpStarted);
+        buffers.push(part); accumulated += part.byteLength;
+      }
+      const buffer = buffers.every(b => !b.byteLength) ? new ArrayBuffer(0) : buffers.length > 1 ? packTileSources(buffers) : buffers[0]!;
+      this.bytes += buffer.byteLength;
       if (!this.alive(entry)) return;
       entry.reservedBytes = 0;
       if (!buffer.byteLength) { entry.empty = true; entry.state = 'ready'; this.changed(); this.log('empty', entry.key); return; }
@@ -85,7 +100,7 @@ export class TilePipeline {
     entry.reservedBytes = reservation;
     const buffer = entry.buffer!; delete entry.buffer; entry.state = 'painting';
     try {
-      const result = await this.workers.run({ address: entry.address, buffer, layers: this.options.layers, background: this.background });
+      const result = await this.workers.run({ address: entry.address, buffer, layers: this.options.layers, background: this.background, overlays: this.options.source.overlays ?? [] });
       if (!this.alive(entry)) { result.bitmap?.close(); return; }
       if (!Number.isFinite(entry.priority)) {
         this.discardedBytes += resultBytes(result); result.bitmap?.close(); this.store.release(entry); this.log('discard-build', entry.key); return;
@@ -106,11 +121,12 @@ export class TilePipeline {
     if (preferred > 0) queue.unshift(queue.splice(preferred, 1)[0]!);
     for (const entry of queue) {
       const result = entry.result; if (!result?.bitmap) continue;
-      const gpu = Math.ceil(result.bitmap.width * result.bitmap.height * 4 * 4 / 3) + lineBytes(result.lines) + fillBytes(result.fills) + PATCH_RECTANGLE_BYTES;
+      const stateBytes = surfaceStateBytes(result.lines, result.buildings);
+      const gpu = Math.ceil(result.bitmap.width * result.bitmap.height * 4 * 4 / 3) + lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + PATCH_RECTANGLE_BYTES + stateBytes;
       if (count && (bytes + gpu > TILE_LIMITS.uploadBytes || performance.now() - start >= TILE_LIMITS.uploadMs)) break;
-      if (!this.store.makeRoom(PATCH_RECTANGLE_BYTES, gpu, 0, entry.priority, entry.key)) continue;
+      if (!this.store.makeRoom(PATCH_RECTANGLE_BYTES + stateBytes, gpu, 0, entry.priority, entry.key)) continue;
       const time = performance.now();
-      const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills);
+      const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills, result.buildings);
       this.renderer.initTexture(surface.map);
       entry.surface = surface; this.store.available.add(entry.key); delete entry.result; entry.state = 'ready'; entry.touched = now;
       this.uploadTime.add(performance.now() - time); this.requestTime.add(performance.now() - entry.startedAt); this.changed(); this.log('ready', entry.key);

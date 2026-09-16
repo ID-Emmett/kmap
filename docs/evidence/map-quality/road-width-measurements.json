@@ -1,0 +1,27 @@
+{
+  "qualityEvidence": "docs\\evidence\\streaming-rebuild\\webgpu-2026-09-16T09-46-47-717Z.json",
+  "method": "Same center longitude, ChangAn road crossing; native Canvas JPEG yellow mask, six of nine columns, zoom-scaled row tracking",
+  "values": [
+    {
+      "scenario": "z14-roads",
+      "column": 1280,
+      "startRow": 618,
+      "endRow": 623,
+      "roadFillPixels": 6
+    },
+    {
+      "scenario": "z16-roads",
+      "column": 1280,
+      "startRow": 519,
+      "endRow": 527,
+      "roadFillPixels": 9
+    },
+    {
+      "scenario": "z18-roads",
+      "column": 1280,
+      "startRow": 119,
+      "endRow": 153,
+      "roadFillPixels": 35
+    }
+  ]
+}

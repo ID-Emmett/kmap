@@ -12,6 +12,13 @@ Thumbs.db
 !.vscode/settings.json
 docs/evidence/*
 !docs/evidence/index.md
+!docs/evidence/map-quality/
+docs/evidence/map-quality/*
+!docs/evidence/map-quality/README.md
+!docs/evidence/map-quality/data-audit.json
+!docs/evidence/map-quality/references.json
+!docs/evidence/map-quality/road-width-measurements.json
+!docs/evidence/map-quality/verification-summary.json
 !docs/evidence/streaming-rebuild/
 docs/evidence/streaming-rebuild/*
 !docs/evidence/streaming-rebuild/oversized-roads-fix.md

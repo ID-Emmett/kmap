@@ -23,7 +23,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     <section><h2>瓦片与加载</h2><dl id="tile-metrics"></dl></section>
     <section><h2>缓存与资源</h2><dl id="cache-metrics"></dl></section>
     <section><h2>相机与覆盖</h2><dl id="camera-metrics"></dl></section>
-    <section><h2>复现与采样</h2><div class="controls"><button data-view="home">初始视图</button><button data-view="out">缩小一级</button><button data-view="in">放大一级</button><button data-view="rotate">旋转 45°</button>${[0, 20, 40, 60].map((pitch) => `<button data-pitch="${pitch}">倾角 ${pitch}°</button>`).join('')}</div>
+    <section><h2>复现与采样</h2><div class="controls"><button data-view="home">初始视图</button><button data-view="out">缩小一级</button><button data-view="in">放大一级</button><button data-view="rotate">旋转 45°</button>${[0, 20, 40, 60, 75].map((pitch) => `<button data-pitch="${pitch}">倾角 ${pitch}°</button>`).join('')}</div>
     <div class="controls"><button id="city-flight">城市飞行：北京 → 上海 → 北京</button><button id="fly-guangzhou">飞往广州</button><button id="gesture-capture">记录手势 30 秒</button></div>
     <div class="controls"><button id="raf-baseline">浏览器刷新基线（5秒）</button><button id="fps-benchmark">运行帧率对照（60秒）</button><button id="benchmark">运行 60 秒验收</button><button id="rapid-capture">首屏与快速交互验收</button><button id="tile-labels" aria-pressed="false">显示瓦片编号</button><button id="export">导出诊断 JSON</button></div><p id="benchmark-status" role="status">拖动平移 · 滚轮缩放 · 右键拖动旋转和倾斜</p></section>
     <footer>CPU 帧耗时为主线程工作时间；FPS 来自实际帧间隔。缓存命中统计瓦片进入可见集或请求集合时的就绪数据复用；内存数值为瓦片估算与渲染器登记值。</footer></div>`;

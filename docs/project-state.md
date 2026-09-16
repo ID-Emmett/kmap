@@ -7,7 +7,8 @@
 ## 当前结论
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
-- 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 面纹理与中心线实例、视图线宽、加载、缓存、帧提交和资源回收。
+- 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、米制线宽、加载、缓存、帧提交和资源回收。
+- 当前画质支持 75° 强雾与统一目标层级、15.74 建筑门槛、kind 分类色、国省界和连续虚线；证据入口为 `docs/evidence/map-quality/README.md`。
 - T046 状态为 IN_PROGRESS，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - 浏览器入口为 `http://127.0.0.1:6661/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。
 - 当前 2560×1305 WebGPU 160 fps、连续覆盖和视觉验收正在执行；实测范围与证据见 `docs/knowledge/streaming.md`。

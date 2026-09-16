@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
-import type { MapLayerOptions } from '@kmap/map3d';
 
 import { matches as matchesLayerFilters, decodeVectorTile } from '../../../packages/map3d/src/streaming/paint.js';
 import {
@@ -21,55 +20,17 @@ function decodeMvt(buffer: Uint8Array) {
 }
 
 describe('Playground light basemap style', () => {
-  it('uses the approved light token palette and semantic layer order', () => {
-    expect(PLAYGROUND_STYLE_TOKENS).toMatchObject({
-      canvas: '#F5F5F2',
-      water: '#A9D7E8',
-      landuseNeutral: '#ECEDEB',
-      vegetation: '#DCEBD7',
-      building: '#E1E3E5',
-      roadCasing: '#D4D7DA',
-      roadFill: '#FFFFFF',
-      majorRoadCasing: '#E1C875',
-      majorRoadFill: '#F8E7AE',
-    });
-    expect(PLAYGROUND_LAYERS.map((layer) => layer.id)).toEqual([
-      'landuse-neutral',
-      'landuse-vegetation',
-      'water-fill',
-      'waterway-line',
-      'building-fill',
-      'road-casing',
-      'road-fill',
-      'major-road-casing',
-      'major-road-fill',
-      'local-road-casing',
-      'local-road-fill',
-      'overview-road-casing',
-      'overview-road-fill',
-      'transportation-casing',
-      'transportation-fill',
-    ]);
-    expect(PLAYGROUND_LAYERS[0]).toMatchObject({
-      minZoom: 5,
-      filters: [{ operator: '!=', property: 'class', value: 'grass' }],
-    });
-    expect(PLAYGROUND_LAYERS[1]).toMatchObject({
-      minZoom: 5,
-      filters: [{ operator: '==', property: 'class', value: 'grass' }],
-    });
-    expect(PLAYGROUND_LAYERS[2]?.minZoom).toBe(0);
-    expect(PLAYGROUND_LAYERS.find(l => l.id === 'transportation-casing')).toMatchObject({ minZoom: 5, maxZoom: 8 });
-  });
-
-  it('概览的 road 与 transportation 使用相同缩放范围和线宽，细路从同一相机层级启用', () => {
-    const layers = PLAYGROUND_LAYERS as readonly MapLayerOptions[];
-    for (const part of ['casing', 'fill']) {
-      const road = layers.find(l => l.id === `overview-road-${part}`)!;
-      const transport = layers.find(l => l.id === `transportation-${part}`)!;
-      expect(road.paint).toEqual(transport.paint);
-      expect([road.minZoom, road.maxZoom]).toEqual([transport.minZoom, transport.maxZoom]);
-      expect(layers.find(l => l.id === `local-road-${part}`)!.minZoom).toBe(15);
+  it('道路按真实类别分层，建筑具有精确可见门槛和分类色', () => {
+    const building = PLAYGROUND_LAYERS.find(l => l.type === 'fill-extrusion')!;
+    expect(building).toMatchObject({ sourceLayer: 'building', minZoom: 15.74, paint: { colorProperty: 'kind', heightProperty: 'height' } });
+    for (const layer of PLAYGROUND_LAYERS) if (layer.type === 'line') {
+      expect(layer.paint.widthUnit ?? 'meters').toBe('meters');
+      expect(layer.paint.widthStops?.length).toBeGreaterThan(1);
+    }
+    expect(PLAYGROUND_STYLE_TOKENS.canvas).toBe('#F5F5F2');
+    for (const id of ['province-boundary', 'rail-dash', 'tunnel', 'ferry']) {
+      const layer = PLAYGROUND_LAYERS.find(l => l.id === id)!;
+      expect(layer.type === 'line' && layer.paint.dashArray?.length).toBeGreaterThanOrEqual(2);
     }
   });
   it('keeps vegetation and neutral landuse categories separate on the fixed fixture', () => {
@@ -98,26 +59,13 @@ describe('Playground light basemap style', () => {
     ).toBe(true);
   });
 
-  it('keeps major and ordinary road filters as a complete fixture partition', () => {
+  it('真实样本道路由一个道路或轨道填色规则覆盖', () => {
     const tile = decodeMvt(readFileSync(FIXTURE_URL));
-    const road = tile.layers.road;
-    expect(road).toBeDefined();
-
-    const majorFilter = PLAYGROUND_LAYERS[7]?.filters;
-    const ordinaryFilter = PLAYGROUND_LAYERS[5]?.filters;
-    const majorCount = road?.features.filter((feature) =>
-      matchesLayerFilters(feature.properties, majorFilter),
-    ).length;
-    const ordinaryCount = road?.features.filter((feature) =>
-      matchesLayerFilters(feature.properties, ordinaryFilter),
-    ).length;
-    const localFilter = (PLAYGROUND_LAYERS.find(l => l.id === 'local-road-casing') as MapLayerOptions).filters;
-    const localCount = road?.features.filter(feature => matchesLayerFilters(feature.properties, localFilter)).length;
-
+    const layers = PLAYGROUND_LAYERS.filter(l => l.type === 'line' && l.sourceLayer === 'road' && (l.id.endsWith('-fill') || ['rail-border', 'tunnel', 'ferry'].includes(l.id)));
     expect(MAJOR_ROAD_CLASSES).toEqual(['motorway', 'trunk', 'primary']);
-    expect(majorCount).toBeGreaterThan(0);
-    expect(ordinaryCount).toBeGreaterThan(0);
-    expect(localCount).toBeGreaterThan(0);
-    expect((majorCount ?? 0) + (ordinaryCount ?? 0) + (localCount ?? 0)).toBe(road?.features.length);
+    for (const feature of tile.layers.road!.features) {
+      const matching = layers.filter(l => matchesLayerFilters(feature.properties, l.filters));
+      expect(matching.map(l => l.id), JSON.stringify(feature.properties)).toHaveLength(1);
+    }
   });
 });

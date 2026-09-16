@@ -36,7 +36,7 @@ describe('Map interactions', () => {
     expect(panned.center.lng).toBeLessThan(view.center.lng);
     expect(panned.center.lat).toBeGreaterThan(view.center.lat);
     expect(rotated.bearing).toBe(100);
-    expect(rotated.pitch).toBe(60);
+    expect(rotated.pitch).toBe(75);
     expect(zoomed.zoom).toBe(5.5);
   });
 
@@ -111,7 +111,7 @@ describe('Map interactions', () => {
 
     expect(final.bearing).toBeGreaterThan(released.bearing);
     expect(final.pitch).toBeGreaterThan(released.pitch);
-    expect(final.pitch).toBeLessThanOrEqual(60);
+    expect(final.pitch).toBeLessThanOrEqual(75);
     expect(scheduler.pendingCount()).toBe(0);
   });
 
@@ -196,7 +196,7 @@ describe('Map interactions', () => {
     scheduler.setNow(80);
     scheduler.step(16);
 
-    expect(getView().pitch).toBe(60);
+    expect(getView().pitch).toBe(75);
     expect(scheduler.pendingCount()).toBe(0);
   });
 

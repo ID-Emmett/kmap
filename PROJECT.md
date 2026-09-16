@@ -14,7 +14,7 @@ Kmap 以现有 Kyemap JSAPI 和 KYE 数据研究为事实输入，建设独立�
 
 T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯通，T011-T015 已完成视觉与连续体验阻断项修复并经人工接受。
 
-当前生产地图由 `StreamingEngine` 驱动，模块位于 `packages/map3d/src/streaming/`。系统使用真实 XYZ MVT、Worker 面纹理与线段实例、Three.js WebGPU 合成、有界调度、LOD、父子覆盖和缓存回收。当前连续浏览器验证入口为 `docs/evidence/streaming-rebuild/`。
+当前生产地图由 `StreamingEngine` 驱动，模块位于 `packages/map3d/src/streaming/`。系统使用真实 XYZ MVT、Worker 矢量面、线段实例与合批建筑、Three.js WebGPU 合成、有界调度、LOD、父子覆盖和缓存回收。当前连续浏览器验证入口为 `docs/evidence/streaming-rebuild/`。
 
 ## 当前事实基线
 
@@ -25,10 +25,10 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 - `WebGPURenderer` 默认 WebGPU，自动 WebGL2 fallback，可通过 `forceWebGL` 验证回退路径。
 - Playground 使用 Three.js Inspector；SDK 不依赖 Playground 或 Inspector。
 - 主 KYE 数据为标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096。
-- Worker 使用 `@mapbox/vector-tile`、`pbf` 和 OffscreenCanvas 绘制面图层；输出 transferable ImageBitmap 与线段实例 TypedArray。道路线宽由 TSL 根据当前视图计算。
+- Worker 使用 `@mapbox/vector-tile`、`pbf` 解码并构建面、线、建筑 TypedArray；OffscreenCanvas 输出 1×1 区域背景。TSL 使用米制缩放线宽、虚线和分类建筑配色。
 - `z15/26978/12416` MVT fixture 用于验证道路、地块、建筑和属性过滤；真实浏览器使用 KYE 网络瓦片。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
-- 当前可见集由视锥、地面距离和屏幕采样尺度选择；数据源最细三级面纹理使用 512 像素，其余层级使用 256 像素，线宽随当前视图连续计算，远侧层级按投影尺度合并。
+- 当前可见集由视锥和共享雾距离选择，目标瓦片使用统一整数层级；容量不足时整体降低目标层级。最大 pitch 为 75°，顶部约 40% 完全入雾。
 - StreamingEngine 采用 12 请求流水线、至多 4 Worker、256 条目与各 256 MiB CPU/GPU 预算，每帧上传至多 1 张纹理。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
@@ -42,7 +42,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 KYE Tile
 → Browser Fetch / HTTP gzip
 → MVT decode
-→ Worker 面纹理绘制与中心线实例生成
+→ Worker 面三角剖分、中心线实例与建筑挤出
 → ImageBitmap / Three.js Texture
 → WebGPU / WebGL2
 → Camera-driven dynamic tile lifecycle
@@ -53,18 +53,18 @@ KYE Tile
 - WGS84 `ViewState`、Web Mercator meters、Tile 局部 Float32 和浮动原点。
 - Camera 平移、连续 Zoom、Bearing、Pitch 和可见 Tile Coverage。
 - XYZ 世界副本、请求去重、队列取消、204 祖先覆盖、有限重试和按字节约束的 LRU。
-- Polygon/Line、常量样式、属性过滤、按 Tile 合成面纹理和按视图缩放的实例线段。
+- Polygon/Line/建筑挤出、属性过滤、kind 分类色、米制连续缩放线宽和虚线；建筑从 zoom 15.74 开始显示。
 - Worker 协议、transferable buffer/ImageBitmap 和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。
-- StreamingEngine 采用视锥与局部投影 LOD、祖先覆盖、有限预测和路线预取、LRU 缓存、互斥区域直接接替及逐帧纹理预算。
+- StreamingEngine 采用视锥与统一目标层级、祖先覆盖、有限预测和路线预取、LRU 缓存、互斥区域直接接替及逐帧纹理预算。
 - pan 与 bearing/pitch 旋转在释放后具有基于帧时间的有界惯性；wheel zoom 合并为连续帧更新。
 - pitch 增大时，远处地图使用共享 TSL 距离雾渐隐；选片和邻接预取使用同一截止半径，城市飞行的目的地预取具有独立时效。
 
 Non-Goals：
 
 - 文字/Glyph/Sprite、完整 Mapbox Style v8。
-- 3D 建筑、Terrain、Globe、Picking、Overlay 和业务 MVT/Geobuf。
+- Terrain、Globe、Picking、Overlay 和业务 MVT/Geobuf。
 - Raster、离线包、跨 Tile 合批和自动设备丢失恢复。
 
 文字名称相对原 MVP 被移出，避免在 Tile Runtime 证据形成前引入 shaping、atlas、碰撞和多语言 fallback。该范围变化由 D013 确认。
@@ -152,7 +152,7 @@ D023-D025 已确认渐进式 Tile 展示、交互阻尼和倾斜远景渐隐为 
 
 D026 已确认同一 Tile 内重复 Line 样式 pass 可共享 geometry/topology 和 GPU BufferGeometry，每个 public line layer 仍保留独立 material、width、opacity、renderOrder 和 draw pass；由 T016 实施。
 
-D027 已确认高倾角 Target Coverage 使用 Frustum/SSE 驱动的 mixed LOD 四叉树选择；数量预算通过停止细分或回退父 Tile 满足，不得删除有效可见区域内 coverage-critical Tile。Layer `minZoom/maxZoom` 按 selected canonical Tile zoom 生效，远景低 LOD 自然隐藏建筑等高精细内容；T017 已完成 selector，T020 已完成 retained cache，T021 已完成旧路径空间显示替换代码和浏览器回归但人工观感失败，T023 已重新建立唯一生产调度/显示 authority，之后再执行 T022/T019。
+当前高倾角覆盖使用统一目标层级、视锥和距离雾；预算不足时整体采用父层级。Layer 可见范围按连续视图 zoom 求值，建筑显示门槛为 15.74。实现与证据见 `docs/architecture/nova-tile-engine.md` 和 `docs/evidence/map-quality/README.md`。
 
 D028 已确认 Ideal Target Coverage、Render Cover 与 Retained Cache 分离；T020 已完成离屏 terminal record 的 byte-aware LRU 驻留和真实 cache hit，T021 已完成 parent/fallback 的空间等价 replacement cohort 退出条件、same-zoom/cache hit 直接显示和 render instance/material 稳定化；T024 已在 V2 生产路径补齐 rAF Render transaction 与初始 parent fallback。
 
@@ -179,4 +179,4 @@ D032 已确认 `TileStreamingEngine` 路线；D033 已确认 `NovaTileEngine` �
 - T016 后北京 city z10 clean harness 的 WebGPU/WebGL2 最大 CPU resource 分别为 `134,170,325` 和 `134,195,458` bytes，低于 128 MiB 上限但仅余 `47,403` 和 `22,270` bytes；资源阻断已解除，但 cache 余量极小。T010 Chrome trace 复现 60 秒交互 long task，并将方向定位到渲染帧更新、Worker 回调和 WebGL2 worker message 主线程处理；当前为非阻断性能风险。如最终发布需要另一台指定设备，仍需重复真实浏览器矩阵。
 - T017 已修复原单层级硬截断问题，T020 已消除 Ready Tile 立即释放和 warm ancestor 重复请求；T021 已在旧路径补齐 Display Coverage 空间 replacement 不变量并通过自动/浏览器回归，但人工负责人明确不接受 pan/zoom 加载观感。T023 已将这些不变量迁移到唯一 TileEngineV2 生产路径，T024/T025 又完成了局部补丁，但人工负责人仍不接受最终体验。
 - T021/T023/T025 人工验收已明确不通过：加载延迟、运动期间缺少预加载感、停止后请求波次、中心向外逐块出现、白闪、低帧率和 pan 卡顿仍存在。D031 已冻结 T026/T027 补丁链，后续必须执行 T029。
-- 当前 horizon fade 最大强度不会完全融合到背景，且不减少 Coverage 或请求；D029 已批准 fog-bounded coverage，但 T022 完成前高倾角 Tile 数量和远景渐隐仍不代表目标效果。
+- 当前雾在 fogEnd 达到背景色，CPU 按同曲线 98% 不透明度剔除远处需求；75° 的目标瓦片数量及实际截图见画质验证报告。

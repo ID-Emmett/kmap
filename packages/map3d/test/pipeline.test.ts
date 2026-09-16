@@ -3,14 +3,34 @@ import { Scene, Color, type WebGPURenderer } from 'three/webgpu';
 import { resultBytes, TileStore } from '../src/streaming/tileStore.js';
 import { fillBytes } from '../src/streaming/fills.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
+import { readFileSync } from 'node:fs';
+import { decodeTileSources } from '../src/streaming/tileSources.js';
 const mocks = vi.hoisted(() => ({ run: vi.fn(() => new Promise(() => {})) }));
 vi.mock('../src/streaming/workers.js', () => ({ PaintWorkers: class {
   run = mocks.run; getStats() { return { active: 0, queued: 0 }; } dispose() {}
 } }));
 import { TilePipeline } from '../src/streaming/pipeline.js';
 
-afterEach(() => { mocks.run.mockClear(); });
+afterEach(() => { mocks.run.mockClear(); vi.unstubAllGlobals(); });
 describe('阶段队列的可见需求优先与过期释放', () => {
+  it('主源 204 时补充省界仍进入 Worker，并按真实 HTTP 请求数计量', async () => {
+    const fixture = readFileSync(new URL('./fixtures/kye-kye_admin_pro-z5-26-12.mvt', import.meta.url));
+    const fetcher = vi.fn(async (url: string) => url.startsWith('/admin') ? new Response(Uint8Array.from(fixture)) : new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetcher);
+    const overlay = { tiles: ['/admin/{z}/{x}/{y}'], minZoom: 2, maxZoom: 5, sourceLayer: 'border', targetLayer: 'province_border' };
+    const surfaces = new TileSurfaces(new Scene(), new Color('#ffffff')), store = new TileStore(surfaces, {}, new Set());
+    const pipeline = new TilePipeline(store, { canvas: {} as HTMLCanvasElement,
+      source: { id: 'fixture', tiles: ['/main/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17, overlays: [overlay] }, layers: [] },
+    {} as WebGPURenderer, '#ffffff', () => {}, () => {}, () => {});
+    const entry = store.create({ z: 7, x: 105, y: 49 }, 'visible', 0, 0)!;
+    pipeline.pump(0);
+    await vi.waitFor(() => expect(entry.state).toBe('decoded'));
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual(['/main/7/105/49', '/admin/5/26/12']);
+    expect(pipeline.starts).toBe(1); expect(pipeline.httpStarts).toBe(2); expect(pipeline.active).toBe(0);
+    expect(entry.empty).toBe(false); expect(entry.reservedBytes).toBe(0);
+    expect(decodeTileSources(entry.buffer!, entry.address, [overlay]).layers.province_border!.length).toBe(12);
+    pipeline.dispose(); store.dispose(); surfaces.dispose(); expect(store.cpuBytes).toBe(0);
+  });
   it('面几何从上传产物转为驻留资源后字节守恒，并服从 GPU 预算', () => {
     const surfaces = new TileSurfaces(new Scene(), new Color('#ffffff'));
     const fills = { positions: new Float32Array(9), colors: new Float32Array(9), styles: new Float32Array(9), indices: new Uint32Array([0, 1, 2]) };

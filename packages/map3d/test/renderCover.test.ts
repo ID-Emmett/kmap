@@ -69,7 +69,7 @@ describe('实际显示区域归属', () => {
   it('WebGPU 表面以固定透明度提交，部分区域开启裁剪且完整目标解除裁剪', () => {
     const scene = new Scene(); const surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const bitmap = () => ({ width: 256, height: 256, close() {} }) as ImageBitmap;
-    const p = surfaces.create(bitmap(), parent, { segments: new Float32Array([-.5, 0, .5, 0]), styles: new Float32Array([2, 1, 0, 17]), colors: new Float32Array([1, 1, 1]) });
+    const p = surfaces.create(bitmap(), parent, { segments: new Float32Array([-.5, 0, .5, 0]), styles: new Float32Array([0, 1, 0, 17]), distances: new Float32Array([0]), paints: [{ color: '#ffffff', width: 7 }], colors: new Float32Array([1, 1, 1]) });
     const c = surfaces.create(bitmap(), children[0]!); const geometry = p.mesh.geometry;
     const resources = new Map([[canonicalKey(parent), { surface: p }], [canonicalKey(children[0]!), { surface: c }]]);
     const origin = selectMapOrigin({ lng: 116.39, lat: 39.9 }, 15);

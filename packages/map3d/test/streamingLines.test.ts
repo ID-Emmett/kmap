@@ -11,7 +11,7 @@ describe('跨数据层级的矢量线宽', () => {
       .toEqual([{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 3, y: 2 }, { x: 4, y: 0 }]);
   });
   it('不同瓦片复用相同材质节点程序并独立保存线宽参数', () => {
-    const data = { segments: new Float32Array([-.5, 0, .5, 0]), styles: new Float32Array([7, 1, 0, 24]), colors: new Float32Array([1, 1, 1]) };
+    const data = { segments: new Float32Array([-.5, 0, .5, 0]), styles: new Float32Array([0, 1, 0, 24]), distances: new Float32Array([0]), paints: [{ color: '#ffffff', width: 7 }], colors: new Float32Array([1, 1, 1]) };
     const a = createLineSurface(data); const b = createLineSurface(data);
     a.pixelScale.value = 1 / 2048; b.pixelScale.value = 1 / 256;
     expect(a.mesh.material.customProgramCacheKey()).toBe(b.mesh.material.customProgramCacheKey());
@@ -35,8 +35,8 @@ describe('跨数据层级的矢量线宽', () => {
     expect([...lines.segments].every(Number.isFinite)).toBe(true);
     expect(lines.colors.length).toBe(lines.segments.length / 4 * 3);
     for (let i = 0; i < lines.styles.length; i += 4) {
-      expect(lines.styles[i]).toBe(7); expect(lines.styles[i + 1]).toBeCloseTo(.9); expect(lines.styles[i + 2]).toBe(7);
+      expect(lines.styles[i]).toBe(0); expect(lines.styles[i + 1]).toBeCloseTo(.9); expect(lines.styles[i + 2]).toBe(7);
     }
-    expect(lineBytes(lines)).toBe(lines.segments.length / 4 * 44);
+    expect(lineBytes(lines)).toBe(lines.segments.length / 4 * 48);
   });
 });

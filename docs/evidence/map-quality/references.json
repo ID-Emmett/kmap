@@ -1,0 +1,10 @@
+[
+  {
+    "url": "https://cdn.jsdelivr.net/gh/mapbox/mapbox-gl-js@446bbe66962e288ae9b2ab8b500b92dfa4da892a/src/shaders/line.vertex.glsl",
+    "sha256": "128e30822f9eda9c808d63caf9c12b7fa5ea3dc2aa98c472f307d14cdfec976c"
+  },
+  {
+    "url": "https://cdn.jsdelivr.net/gh/mapbox/mapbox-gl-js@446bbe66962e288ae9b2ab8b500b92dfa4da892a/src/style-spec/reference/v8.json",
+    "sha256": "fe17d234c5245c3c9fc508223f3a645535e09e8278be4209cd721e5962a2c992"
+  }
+]

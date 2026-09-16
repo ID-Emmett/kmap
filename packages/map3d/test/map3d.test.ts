@@ -13,7 +13,9 @@ vi.mock('three/webgpu', async original => {
   } };
 });
 vi.mock('../src/streaming/workers.js', () => ({ PaintWorkers: class {
-  run = async ({ size }: { size: number }) => {
+  run = async () => {
+    // 固定 1 MiB 产物用于触发真实字节预算和回收压力。
+    const size = 512;
     const bitmap = { width: size, height: size, close: vi.fn() }; mocks.bitmaps.push(bitmap);
     return { id: 1, bitmap, features: 8, paintMs: 2, empty: false };
   };

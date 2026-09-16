@@ -69,7 +69,7 @@ export async function runBrowserBenchmark(map: Map3D, progress: (message: string
     mark('cache-B');
     map.setView(CITIES.beijing); await settle();
     mark('cache-A-return');
-    for (const pitch of [0, 20, 40, 60]) { mark(`pitch-${pitch}-settled`); map.setView({ pitch }); await settle(); await wait(500); }
+    for (const pitch of [0, 20, 40, 60, 75]) { mark(`pitch-${pitch}-settled`); map.setView({ pitch }); await settle(); await wait(500); }
     mark('final'); map.setView(CITIES.beijing); await settle(); await wait(Math.max(2000, 60000 - (performance.now() - start)));
   } finally {
     rendered.stop(); stopPixelAudit(); recording = false; cancelAnimationFrame(frameHandle); observer.disconnect(); document.removeEventListener('visibilitychange', visibilityChanged);

@@ -9,6 +9,8 @@ export const DEFAULT_VIEW_STATE: Readonly<ViewState> = Object.freeze({
   pitch: 0,
 });
 
+export const MAX_MAP_PITCH = 75;
+
 /** 将角度归一化到 [0, 360)。 */
 export function normalizeBearing(bearing: number): number {
   const value = requireFiniteNumber(bearing, 'bearing') % 360;
@@ -33,7 +35,7 @@ export function normalizeViewState(
     ),
     bearing: normalizeBearing(view.bearing ?? fallback.bearing),
     pitch: Math.min(
-      60,
+      MAX_MAP_PITCH,
       Math.max(
         0,
         requireFiniteNumber(view.pitch ?? fallback.pitch, 'pitch'),

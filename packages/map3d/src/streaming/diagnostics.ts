@@ -10,6 +10,8 @@ export function tileDiagnostics(engine: StreamingEngine) {
   const resident = engine.shown.size;
   const idle = entries.filter(e => Number.isFinite(e.priority) && !['ready', 'failed'].includes(e.state)).length === 0;
   return {
+    buildings: { batches: [...engine.surfaces.instances.values()].filter(i => i.buildings?.mesh.visible).length,
+      features: [...engine.surfaces.instances.values()].reduce((sum, i) => sum + (i.buildings?.mesh.visible ? i.buildings.features : 0), 0) },
     idle, phase: idle ? 'idle' : 'streaming', target: engine.selection.leaves.length, committed: resident,
     drawnLevels: Object.fromEntries([...new Set(engine.patches.map(p => p.source.z))].map(z => [z, new Set(engine.patches.filter(p => p.source.z === z).map(p => p.key)).size])),
     idealCount: engine.selection.ideal.length, budgetReduced: engine.selection.budgetReduced, patches: engine.patches.length,
@@ -21,7 +23,7 @@ export function tileDiagnostics(engine: StreamingEngine) {
     phases: { plan: engine.planTime.snapshot(), cover: engine.coverTime.snapshot(), resources: engine.recycleTime.snapshot() },
     worker: engine.workerTime.snapshot(), uploadTime: engine.uploadTime.snapshot(), requestTime: engine.requestTime.snapshot(),
     scheduler: { queued, active: engine.active, requestStarts: engine.starts, requestCancels: engine.cancels },
-    network: { starts: engine.starts, retries: engine.retries, cancels: engine.pipeline.cancels, errors: engine.errors, bytes: engine.bytes, latency: engine.httpTime.snapshot() },
+    network: { starts: engine.pipeline.httpStarts, retries: engine.retries, cancels: engine.pipeline.cancels, errors: engine.errors, bytes: engine.bytes, latency: engine.httpTime.snapshot() },
     recentErrors: [...engine.pipeline.recentErrors],
     inFlightReservedBytes: entries.reduce((sum, e) => sum + e.reservedBytes, 0), decoded: count('decoded'), discardedBytes: engine.pipeline.discardedBytes,
     demand: { visible: entries.filter(e => e.kind === 'visible' && engine.wanted.has(e.key)).length, fallback: entries.filter(e => e.kind === 'fallback' && engine.wanted.has(e.key)).length, predicted: entries.filter(e => e.kind === 'predicted' && engine.wanted.has(e.key)).length },

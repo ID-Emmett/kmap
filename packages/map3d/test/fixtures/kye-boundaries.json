@@ -1,0 +1,16 @@
+[
+  {
+    "file": "kye-v8Maptile-z5-26-12.mvt",
+    "source": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/5/26/12.pbf",
+    "retrieved": "2026-09-16",
+    "bytes": 211879,
+    "sha256": "80df8fe59c064b745a56e06c437f6a82cc01db7686c220ba586eac087f045d32"
+  },
+  {
+    "file": "kye-kye_admin_pro-z5-26-12.mvt",
+    "source": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_admin_pro/5/26/12.pbf",
+    "retrieved": "2026-09-16",
+    "bytes": 42058,
+    "sha256": "ab78657bb895f7bb68beb44629ab2644c365d4143882389f135c8d17503472fc"
+  }
+]

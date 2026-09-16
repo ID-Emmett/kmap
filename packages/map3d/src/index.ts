@@ -3,6 +3,8 @@ export type {
   BaseLayerOptions,
   CanonicalTileKey,
   FillLayerOptions,
+  ExtrusionLayerOptions,
+  TileOverlaySource,
   LayerPropertyValue,
   LayerFilter,
   LineLayerOptions,

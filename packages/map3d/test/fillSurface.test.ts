@@ -17,7 +17,7 @@ describe('原生面批次的裁剪与资源所有权', () => {
     const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const children = childrenOf(address);
     const parent = surfaces.create(bitmap(), address, { segments: new Float32Array([-.5, 0, .5, 0]),
-      styles: new Float32Array([2, 1, 0, 24]), colors: new Float32Array([1, 1, 1]) }, data());
+      styles: new Float32Array([0, 1, 0, 24]), distances: new Float32Array([0]), paints: [{ color: '#ffffff', width: 7 }], colors: new Float32Array([1, 1, 1]) }, data());
     const child = surfaces.create(bitmap(), children[0]!, undefined, data());
     const resources = new Map([[canonicalKey(address), { surface: parent }], [canonicalKey(children[0]!), { surface: child }]]);
     surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);

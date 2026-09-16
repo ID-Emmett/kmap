@@ -10,6 +10,7 @@ import { TileStore, type DemandKind } from './tileStore.js';
 import { TilePipeline } from './pipeline.js';
 import { resolveRenderCover, type CoverPatch } from './renderCover.js';
 import { fallbackRequests } from './fallbackDemand.js';
+import { MAX_MAP_PITCH } from '../spatial/viewState.js';
 import { TILE_LIMITS } from './limits.js';
 export type { TileEntry } from './tileStore.js';
 
@@ -112,7 +113,7 @@ export class StreamingEngine {
     const ahead = horizon / dt;
     const future = { ...view, center: { lng: view.center.lng + lng * ahead, lat: view.center.lat + lat * ahead },
       zoom: Math.max(this.options.source.minZoom, view.zoom + Math.max(-2, Math.min(1, dz * ahead))),
-      bearing: view.bearing + bearing * ahead, pitch: Math.min(60, Math.max(0, view.pitch + pitch * ahead)) };
+      bearing: view.bearing + bearing * ahead, pitch: Math.min(MAX_MAP_PITCH, Math.max(0, view.pitch + pitch * ahead)) };
     const nextFrame = updateMapCamera(this.predictiveCamera, future, viewport, origin);
     // 预测视域的粗级覆盖与近处细节共用预取限额；粗级保持完整视域。
     let coarseZoom = Math.max(this.options.source.minZoom, Math.floor(future.zoom) - 2);
