@@ -69,7 +69,9 @@ export class StreamingEngine {
       if (view.zoom >= 8) this.predict(origin, view, viewport, now);
       // 条目较小的实例为缓存、回退和在途工作保留独立容量。
       const limit = Math.min(TILE_LIMITS.visible, Math.max(8, Math.floor(this.maxEntries * .6)));
-      this.selection = spherical ? selectGlobeTiles(camera, origin, view, this.options.source.maxZoom, limit, frame, this.targetZoom) : selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, Math.min(this.options.source.maxZoom, this.targetZoom), 1, limit);
+      this.selection = spherical ? selectGlobeTiles(camera, origin, view, this.options.source.maxZoom, limit, frame, this.targetZoom) : selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, limit, this.targetZoom);
+      // 依赖回退内容的目标可由子区域覆盖；相机变化后重新核验这些区域的可见范围。
+      if (this.selection.leaves.some(a => !this.store.available.has(canonicalKey(a)))) this.coverDirty = true;
       const signature = this.selection.leaves.map(keyOf).sort().join('|');
       if (signature !== this.selectionSignature) {
         if (spherical && view.zoom < 6) this.overview = []; else this.prepareOverview(origin, view, viewport); this.selectionSignature = signature;

@@ -96,6 +96,10 @@ async function bootstrap(): Promise<void> {
     resize();
     await map.initialize();
     removeAppearance = createAppearanceInspector(map, inspector!);
+    if (new URLSearchParams(window.location.search).get('capture') === 'motion') {
+      const { runStreamingMotionBenchmark } = await import('./streamingMotionBenchmark.js');
+      void runStreamingMotionBenchmark(map).catch(error => { document.documentElement.dataset.motionTest = `error:${String(error)}`; });
+    }
     if (new URLSearchParams(window.location.search).get('capture') === 'inspector') {
       const { runInspectorBenchmark } = await import('./inspectorBenchmark.js');
       void runInspectorBenchmark(map).catch(error => { document.documentElement.dataset.inspectorTest = `error:${String(error)}`; });

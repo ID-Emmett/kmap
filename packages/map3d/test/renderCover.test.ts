@@ -55,6 +55,16 @@ describe('实际显示区域归属', () => {
     const overview = resolveRenderCover([parent], ready(parent, ...children), 0);
     expect(overview.patches).toEqual([{ cell: parent, source: parent, key: canonicalKey(parent) }]);
   });
+  it('连续缩小四级仍保留已加载区域，遍历只进入驻留资源的祖先路径', () => {
+    let detailed = parent;
+    for (let i = 0; i < 4; i++) detailed = childrenOf(detailed)[0]!;
+    const available = new TileAvailability(); available.add(canonicalKey(detailed));
+    let visited = 0;
+    const cover = resolveRenderCover([parent], available, 0, () => { visited++; return true; });
+    expect(cover.patches).toEqual([{ cell: detailed, source: detailed, key: canonicalKey(detailed) }]);
+    expect(visited).toBe(17); expect(cover.uncovered).toBe(12);
+    disjoint(cover.patches);
+  });
   it('有效视锥之外的子区域排除，视锥内真实缺口保持可观测', () => {
     const one = resolveRenderCover([parent], ready(children[0]!), 0, a => a.z === 13 || keyOf(a) === keyOf(children[0]!));
     expect(one.uncovered).toBe(0); expect(one.patches).toHaveLength(1);

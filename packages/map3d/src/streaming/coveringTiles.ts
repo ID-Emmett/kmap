@@ -17,7 +17,7 @@ export function emptySelection(): Selection {
 }
 /** 视锥和完全入雾剔除先于细分，同一视图的目标瓦片使用单一层级。 */
 export function selectTiles(camera: PerspectiveCamera, frame: MapCameraFrame, origin: MapOrigin, view: ViewState, viewport: ViewportSize,
-  minZoom: number, maxZoom: number, margin = 1, maxLeaves: number = TILE_LIMITS.visible): Selection {
+  minZoom: number, maxZoom: number, margin = 1, maxLeaves: number = TILE_LIMITS.visible, targetZoom = Math.floor(view.zoom)): Selection {
   const result = emptySelection(); const fog = fogDistances(frame, view.pitch);
   // Mapbox 的 98% 可见雾阈值；0.915962 为 smoothstep(t)=0.98 的根。
   result.cutoff = fog.start + (fog.end - fog.start) * .915962; result.fogStart = fog.start; result.fogEnd = fog.end;
@@ -33,7 +33,7 @@ export function selectTiles(camera: PerspectiveCamera, frame: MapCameraFrame, or
   const center = new Vector3();
   const copy = Math.floor((origin.meters.x + WORLD / 2) / WORLD);
   const stack: Address[] = [-1, 0, 1].map(offset => ({ z: 0, x: copy + offset, y: 0 }));
-  const desired = Math.min(maxZoom, Math.max(minZoom, Math.floor(view.zoom)));
+  const desired = Math.min(maxZoom, Math.max(minZoom, targetZoom));
   while (stack.length) {
     const a = stack.pop()!; result.visited++;
     const b = tileBounds(a); const x = b.west - origin.meters.x; const z = origin.meters.y - b.north;
@@ -52,7 +52,7 @@ export function selectTiles(camera: PerspectiveCamera, frame: MapCameraFrame, or
   result.ideal = [...result.leaves];
   // 容量不足时整体选取一个父层级，所有区域保持相同数据层级。
   if (result.leaves.length > maxLeaves && desired > minZoom) {
-    const coarser = selectTiles(camera, frame, origin, view, viewport, minZoom, desired - 1, margin, maxLeaves);
+    const coarser = selectTiles(camera, frame, origin, view, viewport, minZoom, desired - 1, margin, maxLeaves, targetZoom);
     coarser.ideal = result.ideal;
     coarser.budgetReduced = result.ideal.length - coarser.leaves.length;
     return coarser;

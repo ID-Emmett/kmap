@@ -54,3 +54,9 @@ docs/evidence/map-inspector/*
 !docs/evidence/map-inspector/verification-summary.json
 !docs/evidence/map-inspector/mapbox-reference.json
 !docs/evidence/map-inspector/analyze.py
+
+!docs/evidence/streaming-motion/
+docs/evidence/streaming-motion/*
+!docs/evidence/streaming-motion/README.md
+!docs/evidence/streaming-motion/verification-summary.json
+!docs/evidence/streaming-motion/analyze.py

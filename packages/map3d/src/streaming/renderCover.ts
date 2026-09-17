@@ -13,12 +13,13 @@ export function resolveRenderCover(targets: readonly Address[], ready: ReadonlyS
     let a = { z, x, y };
     while (a.z > minZoom) { a = parentOf(a); descendants.set(canonicalKey(a), 1); }
   }
-  const visit = (cell: Address, inherited: Address | undefined, remaining: number): void => {
+  const visit = (cell: Address, inherited: Address | undefined): void => {
     if (!visible(cell)) return;
     const key = canonicalKey(cell);
     if (ready.has(key)) { result.patches.push({ cell, source: cell, key }); return; }
-    if (remaining > 0 && descendants.has(key)) {
-      for (const child of childrenOf(cell)) visit(child, inherited, remaining - 1);
+    // 增量索引将遍历限制在已驻留资源的祖先路径，快速缩小可继续使用任意深度的已有内容。
+    if (descendants.has(key)) {
+      for (const child of childrenOf(cell)) visit(child, inherited);
     } else if (inherited) result.patches.push({ cell, source: inherited, key: canonicalKey(inherited) });
     else result.uncovered++;
   };
@@ -29,7 +30,7 @@ export function resolveRenderCover(targets: readonly Address[], ready: ReadonlyS
       parent = parentOf(parent);
       if (ready.has(canonicalKey(parent))) { fallback = parent; break; }
     }
-    const offset = result.patches.length; visit(target, fallback, 2);
+    const offset = result.patches.length; visit(target, fallback);
     for (let i = offset; i < result.patches.length; i++) result.maxGap = Math.max(result.maxGap, target.z - result.patches[i]!.source.z);
   }
   return result;

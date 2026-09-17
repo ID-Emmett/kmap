@@ -38,7 +38,9 @@ export class TileSurfaces {
     this.fogColor = uniform(background.clone()).setGroup(renderGroup); this.landColor = uniform(background.clone()).setGroup(renderGroup);
     scene.fogNode = fog(this.fogColor, max(smoothstep(this.fogStart, this.fogEnd, (this.spherical ? mapWorldPosition : positionWorld).sub(this.fogCenter).length()), this.spherical ? float(1).sub(smoothstep(0, .16, mapFacing)) : 0));
     const geometry = new PatchGeometry(); geometry.update({ z: 0, x: 0, y: 0 }, [{ z: 0, x: 0, y: 0 }]);
-    const material = new MeshBasicNodeMaterial({ depthTest: false, depthWrite: false }); material.colorNode = this.landColor;
+    // 每个绘制通道先绑定保留编号 0；后续部分区域使用 1～255，模板内容保持原值。
+    // Three r185 的 WebGPU 动态编号缓存跨通道保留，显式起始编号使首个区域也完成绑定。
+    const material = new MeshBasicNodeMaterial({ depthTest: false, depthWrite: false, stencilWrite: true, stencilWriteMask: 0, stencilRef: 0 }); material.colorNode = this.landColor;
     material.vertexNode = mapVertex(positionLocal);
     this.ground = new Mesh(geometry, material); this.ground.frustumCulled = false; this.ground.renderOrder = -5;
     scene.add(this.ground);
@@ -127,7 +129,8 @@ export class TileSurfaces {
   }
   update(origin: MapOrigin, viewZoom: number): void {
     const curved = !!this.scene.userData.mapProjection?.center.w;
-    this.ground.visible = !curved;
+    // 球面仍提交两三角形的状态基准；颜色写入由球面底面负责。
+    this.ground.material.colorWrite = !curved;
     this.ground.position.set(this.fogCenter.value.x, 0, this.fogCenter.value.z);
     this.ground.scale.set(this.fogEnd.value * 2, 1, this.fogEnd.value * 2);
     const moved = origin.meters.x !== this.originX || origin.meters.y !== this.originY;

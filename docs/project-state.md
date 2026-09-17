@@ -6,6 +6,7 @@
 
 ## 当前结论
 
+- 运动瓦片以绘制通道模板编号初始化、子区域视锥刷新、整数层级滞回和驻留子级覆盖保证显示一致性；真实 WebGPU/WebGL2 对照与性能见 `docs/evidence/streaming-motion/README.md`。
 - 城市平面地图在 z4.5～5.5 连续过渡到地球；Inspector 支持三主题、地图元素和文字样式编辑。默认背景/雾为 #dbdeff，陆地为 #e6f4f3。近景精度、地名层级和瓦片加载验证见 `docs/evidence/map-inspector/README.md`。
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
