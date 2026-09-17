@@ -53,9 +53,9 @@ async function bootstrap(): Promise<void> {
     // 已验证 fixture z15/26978/12416 的 Tile 中心。
     view: {
       center: { lng: 116.3946533203125, lat: 39.90552253972854 },
-      zoom: 15,
+      zoom: 15.8,
       bearing: 0,
-      pitch: 0,
+      pitch: 55,
     },
   });
   window.__kmapMap3D = map;

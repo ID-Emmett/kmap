@@ -23,7 +23,7 @@ export const hexColor = (color: string | number) => `#${new Color(color).getHexS
 
 /** 每套主题保存独立的元素与文字配置，所有查询返回可编辑副本。 */
 export class StyleConfiguration {
-  theme: ThemeId = 'default';
+  theme: ThemeId = 'vivid';
   private states: Partial<Record<ThemeId, { elements: Record<string, MapElementStyle>; labels: Record<string, LabelStyle>; environment: Partial<MapTheme> }>> = {};
   private get state() { return this.states[this.theme] ??= { elements: {}, labels: {}, environment: {} }; }
   getTheme(): MapTheme { return { ...THEMES[this.theme], ...this.state.environment, elements: { ...this.state.elements } }; }

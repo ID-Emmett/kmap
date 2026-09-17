@@ -1,9 +1,9 @@
 import type { Map3D, ViewState } from '@kmap/map3d';
 
 export const CITIES = {
-  beijing: { center: { lng: 116.39465, lat: 39.90552 }, zoom: 15, bearing: 0, pitch: 0 },
-  shanghai: { center: { lng: 121.4737, lat: 31.2304 }, zoom: 15, bearing: 0, pitch: 0 },
-  guangzhou: { center: { lng: 113.2644, lat: 23.1291 }, zoom: 15, bearing: 0, pitch: 0 },
+  beijing: { center: { lng: 116.39465, lat: 39.90552 }, zoom: 15.8, bearing: 0, pitch: 0 },
+  shanghai: { center: { lng: 121.4737, lat: 31.2304 }, zoom: 15.8, bearing: 0, pitch: 0 },
+  guangzhou: { center: { lng: 113.2644, lat: 23.1291 }, zoom: 15.8, bearing: 0, pitch: 0 },
 } satisfies Record<string, ViewState>;
 const smooth = (t: number) => { const x = Math.min(1, Math.max(0, t)); return x * x * (3 - 2 * x); };
 const mercatorY = (lat: number) => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));

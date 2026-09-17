@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { decodeVectorTile } from '../../../packages/map3d/src/streaming/paint.js';
 import { buildLabels } from '../../../packages/map3d/src/labels/candidates.js';
-import { PLAYGROUND_LAYERS } from './mapStyle.js';
-import { THEMES } from './themes.js';
-import { StyleConfiguration } from './styleConfiguration.js';
+import { PLAYGROUND_LAYERS } from '../src/mapStyle.js';
+import { THEMES } from '../src/themes.js';
+import { StyleConfiguration } from '../src/styleConfiguration.js';
 
 describe('地名层级与默认配色', () => {
   it('真实 KYE 数据依次显示国家、省会及普通城市', () => {

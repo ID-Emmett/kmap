@@ -7,7 +7,7 @@ import {
   MAJOR_ROAD_CLASSES,
   PLAYGROUND_LAYERS,
   PLAYGROUND_STYLE_TOKENS,
-} from './mapStyle.js';
+} from '../src/mapStyle.js';
 
 const FIXTURE_URL = new URL(
   '../../../packages/map3d/test/fixtures/kye-main-z15-26978-12416.mvt',

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Color } from 'three/webgpu';
-import { ELEMENT_OPTIONS, StyleConfiguration } from './styleConfiguration.js';
-import { PLAYGROUND_LAYERS } from './mapStyle.js';
-import { THEMES } from './themes.js';
+import { ELEMENT_OPTIONS, StyleConfiguration } from '../src/styleConfiguration.js';
+import { PLAYGROUND_LAYERS } from '../src/mapStyle.js';
+import { THEMES } from '../src/themes.js';
 
 describe('Inspector 配置模型', () => {
   it('每个地图图层具有独立编辑入口，主题配置独立保留与重置', () => {

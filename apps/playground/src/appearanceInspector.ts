@@ -8,7 +8,7 @@ interface Editor extends InspectorValue { domElement: HTMLElement }
 /** 样式编辑使用 Inspector 原生 Parameters；编辑器按事件同步，空闲帧无轮询。 */
 export function createAppearanceInspector(map: Map3D, inspector: Inspector): () => void {
   const configuration = new StyleConfiguration();
-  const global = { theme: configuration.theme, visible: true, sizeScale: 1, maxLabels: 256, icons: true };
+  const global = { theme: configuration.theme, visible: true, sizeScale: 0.8, maxLabels: 128, icons: true };
   const selection = { element: 'water-fill', label: 'poi-label' };
   const element = configuration.getElement(selection.element), label = configuration.getLabel(selection.label);
   const environment = { backgroundColor: '#f5f5f2', landColor: '#f5f5f2', fogColor: '#f5f5f2' };

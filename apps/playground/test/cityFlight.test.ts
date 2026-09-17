@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CITIES, flightView } from './cityFlight.js';
+import { CITIES, flightView } from '../src/cityFlight.js';
 
 describe('城市飞行路径', () => {
   it('北京与上海之间先缩小、连续平移、在目的地放大', () => {

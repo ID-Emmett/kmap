@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MAP_COLORS, THEMES } from './themes.js';
-import { PLAYGROUND_STYLE_TOKENS } from './mapStyle.js';
+import { MAP_COLORS, THEMES } from '../src/themes.js';
+import { PLAYGROUND_STYLE_TOKENS } from '../src/mapStyle.js';
 
 describe('三套完整地图主题', () => {
   it('默认主题保留初始背景', () => { expect(THEMES.default.backgroundColor).toBe(PLAYGROUND_STYLE_TOKENS.canvas); });

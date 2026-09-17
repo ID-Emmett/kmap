@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { syncInspectorValue } from './inspectorSync.js';
+import { syncInspectorValue } from '../src/inspectorSync.js';
 
 describe('Inspector 控件回填', () => {
   it('同步全部控件时不排入 change 回调，用户操作保持一次派发', () => {
