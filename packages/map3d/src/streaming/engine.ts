@@ -1,3 +1,4 @@
+import { GLOBE_END } from '../globe/globeCamera.js';
 import { stableTileZoom } from './lod.js';
 import { selectGlobeTiles } from '../globe/cover.js';
 import { PerspectiveCamera, type WebGPURenderer } from 'three/webgpu';
@@ -64,7 +65,7 @@ export class StreamingEngine {
     if (this.viewDirty && now - this.lastPlan >= 16) {
       planned = true; const started = performance.now();
       this.targetZoom = stableTileZoom(view.zoom, this.targetZoom);
-      const spherical = this.options.globe !== false && this.options.source.minZoom === 0;
+      const spherical = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
       if (view.zoom >= 8) this.predict(origin, view, viewport, now);
       // 条目较小的实例为缓存、回退和在途工作保留独立容量。
       const limit = Math.min(TILE_LIMITS.visible, Math.max(8, Math.floor(this.maxEntries * .6)));

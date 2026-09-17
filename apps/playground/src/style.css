@@ -210,18 +210,10 @@ body {
   }
 }
 
-.appearance { display: grid; gap: 10px; }
-.appearance label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.appearance .inline { justify-content: flex-start; }
-.appearance select { max-width: 190px; padding: 5px 8px; border: 1px solid #bccac6; border-radius: 5px; color: inherit; background: transparent; }
-.appearance input[type=range] { width: 135px; accent-color: #378780; }
-.appearance input[type=color] { width: 45px; height: 25px; border: 0; padding: 0; background: transparent; }
-.appearance summary { cursor: pointer; padding: 4px 0; }
-.appearance details[open] { display: grid; gap: 10px; }
-.appearance details label { margin: 8px 0; }
-:root[data-theme=dark], :root[data-theme=vivid] { color-scheme: dark; }
+:root[data-theme=dark] { color-scheme: dark; }
 :root[data-theme=dark] .diagnostics { color: #d4dfec; background: #152435f5; border-color: #3b526a; }
-:root[data-theme=vivid] .diagnostics { color: #eee0fa; background: #251e3df5; border-color: #8360a2; }
-:root[data-theme=dark] .diagnostics :is(h2,.eyebrow,dt,footer), :root[data-theme=vivid] .diagnostics :is(h2,.eyebrow,dt,footer) { color: #a6b6cb; }
-:root[data-theme=dark] .diagnostics button, :root[data-theme=vivid] .diagnostics button { color: inherit; background: #ffffff0c; border-color: #67708b; }
-:root[data-theme=dark] .diagnostics h1, :root[data-theme=vivid] .diagnostics h1 { color: #80dfc4; }
+:root[data-theme=vivid] .diagnostics { color: #244667; background: #fff9ebf5; border-color: #eeb839; }
+:root[data-theme=dark] .diagnostics :is(h2,.eyebrow,dt,footer) { color: #a6b6cb; }
+:root[data-theme=dark] .diagnostics button { color: inherit; background: #ffffff0c; border-color: #67708b; }
+:root[data-theme=dark] .diagnostics h1 { color: #80dfc4; }
+.diagnostics { left: 16px; right: auto; }

@@ -9,6 +9,7 @@ export interface LabelCandidate {
   text: string; x: number; y: number; endX: number; endY: number; line: boolean;
   key: string; priority: number; minZoom: number; maxZoom: number; size: number;
   color: string | number; haloColor: string | number; haloWidth: number;
+  iconColor?: string | number; iconSize?: number; iconGap?: number;
 }
 export const labelBytes = (labels: readonly LabelCandidate[] = []): number => labels.reduce((n, l) => n + 128 + (l.text.length + l.key.length) * 2, 0);
 export function buildLabels(tile: VectorTile, layers: readonly MapLayerOptions[]): LabelCandidate[] {

@@ -140,6 +140,7 @@ export type MapLayerOptions = FillLayerOptions | LineLayerOptions | ExtrusionLay
 /** 单层或分类文字的运行时样式，像素单位与屏幕布局一致。 */
 export interface LabelStyle {
   color?: string | number; haloColor?: string | number; haloWidth?: number; textSize?: number; visible?: boolean;
+  icon?: MapIcon | 'none' | 'auto'; iconColor?: string | number; iconSize?: number; iconGap?: number;
 }
 export type MapIcon = 'metro' | 'airport' | 'hospital' | 'school' | 'park' | 'museum' | 'food' | 'shop' | 'hotel';
 export interface LabelAppearance {
@@ -148,7 +149,13 @@ export interface LabelAppearance {
   categories?: Readonly<Record<string, LabelStyle>>;
 }
 /** 全地图基础色映射；省略的基础色保留其原始值。 */
-export interface MapTheme { backgroundColor: string | number; colors?: Readonly<Record<string, string | number>> }
+export interface MapElementStyle { color?: string | number; opacity?: number; visible?: boolean; widthScale?: number; heightScale?: number }
+export interface MapTheme {
+  backgroundColor: string | number; landColor?: string | number; fogColor?: string | number;
+  colors?: Readonly<Record<string, string | number>>;
+  /** 键为图层 id；建筑分类键为 `图层id/分类值`。 */
+  elements?: Readonly<Record<string, MapElementStyle>>;
+}
 
 /** SDK 结构化错误代码。 */
 export type MapErrorCode =

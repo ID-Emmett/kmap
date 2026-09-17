@@ -1,3 +1,4 @@
+import type { ColorBindings } from '../style/palette.js';
 import { joinLineChains } from './lineChains.js';
 import { lineJoin } from './lineJoins.js';
 import { Color } from 'three/webgpu';
@@ -6,7 +7,7 @@ import type { LineLayerOptions, MapLayerOptions } from '../types.js';
 import { matches } from './paint.js';
 
 /** 每个线段作为一个胶囊实例；样式索引引用共享的连续缩放宽度表。 */
-export interface LineData { segments: Float32Array; styles: Float32Array; colors: Float32Array; distances: Float32Array; joins?: Float32Array; caps?: Uint8Array; paints: LineLayerOptions['paint'][] }
+export interface LineData extends ColorBindings { segments: Float32Array; styles: Float32Array; colors: Float32Array; distances: Float32Array; joins?: Float32Array; caps?: Uint8Array; paints: LineLayerOptions['paint'][] }
 
 /** 亚像素折点简化：误差上限为数据层级的四分之一 CSS 像素。 */
 export function simplifyLine<T extends { x: number; y: number }>(points: T[], tolerance: number): T[] {
@@ -32,6 +33,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
   type Feature = { properties: Record<string, unknown>; rings: Point[][] };
   const cache = new Map<string, Feature[]>();
   const batches: { layer: Extract<MapLayerOptions, { type: 'line' }>; color: Color; extent: number; rings: Point[][] }[] = [];
+  const colorKeys = layers.filter(l => l.type === 'line').map(l => l.id);
   const paints = layers.filter((l): l is LineLayerOptions => l.type === 'line').map(l => l.paint);
   if (paints.length > 128) throw new Error('线图层数量上限为 128。');
   let count = 0; let featureCount = 0;
@@ -69,6 +71,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
   // 已知容量的 TypedArray 直接写入，描边和填色共享解码后的中心线。
   const segments = new Float32Array(count * 4); const styles = new Float32Array(count * 4); const colors = new Float32Array(count * 3);
   const distances = new Float32Array(count), joins = new Float32Array(count * 4), caps = new Uint8Array(count * 2);
+  const colorIds = new Uint16Array(count);
   let index = 0;
   for (const { layer, color, extent, rings } of batches) {
     const styleIndex = paints.indexOf(layer.paint);
@@ -77,6 +80,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
       for (let j = 1; j < ring.length; j++) {
         const a = ring[j - 1]!; const b = ring[j]!;
         if (a.x === b.x && a.y === b.y) continue;
+        colorIds[index] = styleIndex;
         const p = index * 4; const c = index * 3;
         const closed = ring[0]!.x === ring.at(-1)!.x && ring[0]!.y === ring.at(-1)!.y;
         joins.set([...lineJoin(ring[j - 2] ?? (closed ? ring.at(-2) : undefined), a, b),
@@ -89,7 +93,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
       }
     }
   }
-  return { segments, styles, colors, distances, joins, caps, paints, features: featureCount };
+  return { colorKeys, colorIds, segments, styles, colors, distances, joins, caps, paints, features: featureCount };
 }
 
 export const lineBytes = (lines?: LineData): number => lines ? lines.segments.byteLength + lines.styles.byteLength + lines.colors.byteLength + lines.distances.byteLength + (lines.joins?.byteLength ?? 0) + (lines.caps?.byteLength ?? 0) : 0;

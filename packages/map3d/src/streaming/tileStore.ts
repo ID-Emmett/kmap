@@ -1,4 +1,5 @@
 import type { Map3DOptions } from '../types.js';
+import { bindingBytes } from '../style/palette.js';
 import { canonical, canonicalKey, type Address } from './address.js';
 import type { PaintResponse } from './protocol.js';
 import { lineBytes } from './lines.js';
@@ -17,7 +18,8 @@ export interface TileEntry {
   features: number; empty: boolean; reservedBytes: number; startedAt: number;
 }
 export const resultBytes = (result?: PaintResponse): number => result?.bitmap
-  ? result.bitmap.width * result.bitmap.height * 4 + lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + labelBytes(result.labels) : 0;
+  ? result.bitmap.width * result.bitmap.height * 4 + lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + labelBytes(result.labels)
+    + [result.lines, result.fills, result.buildings].reduce((sum, item) => sum + (item ? bindingBytes(item) : 0), 0) : 0;
 
 /** canonical 数据、CPU 产物和 GPU 资源独立登记，显示依赖由协调器提供。 */
 export class TileStore {

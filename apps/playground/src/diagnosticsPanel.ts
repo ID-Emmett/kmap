@@ -14,7 +14,7 @@ const count = (n = 0): string => n.toLocaleString("en-US");
 export function createDiagnosticsPanel(map: Map3D): () => void {
   const overlay = createTileOverlay(map);
   const panel = document.createElement("aside");
-  panel.className = "diagnostics";
+  panel.className = "diagnostics collapsed";
   panel.setAttribute("aria-label", "地图性能面板");
   panel.innerHTML = /*html*/ `
     <header>
@@ -22,7 +22,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
       <h1><strong data-metric="fps">—</strong>  <span class='fps'>FPS</span></h1>
       </div></div>
         <div class="vitals"><div></div>
-        <button id="panel-toggle" aria-expanded="true">收起</button>
+        <button id="panel-toggle" aria-expanded="false">展开</button>
     </header>
     <div class="panel-body">
 

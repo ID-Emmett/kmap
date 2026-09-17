@@ -30,7 +30,7 @@ export function selectGlobeTiles(camera: PerspectiveCamera, origin: MapOrigin, v
     box.expandByScalar(projection.origin.w * Math.PI ** 2 / (steps ** 2 * 4 ** address.z));
     const horizonMax = horizon.x * (horizon.x >= 0 ? box.max.x : box.min.x)
       + horizon.y * (horizon.y >= 0 ? box.max.y : box.min.y) + horizon.z * (horizon.z >= 0 ? box.max.z : box.min.z) + horizonConstant;
-    const visible = horizonMax >= 0 && box.distanceToPoint(camera.position) < result.cutoff && frustum.intersectsBox(box);
+    const visible = (projection.center.w < .999 || horizonMax >= 0) && box.distanceToPoint(camera.position) < result.cutoff && frustum.intersectsBox(box);
     visibility.set(key, visible); return visible;
   };
   const target = Math.min(maxZoom, Math.max(2, targetZoom)), stack: Address[] = [{ z: 0, x: 0, y: 0 }];

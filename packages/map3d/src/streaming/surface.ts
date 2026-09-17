@@ -1,4 +1,4 @@
-import { MapPalette } from '../style/palette.js';
+import { bindingBytes, MapPalette } from '../style/palette.js';
 import { mapVertex, mapFacing, mapWorldPosition } from '../globe/projection.js';
 import { surfaceStateBytes } from './surfaceBytes.js';
 import { AlwaysStencilFunc, Color, Mesh, MeshBasicNodeMaterial, ReplaceStencilOp, SRGBColorSpace, Texture, Vector3, type Scene } from 'three/webgpu';
@@ -20,7 +20,7 @@ interface DrawInstance { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; lines
 /** 一个来源对应区域、面、线批次；部分区域背景绘制同时写入内容使用的 stencil 归属。 */
 export class TileSurfaces {
   readonly fogCenter = uniform(new Vector3()).setGroup(renderGroup);
-  readonly fogStart = uniform(1).setGroup(renderGroup); readonly fogEnd = uniform(2).setGroup(renderGroup); readonly fogColor;
+  readonly fogStart = uniform(1).setGroup(renderGroup); readonly fogEnd = uniform(2).setGroup(renderGroup); readonly fogColor; readonly landColor;
   readonly palette = new MapPalette();
   readonly instances = new Map<string, DrawInstance>();
   private readonly resources = new Set<{ mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial> }>();
@@ -33,19 +33,19 @@ export class TileSurfaces {
   }
   constructor(readonly scene: Scene, background: Color, readonly spherical = false) {
     scene.userData.mapPalette = this.palette;
-    this.fogColor = uniform(background).setGroup(renderGroup);
+    this.fogColor = uniform(background.clone()).setGroup(renderGroup); this.landColor = uniform(background.clone()).setGroup(renderGroup);
     scene.fogNode = fog(this.fogColor, max(smoothstep(this.fogStart, this.fogEnd, (this.spherical ? mapWorldPosition : positionWorld).sub(this.fogCenter).length()), this.spherical ? float(1).sub(smoothstep(0, .16, mapFacing)) : 0));
   }
   patchBytes(address: Address): number { return PATCH_RECTANGLE_BYTES * (this.spherical ? 4 ** Math.max(0, 6 - address.z) : 1); }
   create(bitmap: ImageBitmap, address: Address, data?: LineData, fillData?: FillData, buildingData?: BuildingData, labels: LabelCandidate[] = []) {
-    if (data) this.palette.encode(data.colors);
-    if (fillData) this.palette.encode(fillData.colors);
-    if (buildingData) this.palette.encode(buildingData.colors);
+    if (data) this.palette.encode(data.colors, data);
+    if (fillData) this.palette.encode(fillData.colors, fillData);
+    if (buildingData) this.palette.encode(buildingData.colors, buildingData);
     const map = new Texture(bitmap); map.colorSpace = SRGBColorSpace;
     map.flipY = false; map.generateMipmaps = true; map.anisotropy = 4; map.needsUpdate = true;
     const material = new MeshBasicNodeMaterial({ map, depthTest: false, depthWrite: false,
       stencilWrite: false, stencilWriteMask: 255, stencilFunc: AlwaysStencilFunc, stencilZPass: ReplaceStencilOp });
-    material.colorNode = this.fogColor;
+    material.colorNode = this.landColor;
     material.positionNode = positionLocal;
     if (this.spherical) {
       material.vertexNode = mapVertex(positionLocal);
@@ -60,7 +60,8 @@ export class TileSurfaces {
     const buildings = buildingData?.indices.length ? createBuildingSurface(buildingData, this.spherical, true) : undefined;
     if (buildings) mesh.add(buildings.mesh);
     const stateBytes = surfaceStateBytes(data, buildingData);
-    const resource = { mesh, map, bitmap, lines, fills, buildings, labels, stateBytes, bytes: Math.ceil(bitmap.width * bitmap.height * 4 * 4 / 3) + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes, cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes + labelBytes(labels) };
+    const bindings = [data, fillData, buildingData].reduce((sum, item) => sum + (item ? bindingBytes(item) : 0), 0);
+    const resource = { mesh, map, bitmap, lines, fills, buildings, labels, stateBytes, bytes: Math.ceil(bitmap.width * bitmap.height * 4 * 4 / 3) + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes, cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes + labelBytes(labels) + bindings };
     this.resources.add(resource); return resource;
   }
   commit(patches: readonly CoverPatch[], resources: ReadonlyMap<string, { surface?: Surface }>, origin: MapOrigin): void {

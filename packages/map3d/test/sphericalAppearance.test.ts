@@ -9,19 +9,21 @@ import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
 import { projectLngLat, WEB_MERCATOR_WORLD_SIZE as WORLD } from '../src/spatial/mercator.js';
 import { panViewByPixels } from '../src/interaction/viewTransforms.js';
 import { stableTileZoom } from '../src/streaming/lod.js';
+import { globeBlend } from '../src/globe/globeCamera.js';
+import { selectTiles } from '../src/streaming/selection.js';
 import { MapPalette } from '../src/style/palette.js';
 import { iconGlyphs } from '../src/labels/icons.js';
 
-describe('全缩放球面与运行时外观', () => {
+describe('平面与地球过渡及运行时外观', () => {
   it.each([0, 4.49, 4.5, 5, 5.49, 5.5, 6, 8, 12, 15, 17])('z%s 的真实曲面覆盖始终包含相机中心', zoom => {
     for (const pitch of [0, 60, 75]) {
       const view = { center: { lng: 179.99, lat: 40 }, zoom, pitch, bearing: 30 };
       const origin = selectMapOrigin(view.center, Math.floor(zoom)), camera = new PerspectiveCamera();
       const frame = updateMapCamera(camera, view, { width: 1280, height: 720 }, origin, true);
-      const cover = selectGlobeTiles(camera, origin, view, 17, 128, frame);
+      const cover = zoom < 5.5 ? selectGlobeTiles(camera, origin, view, 17, 128, frame) : selectTiles(camera, frame, origin, view, { width: 1280, height: 720 }, 0, 17);
       expect(cover.leaves.length).toBeGreaterThan(0); expect(cover.leaves.length).toBeLessThanOrEqual(128);
       const meters = projectLngLat(view.center), p = updateProjection(new Scene(), view, origin, true);
-      expect(p.center.w).toBe(1);
+      expect(p.center.w).toBe(1 - globeBlend(zoom));
       expect(cover.leaves.some(tile => Math.floor((view.center.lng + 180) / 360 * 2 ** tile.z) === tile.x
         && Math.floor((.5 - meters.y / WORLD) * 2 ** tile.z) === tile.y)).toBe(true);
       const point = projectMapPoint(new Vector3(meters.x - origin.meters.x, 0, origin.meters.y - meters.y), p).project(camera);
@@ -34,7 +36,7 @@ describe('全缩放球面与运行时外观', () => {
     for (const zoom of [5.499, 5.5, 5.501]) {
       const view = { center: { lng: 116, lat: 40 }, zoom, pitch: 75, bearing: 0 }, camera = new PerspectiveCamera();
       const origin = selectMapOrigin(view.center, 5), frame = updateMapCamera(camera, view, { width: 1280, height: 720 }, origin, true);
-      const cover = selectGlobeTiles(camera, origin, view, 17, 128, frame); ends.push(cover.fogEnd / frame.distance);
+      const cover = zoom < 5.5 ? selectGlobeTiles(camera, origin, view, 17, 128, frame) : selectTiles(camera, frame, origin, view, { width: 1280, height: 720 }, 0, 17); ends.push(cover.fogEnd / frame.distance);
     }
     expect(Math.max(...ends) - Math.min(...ends)).toBeLessThan(1e-10);
   });

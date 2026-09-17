@@ -25,7 +25,7 @@ export class GlobeView {
     this.mesh.renderOrder = -10; this.mesh.frustumCulled = false; this.mesh.visible = false; scene.add(this.mesh);
   }
   setTheme(theme: MapTheme, palette?: MapPalette): void {
-    this.land.value.set(theme.backgroundColor); this.water.value.set(palette?.resolve(this.waterSource) ?? this.waterSource);
+    this.land.value.set(theme.landColor ?? theme.backgroundColor); this.water.value.set(theme.elements?.['water-fill']?.color ?? palette?.resolve(this.waterSource) ?? this.waterSource);
   }
   update(p: ProjectionState): void {
     this.mesh.visible = p.center.w >= .999;

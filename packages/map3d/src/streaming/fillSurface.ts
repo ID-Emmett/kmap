@@ -1,4 +1,4 @@
-import { paletteColor } from '../style/palette.js';
+import { paletteColor, paletteOpacity } from '../style/palette.js';
 import { mapVertex, mapFacing } from '../globe/projection.js';
 import { BufferAttribute, BufferGeometry, DoubleSide, EqualStencilFunc, KeepStencilOp, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
 import { Fn, attribute, max, positionLocal, uniform, varying, vec4 } from 'three/tsl';
@@ -27,7 +27,9 @@ material.colorNode = Fn(() => {
     if (curved) mapFacing.lessThan(0).discard();
   max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();
   viewZoom.lessThan(style.x).or(viewZoom.greaterThanEqual(style.y)).discard();
-  return vec4(paletteColor(attribute<'vec3'>('fillColor', 'vec3'), themed), style.z);
+  const source = attribute<'vec3'>('fillColor', 'vec3'), alpha = style.z.mul(themed ? paletteOpacity(source) : 1);
+  alpha.lessThan(.001).discard();
+  return vec4(paletteColor(source, themed), alpha);
 })();
 
 return material;

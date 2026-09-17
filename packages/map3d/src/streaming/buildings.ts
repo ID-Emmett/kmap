@@ -1,3 +1,4 @@
+import type { ColorBindings } from '../style/palette.js';
 import { Color, ShapeUtils, Vector2 } from 'three/webgpu';
 import type { VectorTile } from '@mapbox/vector-tile';
 import type { MapLayerOptions } from '../types.js';
@@ -5,7 +6,7 @@ import type { Address } from './address.js';
 import { matches } from './paint.js';
 
 /** 每瓦片一个建筑批次，屋顶、墙面、分类颜色和高度梯度共享索引缓冲。 */
-export interface BuildingData {
+export interface BuildingData extends ColorBindings {
   positions: Float32Array; normals: Float32Array; colors: Float32Array;
   styles: Float32Array; indices: Uint32Array; features: number;
 }
@@ -13,6 +14,7 @@ export const buildingBytes = (d?: BuildingData): number => d ? d.positions.byteL
 
 export function buildBuildings(tile: VectorTile, layers: readonly MapLayerOptions[], address: Address): BuildingData {
   const positions: number[] = [], normals: number[] = [], colors: number[] = [], styles: number[] = [], indices: number[] = [];
+  const colorKeys: string[] = [], colorIds: number[] = [];
   let features = 0;
   const scale = Math.cosh(Math.PI * (1 - 2 * (address.y + .5) / 2 ** address.z));
   for (const layer of layers) {
@@ -25,6 +27,7 @@ export function buildBuildings(tile: VectorTile, layers: readonly MapLayerOption
       const base = Math.max(0, Number(feature.properties[layer.paint.minHeightProperty ?? 'min_height']) || 0);
       if (!Number.isFinite(height) || height <= base) continue;
       const category = String(feature.properties[layer.paint.colorProperty ?? 'kind'] ?? '');
+      const key = `${layer.id}/${category}`; let colorId = colorKeys.indexOf(key); if (colorId < 0) colorId = colorKeys.push(key) - 1;
       const color = new Color(layer.paint.categoryColors?.[category] ?? layer.paint.color);
       const polygons: Vector2[][][] = [];
       for (const ring of feature.loadGeometry()) {
@@ -35,7 +38,7 @@ export function buildBuildings(tile: VectorTile, layers: readonly MapLayerOption
       const vertex = (p: Vector2, h: number, nx: number, ny: number, nz: number, light: number): number => {
         const index = positions.length / 3;
         positions.push(p.x / source.extent - .5, h * scale, p.y / source.extent - .5);
-        normals.push(nx, ny, nz); colors.push(color.r, color.g, color.b);
+        colorIds.push(colorId); normals.push(nx, ny, nz); colors.push(color.r, color.g, color.b);
         styles.push(layer.minZoom ?? 15.74, (layer.maxZoom ?? 24) + 1, light);
         return index;
       };
@@ -60,6 +63,6 @@ export function buildBuildings(tile: VectorTile, layers: readonly MapLayerOption
       features++;
     }
   }
-  return { positions: new Float32Array(positions), normals: new Float32Array(normals), colors: new Float32Array(colors),
+  return { colorKeys, colorIds: new Uint16Array(colorIds), positions: new Float32Array(positions), normals: new Float32Array(normals), colors: new Float32Array(colors),
     styles: new Float32Array(styles), indices: new Uint32Array(indices), features };
 }

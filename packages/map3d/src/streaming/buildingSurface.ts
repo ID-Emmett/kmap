@@ -1,4 +1,4 @@
-import { paletteColor } from '../style/palette.js';
+import { paletteColor, paletteOpacity, paletteStyle } from '../style/palette.js';
 import { mapVertex } from '../globe/projection.js';
 import { Vector4, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
 import { Fn, Loop, attribute, uniformArray, float, max, normalWorld, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
@@ -39,8 +39,10 @@ const clipCount = uniform(0, 'int').onObjectUpdate(({ object }) => object!.userD
 function createMaterial(curved: boolean, themed: boolean) {
 const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: true, depthWrite: true, side: DoubleSide });
 material.forceSinglePass = true;
-material.positionNode = positionLocal;
-if (curved) material.vertexNode = mapVertex(positionLocal);
+const sourceColor = attribute<'vec3'>('buildingColor', 'vec3');
+const position = vec3(positionLocal.x, positionLocal.y.mul(themed ? paletteStyle(sourceColor).y : 1), positionLocal.z);
+material.positionNode = position;
+if (curved) material.vertexNode = mapVertex(position);
 material.colorNode = Fn(() => {
   max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();
   viewZoom.lessThan(zoomRange.x).or(viewZoom.greaterThanEqual(zoomRange.y)).discard();
@@ -51,8 +53,9 @@ material.colorNode = Fn(() => {
       .and(positionLocal.z.greaterThanEqual(rect.y)).and(positionLocal.z.lessThanEqual(rect.w)).select(1, 0));
   });
   inside.equal(0).and(clipCount.greaterThan(0)).discard();
+  const alpha = themed ? paletteOpacity(sourceColor) : float(1); alpha.lessThan(.001).discard();
   const sunlight = max(normalWorld.dot(vec3(-.45, .8, .4).normalize()), 0).mul(.3).add(.7);
-  return vec4(paletteColor(attribute<'vec3'>('buildingColor', 'vec3'), themed).mul(sunlight).mul(style.z), 1);
+  return vec4(paletteColor(attribute<'vec3'>('buildingColor', 'vec3'), themed).mul(sunlight).mul(style.z), alpha);
 })();
 
 return material;

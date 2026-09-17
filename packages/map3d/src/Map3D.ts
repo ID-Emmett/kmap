@@ -15,6 +15,7 @@ import { auditPixels } from './streaming/pixelAudit.js';
 import { tileDiagnostics } from './streaming/diagnostics.js';
 import { selectTiles } from './streaming/selection.js';
 import { LabelSystem } from './labels/labelSystem.js';
+import { GLOBE_END } from './globe/globeCamera.js';
 import { GlobeView } from './globe/globeView.js';
 import { updateProjection } from './globe/projection.js';
 import type { MapTheme, LabelAppearance, Map3DOptions, MapEventMap, MapRuntimeStats, RenderBackend, ViewportSize, ViewState } from './types.js';
@@ -71,7 +72,9 @@ export class Map3D {
   /** 原子更新全局调色板，已加载与后续瓦片共享同一主题。 */
   setTheme(theme: MapTheme): void {
     this.assertLive(); this.theme = theme; this.background.set(theme.backgroundColor);
-    this.engine?.surfaces.palette.set(theme); this.globe?.setTheme(theme, this.engine?.surfaces.palette);
+    this.engine?.surfaces.palette.set(theme);
+    this.engine?.surfaces.fogColor.value.set(theme.fogColor ?? theme.backgroundColor);
+    this.engine?.surfaces.landColor.value.set(theme.landColor ?? theme.backgroundColor); this.globe?.setTheme(theme, this.engine?.surfaces.palette);
     this.labels?.invalidate();
   }
   /** 文字外观在下一次屏幕布局中生效，字形缓存继续复用。 */
@@ -117,10 +120,10 @@ export class Map3D {
     if (this.lastFrame) this.interval.add(this.frameMs); this.lastFrame = now;
     if (this.changedAt) { this.input.add(start - this.changedAt); this.changedAt = 0; }
     this.engine?.update(this.camera, this.cameraFrame, this.origin, this.getView(), this.viewport, start);
-    const view = this.getView(), globeActive = this.options.globe !== false && this.options.source.minZoom === 0;
+    const view = this.getView(), globeActive = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
     if (globeActive && !this.globe) { this.globe = new GlobeView(this.options, this.scene); if (this.theme) this.globe.setTheme(this.theme, this.engine?.surfaces.palette); }
     this.globe?.update(this.scene.userData.mapProjection);
-    if (this.globe) this.globe.mesh.visible = globeActive && view.zoom < 10;
+    if (this.globe && !globeActive) this.globe.mesh.visible = false;
     if (this.labels && this.engine) this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.viewport, this.engine.revision, start, this.engine.selection.fogEnd);
     this.engineMs = performance.now() - start;
     this.renderer.render(this.scene, this.camera);
@@ -148,13 +151,13 @@ export class Map3D {
       camera: { position: this.cameraFrame.position, origin: this.origin },
       frame: { cpu: this.cpu.snapshot(), interval, input: this.input.snapshot(), fps: interval.mean > 0 ? 1000 / interval.mean : 0 },
       render: { drawCalls: info.render.drawCalls, triangles: info.render.triangles },
-      memory: { paletteBytes: this.engine?.surfaces.palette.values.byteLength ?? 0, geometries: info.memory.geometries, textures: info.memory.textures, total: this.engine?.gpuBytes ?? 0 },
+      memory: { paletteBytes: this.engine ? this.engine.surfaces.palette.values.byteLength + this.engine.surfaces.palette.parameters.byteLength : 0, geometries: info.memory.geometries, textures: info.memory.textures, total: this.engine?.gpuBytes ?? 0 },
       workers: this.engine?.workers.getStats(), sceneTiles: this.engine?.shown.size ?? 0,
       labels: this.labels ? { candidates: this.labels.candidates, placed: this.labels.placed, glyphs: this.labels.atlas.glyphs.size, glyphErrors: this.labels.atlas.errors,
         missingGlyphs: this.labels.atlas.missing, layoutMs: this.labels.layoutMs, layouts: this.labels.layouts, quads: this.labels.surface.count,
         atlasBytes: this.labels.atlas.size ** 2, pendingRanges: this.labels.atlas.pending.size, cachedRanges: this.labels.atlas.pages.size } : undefined,
       overlayCacheBytes: this.engine?.pipeline.overlays.bytes ?? 0,
-      globe: { active: this.options.globe !== false && this.options.source.minZoom === 0,
+      globe: { active: this.options.globe !== false && this.options.source.minZoom === 0 && this.getView().zoom < GLOBE_END,
         ready: !!this.globe && this.engine?.targetMissing === 0, errors: this.engine?.errors ?? 0 },
       tiles: this.engine ? tileDiagnostics(this.engine) : undefined };
   }

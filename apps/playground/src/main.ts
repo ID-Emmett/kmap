@@ -1,4 +1,4 @@
-import { createAppearancePanel } from './appearancePanel.js';
+import { createAppearanceInspector } from './appearanceInspector.js';
 import { Map3D } from '@kmap/map3d';
 import type { Inspector } from 'three/addons/inspector/Inspector.js';
 import { createDiagnosticsPanel } from './diagnosticsPanel.js';
@@ -12,6 +12,7 @@ interface InspectorWithTimestampResolution extends Inspector {
 
 async function bootstrap(): Promise<void> {
   window.__kmapMap3D?.dispose();
+  window.__kmapInspector?.domElement.remove();
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas');
 
   if (!canvas) {
@@ -58,14 +59,14 @@ async function bootstrap(): Promise<void> {
 
   // Inspector 只在 Playground 接入，SDK 不依赖开发调试界面。
   let inspector: InspectorWithTimestampResolution | undefined;
-  if (new URLSearchParams(window.location.search).has('inspector')) {
+  {
     const { Inspector } = await import('three/addons/inspector/Inspector.js');
     inspector = new Inspector() as InspectorWithTimestampResolution;
     window.__kmapInspector = inspector;
     map.getRenderer().inspector = inspector;
   }
   const removeDiagnostics = createDiagnosticsPanel(map);
-  const removeAppearance = createAppearancePanel(map);
+  let removeAppearance = () => {};
   const removePanel = () => { removeAppearance(); removeDiagnostics(); };
   let ready = false;
   const unsubscribeView = map.on('viewchange', ({ view }) => {
@@ -90,6 +91,7 @@ async function bootstrap(): Promise<void> {
   try {
     resize();
     await map.initialize();
+    removeAppearance = createAppearanceInspector(map, inspector!);
     if (new URLSearchParams(window.location.search).get('capture') === 'appearance') {
       const { runAppearanceBenchmark } = await import('./appearanceBenchmark.js');
       void runAppearanceBenchmark(map).catch(error => { document.documentElement.dataset.kmapAppearanceError = String(error); });

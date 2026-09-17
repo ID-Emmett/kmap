@@ -1,4 +1,4 @@
-import { paletteColor } from '../style/palette.js';
+import { paletteColor, paletteOpacity, paletteStyle } from '../style/palette.js';
 import { mapVertex, mapFacing } from '../globe/projection.js';
 import { Vector4, DoubleSide, EqualStencilFunc, InstancedBufferAttribute, InstancedBufferGeometry, KeepStencilOp, Mesh, MeshBasicNodeMaterial, PlaneGeometry } from 'three/webgpu';
 import { Fn, If, attribute, uniformArray, float, fwidth, max, min, mix, uint, positionLocal, smoothstep, uniform, uv, varying, vec2, vec3, vec4 } from 'three/tsl';
@@ -42,7 +42,8 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
   const widths = uniformArray(Array.from({ length: count }, () => new Vector4()), 'vec4' as const).onObjectUpdate(frame => frame?.object?.userData.lineState.widths);
   const dashes = uniformArray(Array.from({ length: count }, () => new Vector4()), 'vec4' as const).onObjectUpdate(frame => frame?.object?.userData.lineState.dashes);
   // 查表在顶点阶段求值，flat 保持每个实例的离散样式与宽度。
-  const width = varying(max(widths.element(uint(style.x)).x, 1e-10)).setInterpolation('flat');
+  const sourceColor = attribute<'vec3'>('lineColor', 'vec3');
+  const width = varying(max(widths.element(uint(style.x)).x.mul(themed ? paletteStyle(sourceColor).x : 1), 1e-10)).setInterpolation('flat');
   const dash = varying(dashes.element(uint(style.x))).setInterpolation('flat');
   const delta = segment.zw.sub(segment.xy); const length = varying(delta.length()).setInterpolation('flat');
   const radius = width.mul(.5);
@@ -79,7 +80,7 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
       const duty = dash.x.add(dash.z).div(period);
       dashAlpha.assign(mix(resolved, duty, smoothstep(.25, .75, dashAA.div(period))));
     });
-    const alpha = float(1).sub(smoothstep(aa.negate(), aa, distance)).mul(style.y).mul(dashAlpha);
+    const alpha = float(1).sub(smoothstep(aa.negate(), aa, distance)).mul(style.y).mul(dashAlpha).mul(themed ? paletteOpacity(sourceColor) : 1);
     // 导数在分支裁剪之前求值，保留片元四元组的完整采样。
     if (curved) mapFacing.lessThan(0).discard();
     max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();

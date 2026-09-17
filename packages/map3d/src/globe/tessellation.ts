@@ -4,12 +4,14 @@ import type { FillData } from '../streaming/fills.js';
 export function tessellateFills(data: FillData, zoom: number): FillData {
   if (zoom >= 6 || !data.indices.length) return data;
   const positions = Array.from(data.positions), colors = Array.from(data.colors), styles = Array.from(data.styles), indices: number[] = [];
+  const colorIds = data.colorIds ? Array.from(data.colorIds) : undefined;
   const limit = (2 ** zoom / 128) ** 2;
   const midpoints = new Map<string, number>();
   const midpoint = (a: number, b: number): number => {
     const key = a < b ? `${a}:${b}` : `${b}:${a}`; const known = midpoints.get(key); if (known !== undefined) return known;
     const index = positions.length / 3;
     for (let i = 0; i < 3; i++) { positions.push((positions[a * 3 + i]! + positions[b * 3 + i]!) / 2); colors.push(colors[a * 3 + i]!); styles.push(styles[a * 3 + i]!); }
+    if (colorIds) colorIds.push(colorIds[a]!);
     midpoints.set(key, index); return index;
   };
   const distance = (a: number, b: number) => (positions[a * 3]! - positions[b * 3]!) ** 2 + (positions[a * 3 + 2]! - positions[b * 3 + 2]!) ** 2;
@@ -22,5 +24,5 @@ export function tessellateFills(data: FillData, zoom: number): FillData {
     else if (bc >= ca) { const m = midpoint(b, c); stack.push(a, b, m, a, m, c); }
     else { const m = midpoint(c, a); stack.push(a, b, m, m, b, c); }
   }
-  return { positions: new Float32Array(positions), colors: new Float32Array(colors), styles: new Float32Array(styles), indices: new Uint32Array(indices) };
+  return { ...(colorIds ? { colorIds: new Uint16Array(colorIds), colorKeys: data.colorKeys! } : {}), positions: new Float32Array(positions), colors: new Float32Array(colors), styles: new Float32Array(styles), indices: new Uint32Array(indices) };
 }

@@ -1,4 +1,5 @@
 import { iconCode, iconGlyphs } from './icons.js';
+import { measureGlyphRun } from './glyphRun.js';
 import type { MapPalette } from '../style/palette.js';
 import { facesCamera, projectMapPoint, type ProjectionState } from '../globe/projection.js';
 import { Vector3, type PerspectiveCamera, type Scene } from 'three/webgpu';
@@ -47,7 +48,8 @@ export class LabelSystem {
     const result = { ...label, color, haloColor,
       size: Math.max(8, Math.min(40, (style.textSize ?? label.size) * (this.appearance.sizeScale ?? 1))),
       haloWidth: Math.max(0, Math.min(4, style.haloWidth ?? this.appearance.haloWidth ?? label.haloWidth)),
-      icon: this.appearance.icons === false ? undefined : label.icon };
+      iconColor: style.iconColor ?? color, iconSize: Math.max(8, Math.min(32, style.iconSize ?? label.size)), iconGap: Math.max(0, Math.min(16, style.iconGap ?? 4)),
+      icon: this.appearance.icons === false || style.icon === 'none' ? undefined : style.icon === 'auto' ? label.icon : style.icon ?? label.icon };
     this.styledCache.set(label, result); return result;
   }
   update(surfaces: TileSurfaces, camera: PerspectiveCamera, origin: MapOrigin, view: ViewState, viewport: ViewportSize, revision: number, now: number, fogEnd: number): void {
@@ -126,9 +128,10 @@ export class LabelSystem {
       const glyphs: AtlasGlyph[] = [];
       for (const char of p.label.text) { const glyph = this.atlas.glyphs.get(char.codePointAt(0)!); if (glyph) glyphs.push(glyph); }
       if (glyphs.length !== Array.from(p.label.text).length) continue;
-      const scale = p.label.size / GLYPH_EM, iconWidth = p.label.icon ? p.label.size + 5 : 0, width = glyphs.reduce((sum, g) => sum + g.advance * scale, 0) + iconWidth;
+      const iconSize = p.label.icon ? p.label.iconSize ?? p.label.size : 0;
+      const { scale, iconWidth, width, height: inkHeight, baseline } = measureGlyphRun(glyphs, p.label.size, iconSize, p.label.iconGap);
       if (width + 12 > p.length || width > viewport.width * .7) continue;
-      const height = p.label.size + 4;
+      const height = inkHeight + 4;
       const halfX = Math.abs(Math.cos(p.angle)) * width / 2 + Math.abs(Math.sin(p.angle)) * height / 2;
       const halfY = Math.abs(Math.sin(p.angle)) * width / 2 + Math.abs(Math.cos(p.angle)) * height / 2;
       const pad = this.retained.has(p.id) ? 3 : 7;
@@ -139,15 +142,16 @@ export class LabelSystem {
       let cursor = -width / 2;
       if (p.label.icon) {
         const icon = this.atlas.glyphs.get(iconCode(p.label.icon));
+        const iconScale = iconSize / GLYPH_EM;
         if (icon) quads.push({ x: p.worldX - origin.meters.x, y: origin.meters.y - p.worldY,
-          left: cursor - GLYPH_BORDER * scale, top: -p.label.size / 2 - GLYPH_BORDER * scale,
-          width: icon.w * scale, height: icon.h * scale, u: icon.u, v: icon.v, du: icon.w / this.atlas.size, dv: icon.h / this.atlas.size,
-          angle: 0, color: p.label.color, haloColor: p.label.haloColor, haloWidth: .6, scale, born });
+          left: cursor - GLYPH_BORDER * iconScale, top: -iconSize / 2 - GLYPH_BORDER * iconScale,
+          width: icon.w * iconScale, height: icon.h * iconScale, u: icon.u, v: icon.v, du: icon.w / this.atlas.size, dv: icon.h / this.atlas.size,
+          angle: 0, color: p.label.iconColor ?? p.label.color, haloColor: p.label.haloColor, haloWidth: .6, scale: iconScale, born });
         cursor += iconWidth;
       }
       for (const glyph of glyphs) {
         if (glyph.w) quads.push({ x: p.worldX - origin.meters.x, y: origin.meters.y - p.worldY,
-          left: cursor + (glyph.left - GLYPH_BORDER) * scale, top: p.label.size * .4 - (glyph.top + GLYPH_BORDER) * scale,
+          left: cursor + (glyph.left - GLYPH_BORDER) * scale, top: baseline - (glyph.top + GLYPH_BORDER) * scale,
           width: glyph.w * scale, height: glyph.h * scale, u: glyph.u, v: glyph.v, du: glyph.w / this.atlas.size, dv: glyph.h / this.atlas.size,
           angle: p.angle, endX: p.label.line ? p.endWorldX - origin.meters.x : undefined, endY: p.label.line ? origin.meters.y - p.endWorldY : undefined, color: p.label.color, haloColor: p.label.haloColor, haloWidth: p.label.haloWidth, scale, born });
         cursor += glyph.advance * scale;

@@ -20,7 +20,7 @@ scope.onmessage = ({ data }) => {
     context.fillStyle = data.background; context.fillRect(0, 0, 1, 1);
     const bitmap = canvas.transferToImageBitmap();
     scope.postMessage({ id: data.id, bitmap, lines, fills, buildings, labels, features: fills.features + lines.features + buildings.features + labels.length, paintMs: performance.now() - started, empty: data.buffer.byteLength === 0 },
-      [bitmap, lines.segments.buffer, lines.styles.buffer, lines.colors.buffer, lines.distances.buffer, ...(lines.joins ? [lines.joins.buffer as ArrayBuffer] : []), ...(lines.caps ? [lines.caps.buffer as ArrayBuffer] : []), buildings.positions.buffer, buildings.normals.buffer, buildings.colors.buffer, buildings.styles.buffer, buildings.indices.buffer, fills.positions.buffer, fills.colors.buffer, fills.styles.buffer, fills.indices.buffer]);
+      [bitmap, ...[lines, fills, buildings].flatMap(data => data.colorIds ? [data.colorIds.buffer as ArrayBuffer] : []), lines.segments.buffer, lines.styles.buffer, lines.colors.buffer, lines.distances.buffer, ...(lines.joins ? [lines.joins.buffer as ArrayBuffer] : []), ...(lines.caps ? [lines.caps.buffer as ArrayBuffer] : []), buildings.positions.buffer, buildings.normals.buffer, buildings.colors.buffer, buildings.styles.buffer, buildings.indices.buffer, fills.positions.buffer, fills.colors.buffer, fills.styles.buffer, fills.indices.buffer]);
   } catch (error) {
     scope.postMessage({ id: data.id, error: String(error), features: 0, paintMs: performance.now() - started, empty: false }, []);
   }

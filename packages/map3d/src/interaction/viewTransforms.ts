@@ -1,3 +1,4 @@
+import { globeBlend } from '../globe/globeCamera.js';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 
 import {
@@ -34,7 +35,9 @@ export function panViewByPixels(
   const origin = selectMapOrigin(normalizedView.center, originZoom);
   const camera = new PerspectiveCamera();
   updateMapCamera(camera, normalizedView, normalizedViewport, origin, globe);
-  if (globe) {
+  const weight = globe ? 1 - globeBlend(normalizedView.zoom) : 0;
+  let spherical: ViewState | undefined;
+  if (weight > 0) {
     const radius = WEB_MERCATOR_WORLD_SIZE / (2 * Math.PI * Math.cos(normalizedView.center.lat * Math.PI / 180));
     const c = projectLngLat(normalizedView.center), cx = c.x - origin.meters.x, cz = origin.meters.y - c.y;
     const ray = new Vector3(deltaX / normalizedViewport.width * 2, -deltaY / normalizedViewport.height * 2, .5).unproject(camera).sub(camera.position).normalize();
@@ -44,8 +47,9 @@ export function panViewByPixels(
     const lat = normalizedView.center.lat * Math.PI / 180, s = Math.sin(lat), c0 = Math.cos(lat);
     const deltaLng = Math.atan2(hit.x, hit.y * c0 + hit.z * s) * 180 / Math.PI;
     const hitLat = Math.asin(Math.max(-1, Math.min(1, hit.y * s - hit.z * c0))) * 180 / Math.PI;
-    return normalizeViewState({ center: { lng: normalizedView.center.lng - deltaLng,
+    spherical = normalizeViewState({ center: { lng: normalizedView.center.lng - deltaLng,
       lat: normalizedView.center.lat * 2 - hitLat } }, normalizedView);
+    if (weight === 1) return spherical;
   }
   const maxGroundDistance = WEB_MERCATOR_WORLD_SIZE * 4;
   const centerGround = intersectCameraRayWithGround(
@@ -64,7 +68,7 @@ export function panViewByPixels(
   const centerGroundMercator = sceneGroundToMercator(centerGround, origin);
   const movedGroundMercator = sceneGroundToMercator(movedGround, origin);
 
-  return normalizeViewState(
+  const planar = normalizeViewState(
     {
       center: unprojectMercator({
         x:
@@ -79,6 +83,7 @@ export function panViewByPixels(
     },
     normalizedView,
   );
+  return spherical ? normalizeViewState({ center: { lng: planar.center.lng + (spherical.center.lng - planar.center.lng) * weight, lat: planar.center.lat + (spherical.center.lat - planar.center.lat) * weight } }, normalizedView) : planar;
 }
 
 /** 水平拖拽改变 bearing，垂直向上拖拽增加 pitch。 */
