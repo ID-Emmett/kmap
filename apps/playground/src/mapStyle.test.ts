@@ -27,7 +27,7 @@ describe('Playground light basemap style', () => {
       expect(layer.paint.widthUnit ?? 'meters').toBe('meters');
       expect(layer.paint.widthStops?.length).toBeGreaterThan(1);
     }
-    expect(PLAYGROUND_STYLE_TOKENS.canvas).toBe('#F5F5F2');
+    expect(PLAYGROUND_STYLE_TOKENS.canvas).toBe('#dbdeff');
     for (const id of ['province-boundary', 'rail-dash', 'tunnel', 'ferry']) {
       const layer = PLAYGROUND_LAYERS.find(l => l.id === id)!;
       expect(layer.type === 'line' && layer.paint.dashArray?.length).toBeGreaterThanOrEqual(2);

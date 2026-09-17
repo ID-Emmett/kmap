@@ -47,3 +47,10 @@ docs/evidence/map-experience/*
 !docs/evidence/map-experience/README.md
 !docs/evidence/map-experience/verification-summary.json
 !docs/evidence/map-experience/aa-comparison.json
+
+!docs/evidence/map-inspector/
+docs/evidence/map-inspector/*
+!docs/evidence/map-inspector/README.md
+!docs/evidence/map-inspector/verification-summary.json
+!docs/evidence/map-inspector/mapbox-reference.json
+!docs/evidence/map-inspector/analyze.py

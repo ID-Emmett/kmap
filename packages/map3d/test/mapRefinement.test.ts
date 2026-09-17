@@ -34,9 +34,9 @@ describe('球面瓦片、稳定文字与连续线连接', () => {
       const p = updateProjection(scene, view, origin, true); let visible = 0, hidden = 0;
       for (let lng = -180; lng < 180; lng += 10) for (let lat = -85; lat <= 85; lat += 10) {
         const meters = projectLngLat({ lng, lat });
-        const point = projectMapPoint(new Vector3(meters.x - origin.meters.x, 0, origin.meters.y - meters.y), p);
+        const point = new Vector3(meters.x - origin.meters.x, 0, origin.meters.y - meters.y);
         if (facesCamera(point, camera.position, p)) visible++; else hidden++;
-        point.project(camera); expect(Math.abs(point.x)).toBeLessThan(.85); expect(Math.abs(point.y)).toBeLessThan(.85);
+        projectMapPoint(point, p).project(camera); expect(Math.abs(point.x)).toBeLessThan(.85); expect(Math.abs(point.y)).toBeLessThan(.85);
       }
       expect(visible).toBeGreaterThan(50); expect(hidden).toBeGreaterThan(50);
       const cover = selectGlobeTiles(camera, origin, view, 17, 128);

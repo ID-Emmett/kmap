@@ -76,7 +76,7 @@ describe('实际显示区域归属', () => {
     surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);
     expect(p.mesh.material.stencilWrite).toBe(true); expect(c.mesh.material.stencilWrite).toBe(false);
     expect(p.mesh.material.opacity).toBe(1); expect(c.mesh.material.opacity).toBe(1);
-    expect(scene.children).toHaveLength(2); expect(p.mesh.geometry.drawRange.count).toBe(18);
+    expect(scene.children).toHaveLength(3); expect(p.mesh.geometry.drawRange.count).toBe(18);
     expect(p.lines!.mesh.material.stencilRef).toBe(p.mesh.material.stencilRef);
     for (const node of [surfaces.fogCenter, surfaces.fogStart, surfaces.fogEnd, surfaces.fogColor]) expect(node.groupNode).toBe(renderGroup);
     surfaces.commit(resolveRenderCover([parent], new Set(resources.keys()), 0).patches, resources, origin);

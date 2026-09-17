@@ -23,10 +23,12 @@ export class TileSurfaces {
   readonly fogStart = uniform(1).setGroup(renderGroup); readonly fogEnd = uniform(2).setGroup(renderGroup); readonly fogColor; readonly landColor;
   readonly palette = new MapPalette();
   readonly instances = new Map<string, DrawInstance>();
+  private readonly ground: Mesh<PatchGeometry, MeshBasicNodeMaterial>;
+  private disposed = false;
   private readonly resources = new Set<{ mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial> }>();
   private originX = NaN; private originY = NaN;
   get geometryBytes(): number {
-    let bytes = 0;
+    let bytes = this.disposed ? 0 : this.ground.geometry.bytes;
     for (const r of this.resources) bytes += r.mesh.geometry.bytes;
     for (const i of this.instances.values()) if (!i.primary) bytes += i.mesh.geometry.bytes + i.resource.stateBytes;
     return bytes;
@@ -35,6 +37,11 @@ export class TileSurfaces {
     scene.userData.mapPalette = this.palette;
     this.fogColor = uniform(background.clone()).setGroup(renderGroup); this.landColor = uniform(background.clone()).setGroup(renderGroup);
     scene.fogNode = fog(this.fogColor, max(smoothstep(this.fogStart, this.fogEnd, (this.spherical ? mapWorldPosition : positionWorld).sub(this.fogCenter).length()), this.spherical ? float(1).sub(smoothstep(0, .16, mapFacing)) : 0));
+    const geometry = new PatchGeometry(); geometry.update({ z: 0, x: 0, y: 0 }, [{ z: 0, x: 0, y: 0 }]);
+    const material = new MeshBasicNodeMaterial({ depthTest: false, depthWrite: false }); material.colorNode = this.landColor;
+    material.vertexNode = mapVertex(positionLocal);
+    this.ground = new Mesh(geometry, material); this.ground.frustumCulled = false; this.ground.renderOrder = -5;
+    scene.add(this.ground);
   }
   patchBytes(address: Address): number { return PATCH_RECTANGLE_BYTES * (this.spherical ? 4 ** Math.max(0, 6 - address.z) : 1); }
   create(bitmap: ImageBitmap, address: Address, data?: LineData, fillData?: FillData, buildingData?: BuildingData, labels: LabelCandidate[] = []) {
@@ -109,8 +116,8 @@ export class TileSurfaces {
       if (stencilClip && ++stencil > 255) throw new Error('部分区域来源超过 stencil 容量。');
       instance.mesh.geometry.update(draw.address, draw.cells);
       instance.mesh.visible = true; instance.mesh.material.stencilRef = stencil; instance.mesh.material.stencilWrite = stencilClip;
-      // 原生面使用全局背景；部分区域需要背景批次同步写入 stencil 归属。
-      instance.mesh.material.visible = this.spherical && draw.address.z < 8 || !instance.fills || stencilClip;
+      // 平面底色由全局单批次提供；曲面底色与部分区域 stencil 采用来源网格。
+      instance.mesh.material.visible = !!this.scene.userData.mapProjection?.center.w || stencilClip;
       if (instance.lines) { instance.lines.mesh.material.stencilRef = stencil; instance.lines.mesh.material.stencilWrite = stencilClip; }
       if (instance.fills) { instance.fills.mesh.material.stencilRef = stencil; instance.fills.mesh.material.stencilWrite = stencilClip; }
       if (instance.buildings) setBuildingClip(instance.buildings.mesh.userData.buildingState, draw.address, draw.cells);
@@ -119,8 +126,13 @@ export class TileSurfaces {
     this.originX = origin.meters.x; this.originY = origin.meters.y;
   }
   update(origin: MapOrigin, viewZoom: number): void {
+    const curved = !!this.scene.userData.mapProjection?.center.w;
+    this.ground.visible = !curved;
+    this.ground.position.set(this.fogCenter.value.x, 0, this.fogCenter.value.z);
+    this.ground.scale.set(this.fogEnd.value * 2, 1, this.fogEnd.value * 2);
     const moved = origin.meters.x !== this.originX || origin.meters.y !== this.originY;
     for (const i of this.instances.values()) {
+      i.mesh.material.visible = curved || i.mesh.material.stencilWrite;
       if (moved) this.place(i.mesh, i.address, origin);
       if (i.lines) updateLineState(i.lines, i.address, viewZoom);
       if (i.fills) i.fills.viewZoom.value = viewZoom;
@@ -140,6 +152,7 @@ export class TileSurfaces {
     this.scene.remove(surface.mesh); surface.mesh.material.dispose(); surface.map.dispose(); surface.bitmap.close();
   }
   dispose(): void {
+    this.disposed = true; this.ground.geometry.dispose(); this.ground.material.dispose(); this.ground.removeFromParent();
     for (const i of this.instances.values()) {
       this.scene.remove(i.mesh);
       if (!i.primary) { i.mesh.geometry.dispose(); i.mesh.material.dispose(); i.lines?.mesh.material.dispose(); i.fills?.mesh.material.dispose(); i.buildings?.mesh.material.dispose(); }

@@ -1,5 +1,5 @@
 import { Vector3, Vector4, type Scene, type Node } from 'three/webgpu';
-import { Fn, If, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, float, mix, modelViewMatrix, modelWorldMatrix, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
+import { Fn, If, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, float, mix, highpModelViewMatrix, modelWorldMatrix, positionLocal, uniform, varying, vec3, vec4, viewportSize } from 'three/tsl';
 import { projectLngLat, WEB_MERCATOR_WORLD_SIZE as WORLD } from '../spatial/mercator.js';
 import type { MapOrigin } from '../spatial/types.js';
 import { globeBlend } from './globeCamera.js';
@@ -24,7 +24,9 @@ export function updateProjection(scene: Scene, view: ViewState, mapOrigin: MapOr
 export const projectMapPosition = Fn(([point]: [Node<'vec3'>]) => {
   const result = point.toVar();
   If(center.w.greaterThan(0), () => {
-    const lng = point.x.sub(center.x).div(EARTH_RADIUS);
+    const delta = point.x.sub(center.x).add(WORLD / 2).mod(WORLD).add(WORLD).mod(WORLD).sub(WORLD / 2);
+    const flatPoint = vec3(center.x.add(delta), point.y, point.z);
+    const lng = delta.div(EARTH_RADIUS);
     const q = center.y.sub(point.z).div(EARTH_RADIUS), s0 = center.z.sin(), c0 = center.z.cos();
     const dlat = float(0).toVar();
     // 逆 Mercator 三阶局部展开与半角弓高公式避免街区坐标的浮点消减。
@@ -33,29 +35,40 @@ export const projectMapPosition = Fn(([point]: [Node<'vec3'>]) => {
     const cos = center.z.add(dlat).cos(), half = lng.mul(.5).sin().pow(2);
     const drop = dlat.mul(.5).sin().pow(2).add(cos.mul(c0).mul(half)).mul(-2);
     const normal = vec3(cos.mul(lng.sin()), float(1).add(drop), dlat.sin().negate().sub(cos.mul(s0).mul(half).mul(2)));
-    result.assign(mix(point, vec3(normal.x.mul(origin.w).add(center.x), drop.mul(origin.w), normal.z.mul(origin.w).add(center.y)).add(normal.mul(point.y)), center.w));
+    result.assign(mix(flatPoint, vec3(normal.x.mul(origin.w).add(center.x), drop.mul(origin.w), normal.z.mul(origin.w).add(center.y)).add(normal.mul(point.y)), center.w));
   });
   return result;
 });
 export function mapVertex(position: Node<'vec3'>): Node<'vec4'> {
   return Fn(() => {
     // 平面分支使用 CPU 双精度合成的 modelViewMatrix，避免高倍缩放时相减消减。
-    const clip = cameraProjectionMatrix.mul(modelViewMatrix).mul(vec4(position, 1)).toVar();
+    const clip = cameraProjectionMatrix.mul(highpModelViewMatrix).mul(vec4(position, 1)).toVar();
+    // 平面公共边对齐设备像素的 1/64 网格中心，稳定浮点变换后的三角形边归属。
+    clip.xy.assign(clip.xy.div(clip.w).mul(viewportSize).mul(32).floor().add(.5).div(viewportSize).div(32).mul(clip.w));
     If(center.w.greaterThan(0), () => { clip.assign(cameraProjectionMatrix.mul(cameraViewMatrix).mul(vec4(projectMapPosition(modelWorldMatrix.mul(vec4(position, 1)).xyz), 1))); });
     return clip;
   })();
 }
 export const mapWorldPosition = varying(projectMapPosition(modelWorldMatrix.mul(vec4(positionLocal, 1)).xyz));
-/** 朝向判定按球面法线计算，片元只执行标量裁剪。 */
+/** 球面法线限定过渡过程的正面地理半球，片元按连续朝向渐隐。 */
 export const mapFacing = varying(Fn(() => {
-  const point = projectMapPosition(modelWorldMatrix.mul(vec4(positionLocal, 1)).xyz);
-  return mix(1, point.sub(vec3(center.x, origin.w.negate(), center.y)).normalize().dot(cameraPosition.sub(point).normalize()), center.w);
+  const result = float(1).toVar();
+  If(center.w.greaterThan(0), () => {
+    const flatPoint = modelWorldMatrix.mul(vec4(positionLocal, 1)).xyz;
+    const lng = flatPoint.x.sub(center.x).div(EARTH_RADIUS), lat = float(2).mul(origin.y.sub(flatPoint.z).div(EARTH_RADIUS).exp().atan()).sub(Math.PI / 2);
+    const s = lat.sin(), c = lat.cos(), s0 = center.z.sin(), c0 = center.z.cos();
+    const normal = vec3(c.mul(lng.sin()), c.mul(c0).mul(lng.cos()).add(s.mul(s0)), c.mul(s0).mul(lng.cos()).sub(s.mul(c0)));
+    const spherePoint = vec3(center.x, origin.w.negate(), center.y).add(normal.mul(origin.w));
+    result.assign(normal.dot(cameraPosition.sub(spherePoint).normalize()));
+  });
+  return result;
 })());
 /** CPU 覆盖与文字布局使用相同的球面映射。 */
 export function projectMapPoint(point: Vector3, p: ProjectionState): Vector3 {
   if (!p.center.w) return point;
-  const x = point.x, y = point.y, z = point.z, weight = p.center.w;
-  const lng = (point.x - p.center.x) / EARTH_RADIUS;
+  const delta = ((point.x - p.center.x + WORLD / 2) % WORLD + WORLD) % WORLD - WORLD / 2;
+  const x = p.center.x + delta, y = point.y, z = point.z, weight = p.center.w;
+  const lng = delta / EARTH_RADIUS;
   const q = (p.center.y - point.z) / EARTH_RADIUS, s0 = p.sinLat ?? Math.sin(p.center.z), c0 = p.cosLat ?? Math.cos(p.center.z);
   const dlat = Math.abs(q) < .001 ? q * c0 * (1 - q * s0 / 2 + q * q * (2 * s0 * s0 - 1) / 6)
     : 2 * Math.atan(Math.exp((p.origin.y - point.z) / EARTH_RADIUS)) - Math.PI / 2 - p.center.z;
@@ -69,6 +82,10 @@ export function projectMapPoint(point: Vector3, p: ProjectionState): Vector3 {
     z + ((-sinD - 2 * c * s0 * half) * (r + h) + p.center.y - z) * weight);
 }
 export function facesCamera(point: Vector3, camera: Vector3, p: ProjectionState): boolean {
-  return p.center.w < .999 || (point.x - p.center.x) * (camera.x - point.x)
-    + (point.y + p.origin.w) * (camera.y - point.y) + (point.z - p.center.y) * (camera.z - point.z) > 0;
+  if (!p.center.w) return true;
+  const lng = (point.x - p.center.x) / EARTH_RADIUS;
+  const lat = 2 * Math.atan(Math.exp((p.origin.y - point.z) / EARTH_RADIUS)) - Math.PI / 2;
+  const s = Math.sin(lat), c = Math.cos(lat), s0 = Math.sin(p.center.z), c0 = Math.cos(p.center.z);
+  const nx = c * Math.sin(lng), ny = c * c0 * Math.cos(lng) + s * s0, nz = c * s0 * Math.cos(lng) - s * c0;
+  return nx * (camera.x - p.center.x) + ny * (camera.y + p.origin.w) + nz * (camera.z - p.center.y) > p.origin.w;
 }

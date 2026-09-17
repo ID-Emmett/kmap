@@ -7,6 +7,7 @@ import { LabelSurface } from '../src/labels/labelSurface.js';
 import { GlobeView } from '../src/globe/globeView.js';
 import type { Map3DOptions } from '../src/types.js';
 import type { Object3D } from 'three/webgpu';
+import { MapPalette, paletteColors } from '../src/style/palette.js';
 
 interface ShaderBuilder { camera: PerspectiveCamera; scene: Scene; build(): unknown; vertexShader: string; fragmentShader: string }
 
@@ -23,10 +24,14 @@ describe('TSL 双后端源码生成', () => {
     const curvedLine = createLineSurface(line.data, true);
     const themedLine = createLineSurface(line.data, true, true);
     const objects = [line.mesh, curvedLine.mesh, themedLine.mesh, label.mesh, ...globe.scene.children];
+    const palette = new MapPalette(); palette.values.fill(.25);
     for (const object of objects) {
       const backendBuilder = renderer.backend as typeof renderer.backend & { createNodeBuilder(object: Object3D, renderer: WebGPURenderer): ShaderBuilder };
       const builder = backendBuilder.createNodeBuilder(object, renderer);
-      builder.camera = new PerspectiveCamera(); builder.scene = new Scene(); builder.build();
+      builder.camera = new PerspectiveCamera(); builder.scene = new Scene(); builder.scene.userData.mapPalette = palette;
+      // 模拟一帧已绑定调色板、随后出现新材质编译的时序。
+      paletteColors.value = palette.values; builder.build();
+      expect(paletteColors.value).toBe(palette.values); expect(palette.values[0]).toBe(.25);
       if (process.env.KMAP_SHADER_EVIDENCE) {
         mkdirSync('../../docs/evidence/map-stability/shaders', { recursive: true });
         for (const stage of ['vertex', 'fragment'] as const) writeFileSync(`../../docs/evidence/map-stability/shaders/${backend}-${objects.indexOf(object)}-${stage}.txt`, builder[`${stage}Shader`] ?? '');
@@ -36,6 +41,7 @@ describe('TSL 双后端源码生成', () => {
         expect(builder.fragmentShader).toContain(backend === 'webgpu' ? '@interpolate( flat )' : 'flat');
         expect(builder.fragmentShader).not.toMatch(/\[\s*uint\(/);
       }
+      if (object === themedLine.mesh) expect(builder.vertexShader).toContain('highpModelViewMatrix');
     }
     themedLine.mesh.geometry.dispose(); themedLine.mesh.material.dispose();
     curvedLine.mesh.geometry.dispose(); curvedLine.mesh.material.dispose();

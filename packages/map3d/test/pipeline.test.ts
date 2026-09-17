@@ -35,8 +35,8 @@ describe('阶段队列的可见需求优先与过期释放', () => {
     const surfaces = new TileSurfaces(new Scene(), new Color('#ffffff'));
     const fills = { positions: new Float32Array(9), colors: new Float32Array(9), styles: new Float32Array(9), indices: new Uint32Array([0, 1, 2]) };
     const gpuPerTile = 6 + fillBytes(fills);
-    // 每个来源的一个区域矩形持有 92 字节，预算仅容纳一个完整来源。
-    const store = new TileStore(surfaces, { maxGpuBytes: gpuPerTile + 92 }, new Set());
+    // 全局底面与每个来源区域各持有 92 字节，预算仅容纳一个完整来源。
+    const store = new TileStore(surfaces, { maxGpuBytes: gpuPerTile + 184 }, new Set());
     const closed = vi.fn(), initTexture = vi.fn();
     const pipeline = new TilePipeline(store, { canvas: {} as HTMLCanvasElement, source: { id: 'fixture', tiles: ['/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17 }, layers: [] },
       { initTexture } as unknown as WebGPURenderer, '#ffffff', () => {}, () => {}, () => {});
@@ -47,7 +47,7 @@ describe('阶段队列的可见需求优先与过期释放', () => {
     const cpuBefore = store.cpuBytes;
     pipeline.upload(10);
     expect(initTexture).toHaveBeenCalledOnce(); expect(a.state).toBe('ready'); expect(a.result).toBeUndefined();
-    expect(store.cpuBytes).toBe(cpuBefore + 92); expect(store.gpuBytes).toBe(gpuPerTile + 92);
+    expect(store.cpuBytes).toBe(cpuBefore + 92); expect(store.gpuBytes).toBe(gpuPerTile + 184);
     pipeline.upload(20);
     expect(b.state).toBe('upload'); expect(initTexture).toHaveBeenCalledOnce(); expect(closed).not.toHaveBeenCalled();
     store.release(a); pipeline.upload(30); expect(b.state).toBe('ready');

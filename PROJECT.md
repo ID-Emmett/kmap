@@ -18,7 +18,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 
 ## 当前事实基线
 
-- 全缩放球面投影、连续 pan 与雾、分类文字/图标配置、稳定 LOD 及晴昼/深海/霓彩主题已实现。141 项测试和双后端性能/视觉证据见 `docs/evidence/map-experience/README.md`。
+- 城市平面与低缩放地球过渡、分类文字/图标、Inspector 元素样式编辑及晴昼/深海/晴彩主题已实现。当前验证见 `docs/evidence/map-inspector/README.md`。
 
 - TypeScript 7.0.2，strict，ESM。
 - pnpm workspace 负责 Monorepo 依赖和命令编排。

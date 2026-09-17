@@ -144,7 +144,7 @@ export interface LabelStyle {
 }
 export type MapIcon = 'metro' | 'airport' | 'hospital' | 'school' | 'park' | 'museum' | 'food' | 'shop' | 'hotel';
 export interface LabelAppearance {
-  sizeScale?: number; haloWidth?: number; maxLabels?: number; icons?: boolean;
+  visible?: boolean; sizeScale?: number; haloWidth?: number; maxLabels?: number; icons?: boolean;
   layers?: Readonly<Record<string, LabelStyle>>;
   categories?: Readonly<Record<string, LabelStyle>>;
 }
@@ -252,7 +252,7 @@ export interface Map3DOptions {
   layers: readonly MapLayerOptions[];
   /** 标准 SDF glyph PBF 资源；按需加载 256 字符的 range。 */
   labels?: { glyphs: string; fontStack: string; maxLabels?: number };
-  /** minZoom=0 的源在低缩放显示地球；默认启用，全缩放采用球面投影。 */
+  /** minZoom=0 的源在 z4.5～5.5 连续过渡到地球；城市近景采用平面投影，默认启用。 */
   globe?: boolean;
   renderer?: {
     /** 是否强制使用 WebGL2 后端。 */

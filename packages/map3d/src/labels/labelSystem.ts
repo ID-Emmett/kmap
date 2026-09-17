@@ -53,6 +53,10 @@ export class LabelSystem {
     this.styledCache.set(label, result); return result;
   }
   update(surfaces: TileSurfaces, camera: PerspectiveCamera, origin: MapOrigin, view: ViewState, viewport: ViewportSize, revision: number, now: number, fogEnd: number): void {
+    if (this.appearance.visible === false) {
+      if (this.surface.count) this.surface.write([]);
+      this.placed = this.candidates = 0; return;
+    }
     this.surface.origin.value.set(origin.meters.x - this.batchOrigin.x, 0, this.batchOrigin.y - origin.meters.y);
     this.surface.clock.value = now / 1000;
     this.surface.viewport.value.set(viewport.width, viewport.height); this.atlas.tick(); this.atlas.flush();
@@ -87,7 +91,7 @@ export class LabelSystem {
         const endWorldX = bounds.west + label.endX * bounds.span, endWorldY = bounds.north - label.endY * bounds.span;
         if (previous && !label.line && Math.hypot(previous.x - x, previous.y - y) < bounds.span / 32) { x = previous.x; y = previous.y; }
         point.set(x - origin.meters.x, 0, origin.meters.y - y);
-        if (projection) { projectMapPoint(point, projection); if (!facesCamera(point, camera.position, projection)) continue; }
+        if (projection) { if (!facesCamera(point, camera.position, projection)) continue; projectMapPoint(point, projection); }
         if (point.distanceTo(camera.position) > fogEnd * .9) continue;
         point.project(camera); if (point.z < -1 || point.z > 1 || Math.abs(point.x) > 1.1 || Math.abs(point.y) > 1.1) continue;
         const screenX = (point.x + 1) * viewport.width / 2, screenY = (1 - point.y) * viewport.height / 2;

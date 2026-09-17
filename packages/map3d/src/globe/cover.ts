@@ -11,7 +11,8 @@ import { projectMapPoint, updateProjection } from './projection.js';
 export function selectGlobeTiles(camera: PerspectiveCamera, origin: MapOrigin, view: ViewState, maxZoom: number, limit: number, frame?: MapCameraFrame, targetZoom = Math.floor(view.zoom)): Selection {
   const projection = updateProjection(new Scene(), view, origin, true), result = emptySelection();
   const frustum = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem);
-  const box = new Box3(), point = new Vector3();
+  const box = new Box3(), sphereBox = new Box3(), point = new Vector3();
+  const sphereProjection = { ...projection, center: projection.center.clone().setW(1) };
   const earth = new Vector3(projection.center.x, -projection.origin.w, projection.center.y);
   const horizon = camera.position.clone().sub(earth), horizonOffset = projection.origin.w ** 2 / horizon.length(); horizon.normalize();
   const horizonConstant = -horizonOffset - earth.dot(horizon);
@@ -20,17 +21,20 @@ export function selectGlobeTiles(camera: PerspectiveCamera, origin: MapOrigin, v
   const visibility = new Map<string, boolean>();
   result.visible = (address: Address) => {
     const key = keyOf(address), cached = visibility.get(key); if (cached !== undefined) return cached;
-    const b = tileBounds(address); box.makeEmpty();
+    const b = tileBounds(address); box.makeEmpty(); sphereBox.makeEmpty();
     const steps = address.z < 6 ? 4 : 2;
     for (let y = 0; y <= steps; y++) for (let x = 0; x <= steps; x++) {
       point.set(b.west + b.span * x / steps - origin.meters.x, 0, origin.meters.y - b.north + b.span * y / steps);
       projectMapPoint(point, projection); box.expandByPoint(point);
+      point.set(b.west + b.span * x / steps - origin.meters.x, 0, origin.meters.y - b.north + b.span * y / steps);
+      projectMapPoint(point, sphereProjection); sphereBox.expandByPoint(point);
     }
     // 采样弦的最大弓高作为保守边界，保持地平线边缘瓦片可用。
     box.expandByScalar(projection.origin.w * Math.PI ** 2 / (steps ** 2 * 4 ** address.z));
-    const horizonMax = horizon.x * (horizon.x >= 0 ? box.max.x : box.min.x)
-      + horizon.y * (horizon.y >= 0 ? box.max.y : box.min.y) + horizon.z * (horizon.z >= 0 ? box.max.z : box.min.z) + horizonConstant;
-    const visible = (projection.center.w < .999 || horizonMax >= 0) && box.distanceToPoint(camera.position) < result.cutoff && frustum.intersectsBox(box);
+    sphereBox.expandByScalar(projection.origin.w * Math.PI ** 2 / (steps ** 2 * 4 ** address.z));
+    const horizonMax = horizon.x * (horizon.x >= 0 ? sphereBox.max.x : sphereBox.min.x)
+      + horizon.y * (horizon.y >= 0 ? sphereBox.max.y : sphereBox.min.y) + horizon.z * (horizon.z >= 0 ? sphereBox.max.z : sphereBox.min.z) + horizonConstant;
+    const visible = horizonMax >= 0 && box.distanceToPoint(camera.position) < result.cutoff && frustum.intersectsBox(box);
     visibility.set(key, visible); return visible;
   };
   const target = Math.min(maxZoom, Math.max(2, targetZoom)), stack: Address[] = [{ z: 0, x: 0, y: 0 }];

@@ -6,7 +6,7 @@
 
 ## 当前结论
 
-- 全缩放球面地图、连续雾、文字/图标配置、LOD 滞回和三套全局主题已实现。141 项自动测试与双后端 30 场景、394 张图像验证通过。2560×1305 连续交互实测 WebGL2 163.58 FPS、WebGPU 164.85 FPS；配置与冷加载边界见 `docs/evidence/map-experience/README.md`。
+- 城市平面地图在 z4.5～5.5 连续过渡到地球；Inspector 支持三主题、地图元素和文字样式编辑。默认背景/雾为 #dbdeff，陆地为 #e6f4f3。近景精度、地名层级和瓦片加载验证见 `docs/evidence/map-inspector/README.md`。
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
 - 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、米制线宽、加载、缓存、帧提交和资源回收。

@@ -13,7 +13,7 @@ const accents: Record<string, [string, string]> = {
   '#A06483': ['#CF9CBF', '#C52A8F'], '#7763A8': ['#AB9DE3', '#6244C7'],
 };
 function createTheme(id: ThemeId): MapTheme {
-  if (id === 'default') return { backgroundColor: light.canvas };
+  if (id === 'default') return { backgroundColor: '#dbdeff', landColor: '#e6f4f3', fogColor: '#dbdeff' };
   const palette = id === 'dark' ? dark : vivid, index = id === 'dark' ? 0 : 1;
   const colors: Record<string, string> = Object.fromEntries(Object.values(light).map((color, i) => [color, palette[i]!]));
   for (const [source, targets] of Object.entries(accents)) colors[source] = targets[index];

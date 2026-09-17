@@ -32,7 +32,7 @@ describe('原生面批次的裁剪与资源所有权', () => {
     expect(parent.fills!.viewZoom.value).toBe(14.5); expect(child.fills!.viewZoom.value).toBe(14.5);
     surfaces.commit(resolveRenderCover([address], new Set(resources.keys()), 0).patches, resources, origin);
     expect(parent.fills!.mesh.material.stencilWrite).toBe(false); expect(parent.mesh.material.visible).toBe(false);
-    expect(scene.children).toHaveLength(1);
+    expect(scene.children).toHaveLength(2);
     surfaces.dispose(); surfaces.release(parent); surfaces.release(child);
     expect(surfaces.geometryBytes).toBe(0); expect(scene.children).toHaveLength(0);
   });

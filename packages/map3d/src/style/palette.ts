@@ -1,18 +1,20 @@
-import { Color, Vector4, type Node } from 'three/webgpu';
-import { uint, uniformArray, varying } from 'three/tsl';
+import { Color, type ArrayNode, type Node } from 'three/webgpu';
+import { buffer, element, uint, varying } from 'three/tsl';
 import type { MapTheme } from '../types.js';
 
 const CAPACITY = 256;
-const fallback = Array.from({ length: CAPACITY }, () => new Vector4(1, 1, 1, 1));
 const defaultValues = new Float32Array(CAPACITY * 4).fill(1);
-const colors = uniformArray(fallback, 'vec4' as const).onRenderUpdate(frame => frame?.scene?.userData.mapPalette?.values ?? defaultValues);
-const parameters = uniformArray(fallback, 'vec4' as const).onRenderUpdate(frame => frame?.scene?.userData.mapPalette?.parameters ?? defaultValues);
+// BufferNode 在新材质编译时保持当前缓冲引用；每次 render 绑定所属地图的调色板。
+export const paletteColors = buffer(defaultValues, 'vec4' as const, CAPACITY).onRenderUpdate(frame => frame.scene?.userData.mapPalette?.values ?? defaultValues);
+// Three 的 element 运行时接受 BufferNode；类型声明以 ArrayNode 表达数组访问。
+const colors = paletteColors as unknown as ArrayNode<'vec4'>;
+const parameters = buffer(defaultValues, 'vec4' as const, CAPACITY).onRenderUpdate(frame => frame.scene?.userData.mapPalette?.parameters ?? defaultValues) as unknown as ArrayNode<'vec4'>;
 /** 顶点按图层和基础色索引查表；样式更新复用几何与网络资源。 */
 export function paletteColor(source: Node<'vec3'>, enabled: boolean): Node<'vec3'> {
-  return enabled ? varying(colors.element(uint(source.x)).xyz).setInterpolation('flat') : source;
+  return enabled ? varying(element(colors, uint(source.x)).xyz).setInterpolation('flat') : source;
 }
-export const paletteStyle = (source: Node<'vec3'>): Node<'vec4'> => parameters.element(uint(source.x));
-export const paletteOpacity = (source: Node<'vec3'>) => varying(colors.element(uint(source.x)).w).setInterpolation('flat');
+export const paletteStyle = (source: Node<'vec3'>): Node<'vec4'> => element(parameters, uint(source.x));
+export const paletteOpacity = (source: Node<'vec3'>) => varying(element(colors, uint(source.x)).w).setInterpolation('flat');
 /** Worker 的样式归属表与颜色数组共享顶点/实例顺序。 */
 export interface ColorBindings { colorIds?: Uint16Array; colorKeys?: string[] }
 export const bindingBytes = (data: ColorBindings) => (data.colorIds?.byteLength ?? 0) + (data.colorKeys?.reduce((sum, key) => sum + key.length * 2, 0) ?? 0);

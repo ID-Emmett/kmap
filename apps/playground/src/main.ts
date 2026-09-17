@@ -92,6 +92,10 @@ async function bootstrap(): Promise<void> {
     resize();
     await map.initialize();
     removeAppearance = createAppearanceInspector(map, inspector!);
+    if (new URLSearchParams(window.location.search).get('capture') === 'inspector') {
+      const { runInspectorBenchmark } = await import('./inspectorBenchmark.js');
+      void runInspectorBenchmark(map).catch(error => { document.documentElement.dataset.inspectorTest = `error:${String(error)}`; });
+    }
     if (new URLSearchParams(window.location.search).get('capture') === 'appearance') {
       const { runAppearanceBenchmark } = await import('./appearanceBenchmark.js');
       void runAppearanceBenchmark(map).catch(error => { document.documentElement.dataset.kmapAppearanceError = String(error); });
