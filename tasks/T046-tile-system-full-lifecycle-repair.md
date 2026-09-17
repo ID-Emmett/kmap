@@ -78,6 +78,7 @@ IN_PROGRESS
 
 - 用户于 2026-09-16 批准架构适配、剔除瓦片淡变及其指标、严格数量控制和 160 fps WebGPU 验收。
 - 成熟公开机制及固定版本来源见行业资料核验报告。
+- Playground 生产构建固定输出 `index.html` 与 `playground.js`；样式、动态模块和瓦片 Worker 均进入主包。真实 WebGPU Preview 收敛为 15/15 瓦片，覆盖缺口、待就绪目标、网络错误和控制台错误均为 0。
 
 ## Open Issues
 

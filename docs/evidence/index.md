@@ -64,7 +64,7 @@
 | T043 | 1 | `T043-cutover-deletion.json` | NTE 生产入口切换、旧运行时删除、import guard 与类型/测试证据 |
 | T042 | 4 | `T042-production-browser.json`, `T042-webgpu-initial.png`, `T042-webgl2-initial.png`, `T042-production-runner.mjs` | 生产入口双后端人工验收复跑；最新证据通过初始化、连续交互、pitch 矩阵、缓存回访和 dispose 验证 |
 | T045 | 5 | `T045-nte-initial-coverage-analysis.json`, `T045-production-browser.json`, `T045-webgpu-initial.png`, `T045-webgl2-initial.png`, `T045-production-runner.mjs` | Bootstrap/Exact 初始覆盖修复的 LOD 回归、生产 WebGPU/WebGL2 smoke 和首屏截图；双后端 ready 且目标区域覆盖完整 |
-| T046 | 5 | `T046-lifecycle-audit.json`, `T046-scheduler-churn.json`, `T046-scheduler-cap.json`, `T046-lifecycle-audit.test.ts`, `T046-production-browser.json` | 生命周期引用/回收、连续请求复用、moving active cap、Fetch 取消/超时和真实双后端停止收敛证据；最新真实 KYE 复跑通过 |
+| T046 | 6 | `T046-lifecycle-audit.json`, `T046-scheduler-churn.json`, `T046-scheduler-cap.json`, `T046-lifecycle-audit.test.ts`, `T046-production-browser.json`, `streaming-rebuild/T046-playground-preview-build.json` | 生命周期引用/回收、连续请求复用、moving active cap、Fetch 取消/超时、双文件 Playground 发布和真实浏览器停止收敛证据；最新真实 KYE WebGPU Preview 复跑通过 |
 
 ## 当前高风险证据
 

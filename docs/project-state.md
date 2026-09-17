@@ -14,6 +14,7 @@
 - T046 状态为 IN_PROGRESS，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - 浏览器入口为 `http://127.0.0.1:6661/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。
 - 当前双后端性能、连续覆盖和视觉检查事实见 `docs/knowledge/streaming.md`。
+- Playground 生产构建输出 `index.html` 与 `playground.js`，真实 WebGPU Preview 的瓦片显示证据见 `docs/evidence/streaming-rebuild/T046-playground-preview-build.json`。
 
 ## 当前任务状态
 

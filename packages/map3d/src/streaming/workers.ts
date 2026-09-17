@@ -1,3 +1,4 @@
+import PaintWorker from './paint.worker.ts?worker&inline';
 import type { PaintRequest, PaintResponse } from './protocol.js';
 
 interface Job { request: PaintRequest; resolve: (result: PaintResponse) => void; reject: (error: Error) => void }
@@ -9,7 +10,7 @@ export class PaintWorkers {
   private disposed = false;
   constructor(count = Math.min(4, Math.max(2, (navigator.hardwareConcurrency ?? 4) - 2))) {
     for (let i = 0; i < count; i++) {
-      const worker = new Worker(new URL('./paint.worker.ts', import.meta.url), { type: 'module' });
+      const worker = new PaintWorker();
       const slot = { worker, job: undefined as Job | undefined };
       worker.onmessage = (event: MessageEvent<PaintResponse>) => {
         const job = slot.job; slot.job = undefined;

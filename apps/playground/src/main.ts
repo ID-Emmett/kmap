@@ -4,7 +4,11 @@ import type { Inspector } from 'three/addons/inspector/Inspector.js';
 import { createDiagnosticsPanel } from './diagnosticsPanel.js';
 
 import { PLAYGROUND_STYLE } from './mapStyle.js';
-import './style.css';
+import playgroundStyles from './style.css?inline';
+
+const style = document.createElement('style');
+style.textContent = playgroundStyles;
+document.head.append(style);
 
 interface InspectorWithTimestampResolution extends Inspector {
   resolveTimestamp(): Promise<void>;
