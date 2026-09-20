@@ -105,22 +105,22 @@ describe('海洋补充、文字与地球数据契约', () => {
   it('文字布局保留优先标签、静止复用、浮动原点更新与 GPU 资源回收', () => {
     const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#fff'));
     const address = { z: 15, x: 26978, y: 12416 };
-    const view = { center: { lng: 116.3946533203125, lat: 39.90552253972854 }, zoom: 15, bearing: 0, pitch: 0 };
+    const view = { center: { lng: 116.3946533203125, lat: 39.90552253972854 }, zoom: 15.2, bearing: 0, pitch: 0 };
     const origin = selectMapOrigin(view.center, 15), camera = new PerspectiveCamera(), viewport = { width: 1280, height: 720 };
     updateMapCamera(camera, view, viewport, origin);
     const candidate: LabelCandidate = { text: '中', x: .5, y: .5, endX: .5, endY: .5, line: false, key: 'a', priority: 0,
-      minZoom: 0, maxZoom: 25, size: 16, color: '#333', haloColor: '#fff', haloWidth: 1, };
+      minZoom: 16, maxZoom: 25, size: 16, color: '#333', haloColor: '#fff', haloWidth: 1, };
     const resource = surfaces.create({ width: 1, height: 1, close() {} } as ImageBitmap, address, undefined, undefined, undefined, [candidate, { ...candidate, key: 'b', priority: 100 }]);
     surfaces.commit([{ cell: address, source: address, key: '15/26978/12416' }], new Map([['15/26978/12416', { surface: resource }]]), origin);
     const system = new LabelSystem({ glyphs: '', fontStack: '' }, scene);
     system.atlas.pages.set(78, new Map(decodeGlyphs(fixture('kye-glyph-19968-20223.pbf')).map(g => [g.id, g])));
-    system.update(surfaces, camera, origin, view, viewport, 1, 0, Infinity);
+    system.update(surfaces, camera, origin, view, 16, viewport, 1, 0, Infinity);
     expect(system.placed).toBe(1); expect(system.surface.count).toBe(1);
-    system.update(surfaces, camera, origin, view, viewport, 1, 100, Infinity);
+    system.update(surfaces, camera, origin, view, 16, viewport, 1, 100, Infinity);
     const layouts = system.layouts;
     const movedOrigin = { ...origin, meters: { x: origin.meters.x + 100, y: origin.meters.y } };
     updateMapCamera(camera, view, viewport, movedOrigin);
-    system.update(surfaces, camera, movedOrigin, view, viewport, 1, 200, Infinity);
+    system.update(surfaces, camera, movedOrigin, view, 16, viewport, 1, 200, Infinity);
     expect(system.layouts).toBe(layouts); expect(system.surface.origin.value.x).toBe(100);
     const disposed = vi.fn(); system.surface.mesh.geometry.addEventListener('dispose', disposed);
     system.dispose(); surfaces.dispose(); surfaces.release(resource); expect(disposed).toHaveBeenCalledOnce(); expect(scene.children).toHaveLength(0);

@@ -124,7 +124,8 @@ export class Map3D {
     if (globeActive && !this.globe) { this.globe = new GlobeView(this.options, this.scene); if (this.theme) this.globe.setTheme(this.theme, this.engine?.surfaces.palette); }
     this.globe?.update(this.scene.userData.mapProjection);
     if (this.globe && !globeActive) this.globe.mesh.visible = false;
-    if (this.labels && this.engine) this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.viewport, this.engine.revision, start, this.engine.selection.fogEnd);
+    if (this.labels && this.engine) this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.engine.tileZoom,
+      this.viewport, this.engine.revision, start, this.engine.selection.fogEnd);
     this.engineMs = performance.now() - start;
     this.renderer.render(this.scene, this.camera);
     this.renderMs = performance.now() - start - this.engineMs;

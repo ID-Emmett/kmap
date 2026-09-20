@@ -39,7 +39,7 @@ export function buildBuildings(tile: VectorTile, layers: readonly MapLayerOption
         const index = positions.length / 3;
         positions.push(p.x / source.extent - .5, h * scale, p.y / source.extent - .5);
         colorIds.push(colorId); normals.push(nx, ny, nz); colors.push(color.r, color.g, color.b);
-        styles.push(layer.minZoom ?? 15.74, (layer.maxZoom ?? 24) + 1, light);
+        styles.push(layer.minZoom ?? 15.74, layer.maxZoom ?? 25, light);
         return index;
       };
       for (const [outer, ...holes] of polygons) {

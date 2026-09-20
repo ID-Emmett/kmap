@@ -87,7 +87,9 @@ export type LayerFilter =
 export interface BaseLayerOptions {
   id: string;
   sourceLayer: string;
+  /** 图层开始显示的缩放阈值，包含该值；建筑按连续视图缩放求值，其他图层按目标瓦片层级求值。 */
   minZoom?: number;
+  /** 图层停止显示的缩放阈值，不包含该值；建筑按连续视图缩放求值，其他图层按目标瓦片层级求值。 */
   maxZoom?: number;
   filters?: readonly LayerFilter[];
 }

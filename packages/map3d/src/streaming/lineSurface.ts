@@ -36,7 +36,7 @@ export function createLineSurface(data: LineData, curved = false, themed = false
 /** 节点图由所有瓦片共享，对象组在绘制时读取各瓦片的宽度比例。 */
 function createLineMaterial(count: number, curved: boolean, themed: boolean) {
   const pixelScale = uniform(1 / 256).onObjectUpdate(({ object }) => object!.userData.lineState.pixelScale.value);
-  const viewZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.lineState.viewZoom.value);
+  const tileZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.lineState.tileZoom.value);
   const segment = attribute<'vec4'>('lineSegment', 'vec4');
   const style = varying(attribute<'vec4'>('lineStyle', 'vec4')).setInterpolation('flat');
   // 固定 BufferNode 在新瓦片编译期间保持缓冲引用；绘制时绑定当前对象的数据。
@@ -82,7 +82,7 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
     const alpha = float(1).sub(smoothstep(aa.negate(), aa, distance)).mul(style.y).mul(dashAlpha).mul(themed ? paletteOpacity(sourceColor) : 1);
     // 导数在分支裁剪之前求值，保留片元四元组的完整采样。
     if (curved) mapFacing.lessThan(0).discard();
-    viewZoom.lessThan(style.z).or(viewZoom.greaterThanEqual(style.w.add(1))).discard();
+    tileZoom.lessThan(style.z).or(tileZoom.greaterThanEqual(style.w)).discard();
     alpha.lessThanEqual(.001).discard();
     return vec4(paletteColor(attribute<'vec3'>('lineColor', 'vec3'), themed), alpha);
   })();

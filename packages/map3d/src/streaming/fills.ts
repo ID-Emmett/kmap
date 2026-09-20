@@ -34,7 +34,7 @@ export function buildFills(tile: VectorTile, layers: readonly MapLayerOptions[])
         for (const p of vertices) {
           positions.push(p.x / source.extent - .5, 0, p.y / source.extent - .5);
           colors.push(color.r, color.g, color.b); colorIds.push(colorId);
-          styles.push(layer.minZoom ?? 0, (layer.maxZoom ?? 24) + 1, layer.paint.opacity ?? 1);
+          styles.push(layer.minZoom ?? 0, layer.maxZoom ?? 25, layer.paint.opacity ?? 1);
         }
         for (const triangle of triangles) indices.push(...triangle.map(index => offset + index));
       }

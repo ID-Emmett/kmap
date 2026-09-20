@@ -40,6 +40,14 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     expect(buildingBytes(data)).toBe(data.positions.byteLength * 4 + data.indices.byteLength);
   });
 
+  it('建筑图层 maxZoom 使用排他边界', () => {
+    const data = buildBuildings(decodeVectorTile(fixture()), [{ ...layer, maxZoom: 16 }], address);
+    for (let i = 0; i < data.styles.length; i += 3) {
+      expect(data.styles[i]).toBeCloseTo(15.74);
+      expect(data.styles[i + 1]).toBe(16);
+    }
+  });
+
   it('屋顶孔洞保留、底高有效、瓦片裁切边不生成伪墙', () => {
     const ring = (points: number[][]) => points.map(([x, y]) => ({ x: x!, y: y! }));
     const tile = { layers: { building: { extent: 16, length: 1, feature: () => ({ type: 3, properties: { height: 20, min_height: 5 },
@@ -66,8 +74,10 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     const cells = childrenOf(address).slice(0, 2);
     surfaces.commit(resolveRenderCover(cells, new Set(resources.keys()), 0).patches, resources, origin);
     expect(resource.buildings!.mesh.userData.buildingState.clipCount).toBe(2);
-    for (const zoom of [15, 15.739, 15.74, 16, 15.5]) {
-      surfaces.update(origin, zoom); expect(resource.buildings!.mesh.visible).toBe(zoom >= 15.74);
+    for (const [viewZoom, tileZoom, visible] of [[15.7, 15, false], [15.8, 15, true], [15.2, 16, false], [16.1, 15, true]] as const) {
+      surfaces.update(origin, viewZoom, tileZoom);
+      expect(resource.buildings!.viewZoom.value).toBe(viewZoom);
+      expect(resource.buildings!.mesh.visible).toBe(visible);
     }
     expect(resource.buildings!.mesh.material.depthWrite).toBe(true);
     expect(resource.buildings!.mesh.children).toHaveLength(0);
@@ -83,11 +93,12 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     const state = createLineState(data);
     for (const z of [13, 15, 17]) {
       const a = { z, x: 0, y: 0 }; state.viewZoom.value = -1;
-      updateLineState(state, a, 18);
+      updateLineState(state, a, 18, 7);
+      expect(state.tileZoom.value).toBe(7);
       expect(state.widths[0]! * WORLD / 2 ** z / Math.cosh(Math.PI * (1 - 1 / 2 ** z))).toBeCloseTo(12, 5);
     }
     const projected: number[] = [];
-    for (const zoom of [15, 16, 18]) { updateLineState(state, address, zoom); projected.push(state.widths[0]! / state.pixelScale.value); }
+    for (const zoom of [15, 16, 18]) { updateLineState(state, address, zoom, 7); projected.push(state.widths[0]! / state.pixelScale.value); }
     expect(projected[1]! / projected[0]!).toBeCloseTo(2); expect(projected[2]! / projected[0]!).toBeCloseTo(8);
     const paint = { color: '#fff', widthBase: 1.5, widthStops: [[10, 8], [12, 18]] as const };
     expect(lineWidth(paint, 11)).toBeCloseTo(12);

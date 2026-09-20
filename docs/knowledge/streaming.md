@@ -21,6 +21,8 @@
 - 当前平面/地球过渡、Inspector、地名层级和逐帧冷加载证据见 [地图样式与稳定性验证](../evidence/map-inspector/README.md)。
 
 - 最大倾角为 75°。CPU 与 TSL 使用一致的球面距离雾约束，球缘薄雾作用于地平线。目标集合保持单一层级，向下/向上 zoom 滞回分别为 0.18/0.08。
+- 道路、面和文字的 `minZoom` / `maxZoom` 显隐使用当前目标瓦片整数层级 `tileZoom`；建筑门槛、线宽插值、投影、相机尺度和碰撞位移使用连续 `viewZoom`。父级回退内容继承目标瓦片层级，同一目标层级内的相机距离变化保持道路、面和文字的层级可见性一致。
+- 地名层级为 z0～z2 中国国名、z3 省名、z4 起省会、z6 起普通城市；各区间按目标瓦片整数层级切换。
 - z5.5 及以上使用平面坐标与 highpModelViewMatrix；z4.5～5.5 连续过渡到球面。完整球面朝向限定过渡可见半球，经度采用最近世界副本。九类 SDF 图标与文字共用字形 atlas，墨迹中心水平对齐。
 - 晴昼、深海、晴彩覆盖地图面、线、边界、建筑、文字、图标、雾与背景；256 项颜色与参数缓冲共占 8 KiB。BufferNode 保持编译期间的调色板引用。全局平面陆地使用单批次；Inspector 按事件静默同步控件。
 - 显式 WebGL2 模式默认单采样，线与文字保留解析抗锯齿；`renderer.antialias: true` 为 4x MSAA，WebGPU 默认 MSAA。同机采样对照见 `docs/evidence/map-experience/aa-comparison.json`。
@@ -28,7 +30,7 @@
 - KYE 官方 `landuse_grass` 包含 `subclass != grassland` 条件；台湾 `7/106/55` 的 173 个草地要素均属于被筛选的区域草地网格。城市绿地保留按类别绘制。
 - 文字使用持久身份、世界锚点、200 ms 连续透明度、按字号和 DPR 求值的 SDF 采样核，以及单交错实例缓冲。
 - 建筑按瓦片合批，使用 height、min_height 和 kind 原始属性；Playground 的显示门槛为 15.74。北京两个样本共 622 个建筑 feature，kind 在样本中全量出现；类别业务名称属于上游字典边界。
-- 国界使用主源 boundary，省界使用 kye_admin_pro/border；铁路、隧道、渡轮、省界采用独立虚线/点划线样式。
+- 国界使用主源 boundary，省界使用 kye_admin_pro/border；中国国界为红色实线，外国国界保持深色实线，省界为浅色细虚线并在 zoom 10 隐藏。铁路、隧道和渡轮采用独立虚线样式；专用 overlay 在没有可见目标图层的层级停止请求。
 - 2026-09-16 五项画质实现、真实 WebGPU 矩阵及连续交互结果见 `docs/evidence/map-quality/README.md`。
 
 ## 浏览器证据索引

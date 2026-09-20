@@ -47,6 +47,11 @@ export class StreamingEngine {
   get errors() { return this.pipeline.errors; } get bytes() { return this.pipeline.bytes; } get active() { return this.pipeline.active; } get evictions() { return this.store.evictions; }
   get workerTime() { return this.pipeline.workerTime; } get uploadTime() { return this.pipeline.uploadTime; }
   get httpTime() { return this.pipeline.httpTime; } get requestTime() { return this.pipeline.requestTime; }
+  /** 瓦片层级型图层使用当前目标层级，回退来源和连续相机距离不改变内容层级。 */
+  get tileZoom(): number {
+    return this.selection.leaves[0]?.z ?? Math.min(this.options.source.maxZoom,
+      Math.max(this.options.source.minZoom, this.targetZoom < 0 ? this.options.source.minZoom : this.targetZoom));
+  }
   invalidate(): void { this.viewDirty = true; }
   addPrefetch(addresses: Address[], ttl = 1000, priority = 65, explicit = false): void {
     const now = performance.now(); if (explicit) this.lastPrefetch = now;
@@ -94,7 +99,7 @@ export class StreamingEngine {
     // 上传与相机规划共享主线程预算，超预算时下一帧获得独立上传机会。
     if (performance.now() - startedFrame < 1.5 || !planned) this.pipeline.upload(now, camera);
     if (this.coverDirty) { this.commit(origin, now); this.coverDirty = false; }
-    this.surfaces.update(origin, view.zoom); this.pipeline.pump(now);
+    this.surfaces.update(origin, view.zoom, this.tileZoom); this.pipeline.pump(now);
     if (now - this.lastRecycle >= 250) {
       const start = performance.now();
       for (const [key, item] of this.prefetch) if (item.until <= now) { this.prefetch.delete(key); this.demandDirty = true; }

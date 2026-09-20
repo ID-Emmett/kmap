@@ -47,6 +47,7 @@ describe('运动期间的实际绘制覆盖', () => {
     for (const [zoom, expected] of [[16.2, 16], [15.99, 16], [16.02, 16], [15.85, 16], [15.81, 15], [16.01, 15], [16.09, 16]]) {
       update({ center: { lng: 116.39, lat: 39.9 }, zoom: zoom!, pitch: 0, bearing: 0 });
       expect(new Set(engine.selection.leaves.map(a => a.z))).toEqual(new Set([expected]));
+      expect(engine.tileZoom).toBe(expected);
     }
     engine.dispose();
   });

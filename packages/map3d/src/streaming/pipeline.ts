@@ -66,7 +66,7 @@ export class TilePipeline {
         this.overlays, controller.signal, reserve => {
           if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
           entry.reservedBytes = reserve;
-        }, elapsed => { if (elapsed === undefined) this.httpStarts++; else this.httpTime.add(elapsed); });
+        }, elapsed => { if (elapsed === undefined) this.httpStarts++; else this.httpTime.add(elapsed); }, this.options.layers);
       this.bytes += buffer.byteLength;
       if (!this.alive(entry)) return;
       entry.primaryEmpty = primaryEmpty;

@@ -62,4 +62,15 @@ describe('真实台湾 canonical 祖先覆盖与数据层补全', () => {
     expect(result.layers.water!.length).toBe(983);
     expect(result.layers.boundary!.length).toBeGreaterThan(0); expect(result.layers.waterway!.length).toBe(0);
   });
+  it('超过图层 maxZoom 后停止请求对应 overlay', async () => {
+    const fetcher = vi.fn(async (url: string) => new Response(url.startsWith('/main/') ? new Uint8Array([1]) : new Uint8Array([2])));
+    vi.stubGlobal('fetch', fetcher); const cache = new OverlayCache();
+    const overlays = [{ tiles: ['/province/{z}/{x}/{y}'], minZoom: 2, maxZoom: 14, sourceLayer: 'border', targetLayer: 'province_border' }];
+    const layers = [{ type: 'line' as const, id: 'province', sourceLayer: 'province_border', maxZoom: 10, paint: { color: '#aaa' } }];
+    try {
+      await requestTile({ z: 10, x: 840, y: 392 }, { id: 'test', tiles: ['/main/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17, overlays }, 1,
+        cache, new AbortController().signal, () => {}, () => {}, layers);
+      expect(fetcher.mock.calls.map(([url]) => url)).toEqual(['/main/10/840/392']);
+    } finally { cache.dispose(); vi.unstubAllGlobals(); }
+  });
 });

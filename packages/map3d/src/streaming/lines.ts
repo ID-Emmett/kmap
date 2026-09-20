@@ -87,7 +87,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
           ...lineJoin(a, b, ring[j + 1] ?? (closed ? ring[1] : undefined))], p);
         caps[index * 2] = !closed && j === 1 ? 1 : 0; caps[index * 2 + 1] = !closed && j === ring.length - 1 ? 1 : 0;
         segments[p] = a.x / extent - .5; segments[p + 1] = a.y / extent - .5; segments[p + 2] = b.x / extent - .5; segments[p + 3] = b.y / extent - .5;
-        styles[p] = styleIndex; styles[p + 1] = layer.paint.opacity ?? 1; styles[p + 2] = layer.minZoom ?? 0; styles[p + 3] = layer.maxZoom ?? 24;
+        styles[p] = styleIndex; styles[p + 1] = layer.paint.opacity ?? 1; styles[p + 2] = layer.minZoom ?? 0; styles[p + 3] = layer.maxZoom ?? 25;
         distances[index] = cumulative; cumulative += Math.hypot(b.x - a.x, b.y - a.y) / extent;
         colors[c] = color.r; colors[c + 1] = color.g; colors[c + 2] = color.b; index++;
       }

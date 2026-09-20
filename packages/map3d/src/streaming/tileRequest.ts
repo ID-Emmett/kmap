@@ -1,4 +1,4 @@
-import type { Map3DOptions } from '../types.js';
+import type { Map3DOptions, MapLayerOptions } from '../types.js';
 import { requestUrl, type Address } from './address.js';
 import { overlayAddress, packTileSources } from './tileSources.js';
 import type { OverlayCache } from './overlayCache.js';
@@ -7,6 +7,7 @@ import { TILE_LIMITS } from './limits.js';
 /** 网络层只返回请求地址对应的内容；空主源由覆盖树选择可用祖先。 */
 export async function requestTile(address: Address, source: Map3DOptions['source'], attempt: number,
   cache: OverlayCache, signal: AbortSignal, reserve: (bytes: number) => void, http: (elapsed?: number) => void,
+  layers?: readonly MapLayerOptions[],
 ): Promise<{ buffer: ArrayBuffer; empty: boolean; primaryEmpty: boolean }> {
   const templates = [...source.tiles];
   if (attempt > 1) templates.push(...templates.splice(0, (attempt - 1) % templates.length));
@@ -24,7 +25,9 @@ export async function requestTile(address: Address, source: Map3DOptions['source
   const parts: ArrayBuffer[] = [primary];
   const unique = new Set<ArrayBuffer>(parts); let bytes = primary.byteLength;
   for (const overlay of source.overlays ?? []) {
-    const part = address.z < overlay.minZoom || overlay.onlyWhenPrimaryEmpty && primary.byteLength
+    const visible = !layers || layers.some(layer => layer.sourceLayer === overlay.targetLayer
+      && address.z < (layer.maxZoom ?? 25));
+    const part = !visible || address.z < overlay.minZoom || overlay.onlyWhenPrimaryEmpty && primary.byteLength
       ? new ArrayBuffer(0) : await read(requestUrl(overlayAddress(address, overlay), overlay.tiles));
     if (!unique.has(part)) { unique.add(part); bytes += part.byteLength; }
     if (bytes > TILE_LIMITS.requestBytes) throw new Error('MVT 组合响应超出预算。');

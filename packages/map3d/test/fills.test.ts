@@ -54,4 +54,13 @@ describe('原生面几何与样式层级', () => {
     expect(sampleFill(data, x, y, 14.5)).toBeUndefined();
     expect(sampleFill(data, x, y, 15)).toBeDefined();
   });
+  it('面图层 maxZoom 使用排他边界', () => {
+    const ring = [[0, 0], [16, 0], [16, 16], [0, 16], [0, 0]].map(([x, y]) => ({ x: x!, y: y! }));
+    const tile = { layers: { water: { extent: 16, length: 1,
+      feature: () => ({ type: 3, properties: {}, loadGeometry: () => [ring] }) } } } as unknown as VectorTile;
+    const data = buildFills(tile, [{ type: 'fill', id: 'water', sourceLayer: 'water', minZoom: 4, maxZoom: 7, paint: { color: '#a9d7e8' } }]);
+    expect(Array.from(data.styles.slice(0, 3))).toEqual([4, 7, 1]);
+    expect(sampleFill(data, 0, 0, 6.999)).toBeDefined();
+    expect(sampleFill(data, 0, 0, 7)).toBeUndefined();
+  });
 });

@@ -7,22 +7,41 @@
 - 最大 pitch 为 75°。中心列顶部 40% 在该角度达到完全入雾；CPU 使用同曲线的 98% 不透明度边界剔除瓦片。目标集合使用同一整数层级，容量不足时整体采用一个父层级。稳定 z16/75° 为 66 张目标瓦片，z16/60° 对照为 108 张。
 - 建筑在 Worker 内构建屋顶和墙面，每瓦片一个批次，保留孔洞、米制高度、min_height、Mercator 纬度补偿和深度遮挡。固定方向光与墙脚渐变提供体积感，几何和裁剪表计入资源预算。
 - zoom 15 与 15.739 的建筑绘制批次数为 0；15.74 开始显示。建筑按 `kind` 原始分类配色；北京两个数据样本共 622 个 feature，17 种 kind。分类代码的业务名称需要上游字典核验。
-- 国界使用主源 `boundary`，省界使用 `kye_admin_pro/border`。省界支持从 z14 祖先数据向更高层级转换。铁路、隧道、渡轮使用两项虚线，省界使用四项点划线。每条线的累计距离跨线段连续。
-- 道路采用米制宽度、连续指数缩放 stop 和地图平面挤出；真实像素测量中，同一经线上的长安街填色宽度约为 z14 6px、z16 9px、z18 35px。像素只用于截图测量与边缘抗锯齿。
+- 国界使用主源 `boundary`，省界使用 `kye_admin_pro/border`。国界为中性深灰实线；省界为浅灰蓝细虚线，可见范围为 `3 <= zoom < 10`。铁路、隧道和渡轮使用各自的虚线样式。每条线的累计距离跨线段连续。当前专项验证见 [国省界与地图线样式](boundary-lines-2026-09-20.md)。
+- Playground 道路采用 CSS 像素宽度、连续指数缩放 stop 和地图平面挤出，投影宽度随观察距离变化。SDK 同时支持米制线宽。
 
 ## 数据与公开依据
 
-- Mapbox GL JS 固定提交 `446bbe66962e288ae9b2ab8b500b92dfa4da892a` 的 `src/shaders/line.vertex.glsl` 使用 `u_pixels_to_tile_units` 进行线条展开；Style Spec 的 line-width 支持 zoom 插值，line-dasharray 使用线宽倍数。项目采用米制样式配置，连续缩放与平面投影机制按当前需求实现。
+- Mapbox GL JS 固定提交 `446bbe66962e288ae9b2ab8b500b92dfa4da892a` 的 `src/shaders/line.vertex.glsl` 使用 `u_pixels_to_tile_units` 进行线条展开；MapLibre Style Spec 的 line-width 单位为 pixels 并支持 zoom 插值，line-dasharray 使用线宽倍数。Playground 使用相同单位语义，并在地图平面挤出后进行透视投影。
 - KYE `normal.json` 的 motorway/trunk 使用指数 1.5 的连续缩放表达式，铁路、隧道、渡轮与省界具有独立 dash 配置。
 - URL、固定版本与 SHA256：`references.json`；KYE 原始表达式：`kye-style-extract.json`；真实建筑字段统计：`data-audit.json`。
-- 真实国省界 fixture 与来源哈希：`packages/map3d/test/fixtures/kye-boundaries.json`。颜色、米制宽度 stop、最大倾角和雾参数属于当前 Playground 配置。
+- 真实国省界 fixture 与来源哈希：`packages/map3d/test/fixtures/kye-boundaries.json`。颜色、像素宽度 stop、最大倾角和雾参数属于当前 Playground 配置。
+
+## 2026-09-20 国省界与地图线样式复验
+
+- 国界使用 KYE 官方 `ogc_fid=500` 分类、中性深灰实线和 `[[3, 1], [5, 1.2], [12, 3]]` CSS 像素宽度曲线。省界使用浅灰蓝、`[1, 1]` 虚线和 `[[3, 0.45], [7, 0.75], [10, 1]]` CSS 像素宽度曲线。
+- 线图层 `maxZoom` 使用排他上界。省界可见范围为 `3 <= zoom < 10`；zoom 10 起停止绘制和专用省界 overlay 请求。
+- 线样式测试覆盖 zoom 插值、排他上界、虚线累计相位、倾斜地面挤出的远端透视收窄和 overlay 上界裁剪。
+- `pnpm check` 通过 SDK 183 项、Playground 18 项测试、类型检查和双包生产构建。`pnpm ai:check` 与 `git diff --check` 通过。
+
+真实 Chromium WebGPU，1280x720 CSS 像素、DPR 1.5：
+
+| 场景 | 结果 | FPS | CPU P95 | 覆盖缺口 | 网络错误 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| zoom 9.8，pitch 0° | 浅灰蓝细虚线省界可见 | 239.98 | 0.90 ms | 0 | 0 |
+| zoom 10.8，pitch 0° | 省界隐藏 | 239.98 | 0.90 ms | 0 | 0 |
+| zoom 15.8，pitch 55° | 道路线宽随远近透视变化 | 223.26 | 1.60 ms | 0 | 0 |
+
+WebGPU 画质矩阵 15/15 场景通过，包含 z5 国界、z7 省界、z9 75° 倾角、z14/z16/z18 道路和建筑门槛。各场景目标缺失、覆盖缺口和网络错误均为 0，CPU P95 为 1.1～2.8 ms。原始记录为 `../streaming-rebuild/webgpu-2026-09-20T09-54-16-091Z.json`；Canvas 帧为 1920x1080，关键帧缩略像素统计均为非空且具有有效方差。
+
+真实 Chromium WebGL2 的 zoom 15.8、pitch 55° 场景稳定完成：18/18 目标瓦片、覆盖缺口 0、网络错误 0、CPU P95 1.5 ms。WebGPU 画质矩阵和 WebGL2 页面最终控制台错误/警告为 0。
 
 ## 自动验证
 
-- `pnpm check`：TypeScript、SDK/Playground 共 98 项测试及生产构建通过。
+- `pnpm check`：TypeScript、SDK 183 项、Playground 18 项测试及生产构建通过。
 - `pnpm ai:check`：通过。
 - `git diff --check`：通过。Git 提示部分 LF 文件按工作区设置转换为 CRLF。
-- 回归覆盖：真实建筑高度/分类、孔洞面积、底高、裁切边墙面、15.74 门槛、父子区域裁剪、世界副本、释放一次性、米制线宽与 overzoom、虚线累计距离、省界祖先变换、主源 204 与有效补充数据、75° 多方位雾边界、统一目标层级，以及既有生命周期/缓存/交互测试。
+- 回归覆盖：真实建筑高度/分类、孔洞面积、底高、裁切边墙面、15.74 门槛、父子区域裁剪、世界副本、释放一次性、米制与像素线宽、overzoom、虚线累计距离、省界祖先变换、主源 204 与有效补充数据、75° 多方位雾边界、统一目标层级，以及生命周期、缓存和交互测试。
 
 ## 最终真实浏览器矩阵
 

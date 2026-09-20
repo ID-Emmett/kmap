@@ -3,7 +3,10 @@ import { readFileSync } from 'node:fs';
 import { decodeVectorTile } from '../src/streaming/paint.js';
 import { buildLines, lineBytes, linePixelScale, simplifyLine } from '../src/streaming/lines.js';
 import { createLineSurface } from '../src/streaming/lineSurface.js';
+import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { WEB_MERCATOR_WORLD_SIZE } from '../src/spatial/mercator.js';
+import { updateMapCamera } from '../src/rendering/mapCamera.js';
+import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
 
 describe('跨数据层级的矢量线宽', () => {
   it('亚像素简化保留端点与超过容差的转折', () => {
@@ -38,5 +41,27 @@ describe('跨数据层级的矢量线宽', () => {
       expect(lines.styles[i]).toBe(0); expect(lines.styles[i + 1]).toBeCloseTo(.9); expect(lines.styles[i + 2]).toBe(7);
     }
     expect(lineBytes(lines)).toBe(lines.segments.length / 4 * 66);
+  });
+  it('线图层 maxZoom 使用排他边界，默认范围覆盖最大视图层级', () => {
+    const tile = { layers: { line: { extent: 16, length: 1, feature: () => ({ type: 2, properties: {},
+      loadGeometry: () => [[{ x: 0, y: 0 }, { x: 16, y: 16 }]] }) } } } as never;
+    const limited = buildLines(tile, [{ id: 'limited', type: 'line', sourceLayer: 'line', minZoom: 3, maxZoom: 10,
+      paint: { color: '#fff', width: 1 } }]);
+    const open = buildLines(tile, [{ id: 'open', type: 'line', sourceLayer: 'line', paint: { color: '#fff', width: 1 } }]);
+    expect(Array.from(limited.styles.slice(2, 4))).toEqual([3, 10]);
+    expect(Array.from(open.styles.slice(2, 4))).toEqual([0, 25]);
+  });
+  it('像素宽度先换算为地面挤出，倾斜视图远端投影自然收窄', () => {
+    const viewport = { width: 1000, height: 800 }, view = { center: { lng: 0, lat: 0 }, zoom: 10, bearing: 0, pitch: 60 };
+    const origin = selectMapOrigin(view.center, 10), camera = new PerspectiveCamera();
+    const frame = updateMapCamera(camera, view, viewport, origin);
+    const width = frame.metersPerPixel * 4;
+    const projectedWidth = (z: number) => {
+      const left = new Vector3(-width / 2, 0, z).project(camera), right = new Vector3(width / 2, 0, z).project(camera);
+      return Math.abs(right.x - left.x) * viewport.width / 2;
+    };
+    expect(projectedWidth(0)).toBeGreaterThan(4);
+    expect(projectedWidth(0)).toBeLessThan(5);
+    expect(projectedWidth(-frame.distance * .6)).toBeLessThan(projectedWidth(0) * .75);
   });
 });

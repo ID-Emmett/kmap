@@ -22,6 +22,7 @@ export class LabelSystem {
   private styleRevision = 0;
   private styledCache = new WeakMap<LabelCandidate, LabelCandidate | undefined>();
   private lastView: ViewState | undefined;
+  private lastTileZoom = -1;
   private lastRevision = -1;
   private lastStyleRevision = -1;
   private lastViewport = '';
@@ -56,7 +57,8 @@ export class LabelSystem {
       icon: this.appearance.icons === false || style.icon === 'none' ? undefined : style.icon === 'auto' ? label.icon : style.icon ?? label.icon };
     this.styledCache.set(label, result); return result;
   }
-  update(surfaces: TileSurfaces, camera: PerspectiveCamera, origin: MapOrigin, view: ViewState, viewport: ViewportSize, revision: number, now: number, fogEnd: number): void {
+  update(surfaces: TileSurfaces, camera: PerspectiveCamera, origin: MapOrigin, view: ViewState, tileZoom: number,
+    viewport: ViewportSize, revision: number, now: number, fogEnd: number): void {
     if (this.appearance.visible === false) {
       if (this.surface.count) this.surface.write([]);
       this.placed = this.candidates = 0; return;
@@ -65,16 +67,16 @@ export class LabelSystem {
     this.surface.clock.value = now / 1000;
     this.surface.pixelRatio.value = viewport.pixelRatio ?? 1;
     this.surface.viewport.value.set(viewport.width, viewport.height); this.atlas.tick(); this.atlas.flush();
-    const signature = `${this.styleRevision}:${revision}:${view.center.lng}:${view.center.lat}:${view.zoom}:${view.bearing}:${view.pitch}:${viewport.width}:${viewport.height}`;
+    const signature = `${this.styleRevision}:${revision}:${tileZoom}:${view.center.lng}:${view.center.lat}:${view.zoom}:${view.bearing}:${view.pitch}:${viewport.width}:${viewport.height}`;
     if (signature === this.signature && this.atlasRevision === this.atlas.revision && now < Math.min(this.retentionUntil, this.placement.expires)) return;
     const last = this.lastView, viewportKey = `${viewport.width}:${viewport.height}`;
-    if (last && this.lastRevision === revision && this.lastStyleRevision === this.styleRevision && this.atlasRevision === this.atlas.revision && viewportKey === this.lastViewport && now < Math.min(this.retentionUntil, this.placement.expires)) {
+    if (last && this.lastTileZoom === tileZoom && this.lastRevision === revision && this.lastStyleRevision === this.styleRevision && this.atlasRevision === this.atlas.revision && viewportKey === this.lastViewport && now < Math.min(this.retentionUntil, this.placement.expires)) {
       const travel = Math.hypot((view.center.lng - last.center.lng) * Math.cos(view.center.lat * Math.PI / 180), view.center.lat - last.center.lat) * 256 * 2 ** view.zoom / 360;
       // 小于碰撞安全边距的移动由顶点投影逐帧跟随，布局按累计位移更新。
       if (travel < 8 && Math.abs(view.zoom - last.zoom) < .025 && Math.abs(view.bearing - last.bearing) < 1 && Math.abs(view.pitch - last.pitch) < 1) return;
     }
     if (now - this.lastLayout < 64) return;
-    this.lastView = view; this.lastRevision = revision; this.lastStyleRevision = this.styleRevision; this.lastViewport = viewportKey;
+    this.lastView = view; this.lastTileZoom = tileZoom; this.lastRevision = revision; this.lastStyleRevision = this.styleRevision; this.lastViewport = viewportKey;
     const start = performance.now(); this.lastLayout = now; this.signature = signature; this.atlasRevision = this.atlas.revision;
     const buckets = new Map<number, Projected[]>(), point = this.point, end = this.end;
     const projection = this.scene.userData.mapProjection as ProjectionState | undefined;
@@ -86,11 +88,11 @@ export class LabelSystem {
       const tileCandidates = available;
       let pointCount = 0, lineCount = 0;
       for (const raw of tileCandidates) {
-        if (view.zoom < raw.minZoom || view.zoom >= raw.maxZoom) continue;
+        if (tileZoom < raw.minZoom || tileZoom >= raw.maxZoom) continue;
         const used = raw.line ? lineCount++ : pointCount++;
         if (used >= perTile && !this.retained.has(raw.key)) continue;
         const label = this.styled(raw); if (!label) continue;
-        if (view.zoom < label.minZoom || view.zoom >= label.maxZoom || !ownsAnchor(address, instance.cells, label.x, label.y)) continue;
+        if (tileZoom < label.minZoom || tileZoom >= label.maxZoom || !ownsAnchor(address, instance.cells, label.x, label.y)) continue;
         let x = bounds.west + label.x * bounds.span, y = bounds.north - label.y * bounds.span;
         const id = label.key, previous = this.anchors.get(id);
         const endWorldX = bounds.west + label.endX * bounds.span, endWorldY = bounds.north - label.endY * bounds.span;
@@ -123,7 +125,7 @@ export class LabelSystem {
     const availableIds = new Set(projected.map(p => p.id));
     // 已显示点标签在瓦片接替的短暂候选缺口中保持同一世界锚点。
     for (const [id, saved] of this.retainedPoints) {
-      if (now - saved.seen >= 350 || view.zoom < saved.label.minZoom || view.zoom >= saved.label.maxZoom) {
+      if (now - saved.seen >= 350 || tileZoom < saved.label.minZoom || tileZoom >= saved.label.maxZoom) {
         this.retainedPoints.delete(id); continue;
       }
       if (availableIds.has(id)) continue;

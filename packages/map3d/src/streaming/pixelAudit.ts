@@ -34,7 +34,7 @@ export function auditPixels(canvas: HTMLCanvasElement, camera: PerspectiveCamera
     if (surface.fills) {
       const background = new Color(source[0]! / 255, source[1]! / 255, source[2]! / 255).convertSRGBToLinear();
       const sample = sampleFill(surface.fills.data, u - .5, v - .5,
-        engine.surfaces.instances.get(`${patch.source.z}/${patch.source.x}/${patch.source.y}`)?.fills?.viewZoom.value ?? patch.source.z,
+        engine.surfaces.instances.get(`${patch.source.z}/${patch.source.x}/${patch.source.y}`)?.fills?.tileZoom.value ?? engine.tileZoom,
         [background.r, background.g, background.b]);
       if (sample) { const color = new Color(...sample).convertLinearToSRGB(); source = [color.r, color.g, color.b].map(c => Math.round(c * 255)); }
     }

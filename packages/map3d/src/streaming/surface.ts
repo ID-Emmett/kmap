@@ -102,7 +102,7 @@ export class TileSurfaces {
         if (!primary && resource.fills) {
           const fillMesh = new Mesh(resource.fills.mesh.geometry, resource.fills.mesh.material.clone());
           fillMesh.frustumCulled = false; fillMesh.renderOrder = 1;
-          const state = { viewZoom: { value: 15 } }; fillMesh.userData.fillState = state;
+          const state = { tileZoom: { value: 15 } }; fillMesh.userData.fillState = state;
           mesh.add(fillMesh); fills = { ...resource.fills, mesh: fillMesh, ...state };
         }
         if (!primary && resource.lines) {
@@ -126,7 +126,7 @@ export class TileSurfaces {
     }
     this.originX = origin.meters.x; this.originY = origin.meters.y;
   }
-  update(origin: MapOrigin, viewZoom: number): void {
+  update(origin: MapOrigin, viewZoom: number, tileZoom: number): void {
     const curved = !!this.scene.userData.mapProjection?.center.w;
     // 球面仍提交两三角形的状态基准；颜色写入由球面底面负责。
     this.ground.material.colorWrite = !curved;
@@ -135,8 +135,8 @@ export class TileSurfaces {
     const moved = origin.meters.x !== this.originX || origin.meters.y !== this.originY;
     for (const i of this.instances.values()) {
       if (moved) this.place(i.mesh, i.address, origin);
-      if (i.lines) updateLineState(i.lines, i.address, viewZoom);
-      if (i.fills) i.fills.viewZoom.value = viewZoom;
+      if (i.lines) updateLineState(i.lines, i.address, viewZoom, tileZoom);
+      if (i.fills) i.fills.tileZoom.value = tileZoom;
       if (i.buildings) { i.buildings.viewZoom.value = viewZoom; i.buildings.mesh.visible = viewZoom >= i.buildings.minZoom; }
     }
     this.originX = origin.meters.x; this.originY = origin.meters.y;

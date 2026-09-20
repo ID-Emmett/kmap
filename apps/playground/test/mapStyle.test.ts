@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { matches as matchesLayerFilters, decodeVectorTile } from '../../../packages/map3d/src/streaming/paint.js';
 import { lineWidth } from '../../../packages/map3d/src/streaming/lineStyle.js';
 import {
+  BUILDING_MIN_ZOOM,
   MAJOR_ROAD_CLASSES,
   PLAYGROUND_LAYERS,
   PLAYGROUND_STYLE_TOKENS,
@@ -32,7 +33,10 @@ describe('Playground light basemap style', () => {
   });
   it('道路按真实类别分层，建筑具有精确可见门槛和分类色', () => {
     const building = PLAYGROUND_LAYERS.find(l => l.type === 'fill-extrusion')!;
-    expect(building).toMatchObject({ sourceLayer: 'building', minZoom: 15.74, paint: { colorProperty: 'kind', heightProperty: 'height' } });
+    expect(BUILDING_MIN_ZOOM).toBe(15.74);
+    expect(15.7).toBeLessThan(BUILDING_MIN_ZOOM);
+    expect(15.8).toBeGreaterThanOrEqual(BUILDING_MIN_ZOOM);
+    expect(building).toMatchObject({ sourceLayer: 'building', minZoom: BUILDING_MIN_ZOOM, paint: { colorProperty: 'kind', heightProperty: 'height' } });
     for (const layer of PLAYGROUND_LAYERS) if (layer.type === 'line') {
       if (/road|transportation/.test(layer.id)) expect(layer.paint.widthUnit).toBe('pixels');
       expect(layer.paint.widthStops?.length).toBeGreaterThan(1);
@@ -42,6 +46,20 @@ describe('Playground light basemap style', () => {
       const layer = PLAYGROUND_LAYERS.find(l => l.id === id)!;
       expect(layer.type === 'line' && layer.paint.dashArray?.length).toBeGreaterThanOrEqual(2);
     }
+  });
+  it('国界和省界使用独立层级，省界在城市层级前隐藏', () => {
+    const country = PLAYGROUND_LAYERS.find(l => l.id === 'boundary-china')!;
+    const province = PLAYGROUND_LAYERS.find(l => l.id === 'province-boundary')!;
+    if (country.type !== 'line' || province.type !== 'line') throw new Error('边界应使用线图层。');
+    expect(country.paint.color).not.toBe(province.paint.color);
+    expect(lineWidth(country.paint, 7)).toBeGreaterThan(lineWidth(province.paint, 7));
+    expect(province.maxZoom).toBe(10);
+    expect(province.paint).toMatchObject({ widthUnit: 'pixels', dashArray: [1, 1] });
+    expect(country.paint.color).toBe('#FF586C');
+    expect(country.filters).toEqual([
+      { operator: '==', property: 'admin_level', value: 2 },
+      { operator: '==', property: 'ogc_fid', value: 500 },
+    ]);
   });
   it('keeps vegetation and neutral landuse categories separate on the fixed fixture', () => {
     const tile = decodeMvt(readFileSync(FIXTURE_URL));

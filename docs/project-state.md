@@ -6,13 +6,13 @@
 
 ## 当前结论
 
-- 当前瓦片采用 canonical 数据身份、GPU 管线准备后发布、父到子完整来源模板和逐采样点所有权；道路使用缩放曲线，文字采用持久身份与连续显隐。实现规范见 `docs/architecture/maplibre-aligned-streaming.md`，验证入口为 `docs/evidence/maplibre-alignment/README.md`。
+- 当前瓦片采用 canonical 数据身份、GPU 管线准备后发布、父到子完整来源模板和逐采样点所有权；图层显隐使用目标瓦片整数层级，道路宽度使用连续视图缩放曲线，文字采用持久身份与连续显隐。实现规范见 `docs/architecture/maplibre-aligned-streaming.md`，验证入口为 `docs/evidence/maplibre-alignment/README.md`。
 - 主瓦片独占有效内容区域的海陆边界，主响应无内容时启用 KYE 海洋回退；视图缩放独立于海洋内容可见性。资源覆盖与海陆像素正确性分别验证，见 `docs/evidence/maplibre-alignment/coast-authority.md`。
 - 城市平面地图在 z4.5～5.5 连续过渡到地球；Inspector 支持三主题、地图元素和文字样式编辑。默认背景/雾为 #dbdeff，陆地为 #e6f4f3。近景精度、地名层级和瓦片加载验证见 `docs/evidence/map-inspector/README.md`。
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
 - 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、多单位线宽、加载、缓存、帧提交和资源回收。
-- 当前画质支持 75° 强雾与统一目标层级、15.74 建筑门槛、kind 分类色、国省界和连续虚线；证据入口为 `docs/evidence/map-quality/README.md`。
+- 当前画质支持 75° 强雾与统一目标层级、15.74 建筑门槛、kind 分类色、独立国省界、zoom 10 省界隐藏、像素宽度缩放曲线和连续虚线；证据入口为 `docs/evidence/map-quality/README.md`。
 - T046 状态为 IN_PROGRESS，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - 浏览器入口为 `http://127.0.0.1:6661/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。
 - 当前双后端性能、连续覆盖和视觉检查事实见 `docs/knowledge/streaming.md`。
