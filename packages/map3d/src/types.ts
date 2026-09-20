@@ -63,7 +63,7 @@ export interface TileOverlaySource {
   maxZoom: number;
   sourceLayer: string;
   targetLayer: string;
-  /** 主源为空时加载该来源，提供具有实际几何的背景覆盖。 */
+  /** 主响应无内容时使用该来源。有效主瓦片独占其区域的表面语义，包括无水面的陆地。 */
   onlyWhenPrimaryEmpty?: boolean;
   /** 目标数据层缺少要素时使用该来源。 */
   onlyWhenLayerMissing?: boolean;

@@ -1,0 +1,923 @@
+[
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/16/53561/28621.pbf",
+    "status": 200,
+    "bytes": 3804,
+    "sha256": "f10d3ffb6694444b779a24de68b34426d26bebf04db4cabd44d6aafdb3681611",
+    "layers": {
+      "building": {
+        "count": 40,
+        "properties": [
+          {
+            "kind": "_osm",
+            "projection": "LayerBuildingProjection(name=globe)",
+            "buildingId": 14255766,
+            "height": 14
+          },
+          {
+            "kind": "_osm",
+            "name": "57座",
+            "projection": "LayerBuildingProjection(name=globe)",
+            "buildingId": 14252201,
+            "height": 30
+          }
+        ]
+      },
+      "road": {
+        "count": 14,
+        "properties": [
+          {
+            "brunnel": "",
+            "level": 13,
+            "name": "黄麻角道",
+            "subclass": "tertiary",
+            "id": "8960426",
+            "class": "tertiary",
+            "oneway": 0,
+            "layer": 0,
+            "name_en": "Huang Ma Jiao Dao"
+          },
+          {
+            "brunnel": "",
+            "level": 13,
+            "subclass": "tertiary",
+            "id": "8954384",
+            "class": "tertiary",
+            "oneway": 1,
+            "layer": 0
+          }
+        ]
+      },
+      "poi_label": {
+        "count": 4,
+        "properties": [
+          {
+            "level": 14,
+            "osmId": "5152886",
+            "cityCode": "8101",
+            "name": "赤柱炮台",
+            "subclass": "places_of_interest",
+            "rank": 7,
+            "short_name": "赤柱炮台",
+            "class": "cultural_facilities"
+          },
+          {
+            "level": 15,
+            "osmId": "18965898",
+            "cityCode": "8101",
+            "name": "赤柱炮台第79座",
+            "subclass": "building",
+            "rank": 519,
+            "short_name": "赤柱炮台第79座",
+            "class": "building"
+          }
+        ]
+      },
+      "water": {
+        "count": 1,
+        "properties": [
+          {
+            "area": 8844468.017866135,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 523688
+          }
+        ],
+        "samples": [
+          {
+            "lng": 114.216,
+            "lat": 22.21,
+            "inTile": false,
+            "features": []
+          },
+          {
+            "lng": 114.215,
+            "lat": 22.206,
+            "inTile": false,
+            "features": []
+          },
+          {
+            "lng": 114.22,
+            "lat": 22.207,
+            "inTile": false,
+            "features": []
+          },
+          {
+            "lng": 114.225,
+            "lat": 22.21,
+            "inTile": false,
+            "features": []
+          }
+        ]
+      },
+      "landuse": {
+        "count": 1,
+        "properties": [
+          {
+            "area": "2872397.91",
+            "level": 9,
+            "osmId": "40061063358",
+            "subclass": "grassland",
+            "class": "grass"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/16/53560/28620.pbf",
+    "status": 200,
+    "bytes": 2604,
+    "sha256": "e07775f481b78dc3d688ed4ed541af02fb3fa20ff8162e28e4005966a8b83ec4",
+    "layers": {
+      "road": {
+        "count": 14,
+        "properties": [
+          {
+            "brunnel": "",
+            "level": 13,
+            "name": "黄麻角道",
+            "subclass": "tertiary",
+            "id": "32616349",
+            "class": "tertiary",
+            "oneway": 0,
+            "layer": 0,
+            "name_en": "Huang Ma Jiao Dao"
+          },
+          {
+            "brunnel": "",
+            "level": 15,
+            "subclass": "service",
+            "id": "104595329",
+            "class": "service",
+            "oneway": 0,
+            "layer": 0
+          }
+        ]
+      },
+      "poi_label": {
+        "count": 9,
+        "properties": [
+          {
+            "level": 16,
+            "osmId": "18971275",
+            "cityCode": "8101",
+            "name": "富豪海湾D1",
+            "subclass": "community",
+            "rank": 519,
+            "short_name": "富豪海湾D1",
+            "class": "community"
+          },
+          {
+            "level": 16,
+            "osmId": "18971298",
+            "cityCode": "8101",
+            "name": "富豪海湾D8",
+            "subclass": "community",
+            "rank": 519,
+            "short_name": "富豪海湾D8",
+            "class": "community"
+          }
+        ]
+      },
+      "building": {
+        "count": 10,
+        "properties": [
+          {
+            "kind": "_osm",
+            "projection": "LayerBuildingProjection(name=globe)",
+            "buildingId": 14321817,
+            "height": 28
+          },
+          {
+            "kind": "_osm",
+            "projection": "LayerBuildingProjection(name=globe)",
+            "buildingId": 14321818,
+            "height": 29
+          }
+        ]
+      },
+      "water": {
+        "count": 2,
+        "properties": [
+          {
+            "area": 16221170.712551175,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 523671
+          },
+          {
+            "area": 1350034.6155995296,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 524173
+          }
+        ],
+        "samples": [
+          {
+            "lng": 114.216,
+            "lat": 22.21,
+            "inTile": false,
+            "features": []
+          },
+          {
+            "lng": 114.215,
+            "lat": 22.206,
+            "inTile": true,
+            "features": [
+              {
+                "area": 1350034.6155995296,
+                "level": 7,
+                "class": "ocean",
+                "waterId": 524173
+              }
+            ]
+          },
+          {
+            "lng": 114.22,
+            "lat": 22.207,
+            "inTile": false,
+            "features": []
+          },
+          {
+            "lng": 114.225,
+            "lat": 22.21,
+            "inTile": false,
+            "features": []
+          }
+        ]
+      },
+      "landuse": {
+        "count": 1,
+        "properties": [
+          {
+            "area": "2872397.91",
+            "level": 9,
+            "osmId": "40061063358",
+            "subclass": "grassland",
+            "class": "grass"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/104/55.pbf",
+    "status": 200,
+    "bytes": 136253,
+    "sha256": "80d37dd9d255f0e8ecc6c2666aade06f8d4af6edf8d90b3ac833404bfae1356d",
+    "layers": {
+      "landuse_overlay": {
+        "count": 1,
+        "properties": [
+          {
+            "area": "42735902.13",
+            "level": 7,
+            "class": "national_park"
+          }
+        ]
+      },
+      "landuse": {
+        "count": 11,
+        "properties": [
+          {
+            "area": "24317019.80",
+            "level": 7,
+            "osmId": "40000247918",
+            "subclass": "grassland",
+            "class": "grass"
+          },
+          {
+            "area": "26973864.30",
+            "level": 7,
+            "osmId": "40507001718",
+            "subclass": "grassland",
+            "class": "grass"
+          }
+        ]
+      },
+      "water": {
+        "count": 1038,
+        "properties": [
+          {
+            "area": 11200493.612362796,
+            "level": 7,
+            "class": "river",
+            "waterId": 569980
+          },
+          {
+            "area": 254692.94853430023,
+            "level": 7,
+            "class": "ocean",
+            "waterId": 559944
+          }
+        ],
+        "samples": [
+          {
+            "lng": 114.216,
+            "lat": 22.21,
+            "inTile": true,
+            "features": [
+              {
+                "area": 1350034.6155995296,
+                "level": 7,
+                "class": "ocean",
+                "waterId": 524173
+              }
+            ]
+          },
+          {
+            "lng": 114.215,
+            "lat": 22.206,
+            "inTile": true,
+            "features": [
+              {
+                "area": 1350034.6155995296,
+                "level": 7,
+                "class": "ocean",
+                "waterId": 524173
+              }
+            ]
+          },
+          {
+            "lng": 114.22,
+            "lat": 22.207,
+            "inTile": true,
+            "features": []
+          },
+          {
+            "lng": 114.225,
+            "lat": 22.21,
+            "inTile": true,
+            "features": []
+          }
+        ]
+      },
+      "road": {
+        "count": 1875,
+        "properties": [
+          {
+            "ref": "G0421",
+            "level": 7,
+            "letter": "G",
+            "ref_length": 5,
+            "subclass": "motorway",
+            "class": "motorway"
+          },
+          {
+            "ref": "G55",
+            "level": 7,
+            "letter": "G",
+            "ref_length": 3,
+            "subclass": "motorway",
+            "class": "motorway"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/104/55.pbf",
+    "status": 200,
+    "bytes": 43594,
+    "sha256": "75edbbfd41bd49106de5603227dfd00d8d5d9d6d687d530eba9c89ef1fcfa077",
+    "layers": {
+      "water": {
+        "count": 821,
+        "properties": [
+          {
+            "level": 7,
+            "class": "ocean",
+            "waterId": 170782475
+          },
+          {
+            "level": 7,
+            "class": "ocean",
+            "waterId": 170782464
+          }
+        ],
+        "samples": [
+          {
+            "lng": 114.216,
+            "lat": 22.21,
+            "inTile": true,
+            "features": [
+              {
+                "level": 7,
+                "class": "ocean",
+                "waterId": 170715464
+              }
+            ]
+          },
+          {
+            "lng": 114.215,
+            "lat": 22.206,
+            "inTile": true,
+            "features": [
+              {
+                "level": 7,
+                "class": "ocean",
+                "waterId": 170715464
+              }
+            ]
+          },
+          {
+            "lng": 114.22,
+            "lat": 22.207,
+            "inTile": true,
+            "features": []
+          },
+          {
+            "lng": 114.225,
+            "lat": 22.21,
+            "inTile": true,
+            "features": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water/6/52/27.pbf",
+    "status": 200,
+    "bytes": 3750,
+    "sha256": "c3a81a72cae5bd072192e65e36163e32253c3d1faffadc660345d6ca730c265c",
+    "layers": {
+      "water": {
+        "count": 1,
+        "properties": [
+          {
+            "maxLevel": 6,
+            "level": 5,
+            "class": "ocean"
+          }
+        ],
+        "samples": [
+          {
+            "lng": 114.216,
+            "lat": 22.21,
+            "inTile": true,
+            "features": [
+              {
+                "maxLevel": 6,
+                "level": 5,
+                "class": "ocean"
+              }
+            ]
+          },
+          {
+            "lng": 114.215,
+            "lat": 22.206,
+            "inTile": true,
+            "features": []
+          },
+          {
+            "lng": 114.22,
+            "lat": 22.207,
+            "inTile": true,
+            "features": [
+              {
+                "maxLevel": 6,
+                "level": 5,
+                "class": "ocean"
+              }
+            ]
+          },
+          {
+            "lng": 114.225,
+            "lat": 22.21,
+            "inTile": true,
+            "features": [
+              {
+                "maxLevel": 6,
+                "level": 5,
+                "class": "ocean"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "buildings": [
+      {
+        "id": 14255766,
+        "lng": 114.21925485134125,
+        "lat": 22.20132778329604,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252201,
+        "lng": 114.2195038497448,
+        "lat": 22.2021080719452,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252202,
+        "lng": 114.21940997242928,
+        "lat": 22.20167669423191,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252200,
+        "lng": 114.21978749334812,
+        "lat": 22.20161916330694,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252205,
+        "lng": 114.22061260789633,
+        "lat": 22.20229897866553,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252209,
+        "lng": 114.2208456248045,
+        "lat": 22.20243369967452,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252208,
+        "lng": 114.22103740274906,
+        "lat": 22.20243742467754,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252204,
+        "lng": 114.22082684934139,
+        "lat": 22.202294011989917,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252199,
+        "lng": 114.22076549381018,
+        "lat": 22.20212079906797,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252206,
+        "lng": 114.22099605202675,
+        "lat": 22.20228614808651,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252203,
+        "lng": 114.22104176133871,
+        "lat": 22.202104657351097,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14348451,
+        "lng": 114.22130730003119,
+        "lat": 22.20258114763525,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252207,
+        "lng": 114.22125734388828,
+        "lat": 22.20243742467754,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14239107,
+        "lng": 114.22097023576498,
+        "lat": 22.200823764811066,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252214,
+        "lng": 114.22200433909893,
+        "lat": 22.200674245532483,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14239126,
+        "lng": 114.22050788998604,
+        "lat": 22.197643263999456,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252211,
+        "lng": 114.22111501917243,
+        "lat": 22.199919765719535,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255759,
+        "lng": 114.22139514237642,
+        "lat": 22.200118591177862,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252212,
+        "lng": 114.22137334942818,
+        "lat": 22.199764088758982,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255760,
+        "lng": 114.22137469053268,
+        "lat": 22.199457080249154,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255763,
+        "lng": 114.22154769301414,
+        "lat": 22.199654819881975,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255761,
+        "lng": 114.2215047776699,
+        "lat": 22.19949371021785,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255762,
+        "lng": 114.22164894640446,
+        "lat": 22.19954182584018,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14239113,
+        "lng": 114.22108702361584,
+        "lat": 22.198021053775932,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14241449,
+        "lng": 114.22154679894447,
+        "lat": 22.19846072074047,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14241397,
+        "lng": 114.22161418944597,
+        "lat": 22.19786252912907,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252213,
+        "lng": 114.22232151031494,
+        "lat": 22.200639167976245,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255401,
+        "lng": 114.22222763299942,
+        "lat": 22.200228480537533,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14348504,
+        "lng": 114.22277379781008,
+        "lat": 22.199622846302454,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14241433,
+        "lng": 114.22211732715368,
+        "lat": 22.19885454693497,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14348505,
+        "lng": 114.22275200486183,
+        "lat": 22.199454907284608,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14348506,
+        "lng": 114.22267891466618,
+        "lat": 22.19927703450137,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14252210,
+        "lng": 114.22327481210232,
+        "lat": 22.200051953897148,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14348507,
+        "lng": 114.22330194152892,
+        "lat": 22.199287899337527,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14348502,
+        "lng": 114.22410450875759,
+        "lat": 22.198221485791905,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14239121,
+        "lng": 114.22426946461201,
+        "lat": 22.198554676222997,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14348503,
+        "lng": 114.22483295202255,
+        "lat": 22.19881729594968,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255400,
+        "lng": 114.22463223338127,
+        "lat": 22.198305714751942,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14239106,
+        "lng": 114.22432713210583,
+        "lat": 22.19805451776793,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14255399,
+        "lng": 114.22494739294052,
+        "lat": 22.19824342257751,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14321817,
+        "lng": 114.2187025398016,
+        "lat": 22.20659601847662,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14321818,
+        "lng": 114.21884402632713,
+        "lat": 22.206614953346122,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365258,
+        "lng": 114.21756148338318,
+        "lat": 22.20309530004955,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365257,
+        "lng": 114.21761199831963,
+        "lat": 22.20302369753198,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365256,
+        "lng": 114.21767704188824,
+        "lat": 22.202917121462725,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365255,
+        "lng": 114.21774320304394,
+        "lat": 22.20280702726353,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365115,
+        "lng": 114.21781154349446,
+        "lat": 22.20268855173653,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365262,
+        "lng": 114.218346811831,
+        "lat": 22.20336525776791,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365114,
+        "lng": 114.21786971390247,
+        "lat": 22.202597806658286,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      },
+      {
+        "id": 14365261,
+        "lng": 114.21903336589986,
+        "lat": 22.202632140606873,
+        "primaryWet": false,
+        "detailWet": false,
+        "baseWet": true
+      }
+    ],
+    "seaProbes": [
+      {
+        "lng": 114.21455383300781,
+        "lat": 22.20711346718831,
+        "source": "16/53560/28620"
+      },
+      {
+        "lng": 114.21489715576172,
+        "lat": 22.205206316244176,
+        "source": "16/53560/28620"
+      },
+      {
+        "lng": 114.21558380126953,
+        "lat": 22.203299139386623,
+        "source": "16/53560/28620"
+      }
+    ]
+  }
+]

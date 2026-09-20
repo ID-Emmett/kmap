@@ -24,15 +24,18 @@ export function decodeTileSources(buffer: ArrayBuffer, address: Address, sources
   if (!sources.length) return decodeVectorTile(buffer);
   const header = new DataView(buffer), count = header.getUint32(0, true), unique = header.getUint32(4, true);
   if (count !== sources.length + 1) throw new Error('瓦片来源包数量不匹配。');
-  const decoded: VectorTile[] = []; let offset = 8 + count * 4;
+  const decoded: VectorTile[] = [], hasContent: boolean[] = []; let offset = 8 + count * 4;
   for (let i = 0; i < unique; i++) {
     const size = header.getUint32(offset, true); offset += 4;
-    decoded.push(decodeVectorTile(new Uint8Array(buffer, offset, size))); offset += size;
+    decoded.push(decodeVectorTile(new Uint8Array(buffer, offset, size))); hasContent.push(size > 0); offset += size;
   }
   const part = (index: number) => decoded[header.getUint32(8 + index * 4, true)]!;
   const primary = part(0), tile = Object.create(primary) as VectorTile;
+  const primaryPresent = hasContent[header.getUint32(8, true)];
   tile.layers = { ...primary.layers };
   for (const [i, source] of sources.entries()) {
+    // 来源优先级同时约束网络与 Worker；完整主瓦片的无水面区域保留陆地语义。
+    if (source.onlyWhenPrimaryEmpty && primaryPresent) continue;
     const layer = part(i + 1).layers[source.sourceLayer]; if (!layer) continue;
     if (source.onlyWhenLayerMissing && tile.layers[source.targetLayer]?.length) continue;
     tile.layers[source.targetLayer] = reprojectLayer(layer, overlayAddress(address, source), address);

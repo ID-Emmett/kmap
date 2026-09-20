@@ -16,7 +16,7 @@
 
 ## 画质与数据契约
 
-- KYE `kye_water_ocean/7/108/55` 含局部海洋几何，`7/109/55` 返回 204；`kye_water/6/54/27` 提供该区域基础水面。Playground 基础海洋持续参与合成，详细海洋独立补充，两者共享填充批次。真实数据 fixture、同级缩放与海陆像素证据见 `docs/evidence/maplibre-alignment/README.md`。
+- KYE 主响应有内容时独占其区域的海陆边界；主响应无内容时才使用基础/详细海洋回退。来源选择在网络与 Worker 阶段执行。赤柱两块真实瓦片的 50 座建筑中心均在主源陆地内，低级海洋在相同位置为水面；真实 fixture 与地表像素验证见 `docs/evidence/maplibre-alignment/coast-authority.md`。
 
 - 当前平面/地球过渡、Inspector、地名层级和逐帧冷加载证据见 [地图样式与稳定性验证](../evidence/map-inspector/README.md)。
 

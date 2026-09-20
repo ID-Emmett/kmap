@@ -40,7 +40,7 @@ describe('真实海洋内容覆盖与视图缩放解耦', () => {
     const ancestor = build(54, fixture('kye-water-z6-54-27'), empty, 6, 27);
     expect(sampleFill(ancestor, 0, 0, 7.34)).toBeDefined();
   });
-  it('主源有内容时基础海洋也独立加载，共享 URL 只产生一次请求', async () => {
+  it('主源有效时独占海陆区域，海洋回退请求按需准入且共享 URL', async () => {
     const main = fixture('kye-main-z15-26978-12416'), base = fixture('kye-water-z6-54-27');
     const fetcher = vi.fn(async (url: string) => new Response((url.includes('/kye_water/') ? base : url.includes('/kye_water_ocean/') ? empty : main).slice(0)));
     vi.stubGlobal('fetch', fetcher); const cache = new OverlayCache();
@@ -48,8 +48,12 @@ describe('真实海洋内容覆盖与视图缩放解耦', () => {
       for (const x of [108, 109]) {
         const result = await requestTile({ z: 7, x, y: 55 }, { ...PLAYGROUND_SOURCE, overlays: sources }, 1, cache, new AbortController().signal, () => {}, () => {});
         expect(result.primaryEmpty).toBe(false);
-        expect(decodeTileSources(result.buffer, { z: 7, x, y: 55 }, sources).layers.ocean_base!.length).toBe(1);
+        expect(decodeTileSources(result.buffer, { z: 7, x, y: 55 }, sources).layers.ocean_base).toBeUndefined();
       }
+      expect(fetcher.mock.calls.filter(([url]) => url.includes('/kye_water'))).toHaveLength(0);
+      fetcher.mockImplementation(async (url: string) => url.includes('/v8Maptile/') ? new Response(null, { status: 204 }) : new Response(base.slice(0)));
+      cache.dispose();
+      for (const x of [108, 109]) await requestTile({ z: 7, x, y: 55 }, { ...PLAYGROUND_SOURCE, overlays: sources }, 1, cache, new AbortController().signal, () => {}, () => {});
       expect(fetcher.mock.calls.filter(([url]) => url.includes('/kye_water/'))).toHaveLength(1);
     } finally { cache.dispose(); vi.unstubAllGlobals(); }
   });

@@ -76,3 +76,6 @@ docs/evidence/maplibre-alignment/*
 !docs/evidence/maplibre-alignment/metrics.md
 !docs/evidence/maplibre-alignment/verification-summary.json
 !docs/evidence/maplibre-alignment/ocean-source-audit.json
+!docs/evidence/maplibre-alignment/coast-source-audit.json
+!docs/evidence/maplibre-alignment/coast-authority.md
+!docs/evidence/maplibre-alignment/coast-verification.json
