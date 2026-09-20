@@ -1,0 +1,2370 @@
+[
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/107/55.pbf",
+    "status": 204,
+    "bytes": 0,
+    "layers": {}
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/7/106/55.pbf",
+    "status": 200,
+    "bytes": 67043,
+    "layers": {
+      "road": {
+        "count": 6,
+        "classes": {
+          "trunk": 6
+        },
+        "examples": []
+      },
+      "landuse": {
+        "count": 173,
+        "classes": {
+          "grass": 173
+        },
+        "examples": [
+          {
+            "properties": {
+              "area": "63942958.85",
+              "level": 7,
+              "osmId": "40000268215",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3708,
+              -80,
+              3822,
+              43
+            ]
+          },
+          {
+            "properties": {
+              "area": "141903213.60",
+              "level": 7,
+              "osmId": "40000261357",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3822,
+              -80,
+              4004,
+              43
+            ]
+          },
+          {
+            "properties": {
+              "area": "141903213.60",
+              "level": 7,
+              "osmId": "40000260796",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              4004,
+              -80,
+              4176,
+              43
+            ]
+          },
+          {
+            "properties": {
+              "area": "46242814.13",
+              "level": 7,
+              "osmId": "40000257958",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              248,
+              63,
+              364,
+              176
+            ]
+          },
+          {
+            "properties": {
+              "area": "82373501.76",
+              "level": 7,
+              "osmId": "40000257126",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              364,
+              43,
+              516,
+              176
+            ]
+          },
+          {
+            "properties": {
+              "area": "73445493.04",
+              "level": 7,
+              "osmId": "40000264539",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              2959,
+              1107,
+              3094,
+              1240
+            ]
+          },
+          {
+            "properties": {
+              "area": "90850991.58",
+              "level": 7,
+              "osmId": "40000263636",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              2956,
+              1240,
+              3094,
+              1372
+            ]
+          },
+          {
+            "properties": {
+              "area": "120583337.89",
+              "level": 7,
+              "osmId": "40000259455",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              2924,
+              1372,
+              3094,
+              1505
+            ]
+          },
+          {
+            "properties": {
+              "area": "124514555.40",
+              "level": 7,
+              "osmId": "40000256618",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              2912,
+              1505,
+              3094,
+              1637
+            ]
+          },
+          {
+            "properties": {
+              "area": "118258496.32",
+              "level": 7,
+              "osmId": "40000256268",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              2912,
+              1637,
+              3094,
+              1769
+            ]
+          },
+          {
+            "properties": {
+              "area": "121083794.30",
+              "level": 7,
+              "osmId": "40000257545",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              2912,
+              1769,
+              3094,
+              1902
+            ]
+          },
+          {
+            "properties": {
+              "area": "140536800.64",
+              "level": 7,
+              "osmId": "40000257517",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              2912,
+              1902,
+              3094,
+              2034
+            ]
+          },
+          {
+            "properties": {
+              "area": "112573585.88",
+              "level": 7,
+              "osmId": "40000259047",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3466,
+              309,
+              3640,
+              443
+            ]
+          },
+          {
+            "properties": {
+              "area": "141127722.65",
+              "level": 7,
+              "osmId": "40000265790",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3458,
+              443,
+              3640,
+              576
+            ]
+          },
+          {
+            "properties": {
+              "area": "61116764.31",
+              "level": 7,
+              "osmId": "40000258815",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3173,
+              842,
+              3276,
+              974
+            ]
+          },
+          {
+            "properties": {
+              "area": "94071368.19",
+              "level": 7,
+              "osmId": "40000257652",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3283,
+              576,
+              3458,
+              709
+            ]
+          },
+          {
+            "properties": {
+              "area": "141437481.26",
+              "level": 7,
+              "osmId": "40000261418",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3458,
+              576,
+              3640,
+              709
+            ]
+          },
+          {
+            "properties": {
+              "area": "138976060.91",
+              "level": 7,
+              "osmId": "40000268214",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3276,
+              709,
+              3458,
+              842
+            ]
+          },
+          {
+            "properties": {
+              "area": "141253893.76",
+              "level": 7,
+              "osmId": "40000256329",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3276,
+              842,
+              3458,
+              974
+            ]
+          },
+          {
+            "properties": {
+              "area": "141345393.61",
+              "level": 7,
+              "osmId": "40000261356",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3458,
+              709,
+              3640,
+              842
+            ]
+          },
+          {
+            "properties": {
+              "area": "141253893.76",
+              "level": 7,
+              "osmId": "40000258500",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3458,
+              842,
+              3640,
+              974
+            ]
+          },
+          {
+            "properties": {
+              "area": "55288004.34",
+              "level": 7,
+              "osmId": "40000255851",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3535,
+              176,
+              3640,
+              309
+            ]
+          },
+          {
+            "properties": {
+              "area": "119249372.29",
+              "level": 7,
+              "osmId": "40000257195",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3640,
+              43,
+              3822,
+              176
+            ]
+          },
+          {
+            "properties": {
+              "area": "141715755.44",
+              "level": 7,
+              "osmId": "40000259628",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3640,
+              176,
+              3822,
+              309
+            ]
+          },
+          {
+            "properties": {
+              "area": "141622406.17",
+              "level": 7,
+              "osmId": "40000260527",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3640,
+              309,
+              3822,
+              443
+            ]
+          },
+          {
+            "properties": {
+              "area": "141529648.67",
+              "level": 7,
+              "osmId": "40000259109",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3640,
+              443,
+              3822,
+              576
+            ]
+          },
+          {
+            "properties": {
+              "area": "141809187.46",
+              "level": 7,
+              "osmId": "40000264097",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3822,
+              43,
+              4004,
+              176
+            ]
+          },
+          {
+            "properties": {
+              "area": "141715755.44",
+              "level": 7,
+              "osmId": "40000259706",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3822,
+              176,
+              4004,
+              309
+            ]
+          },
+          {
+            "properties": {
+              "area": "141809187.46",
+              "level": 7,
+              "osmId": "40000260860",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              4004,
+              43,
+              4176,
+              176
+            ]
+          },
+          {
+            "properties": {
+              "area": "141715755.44",
+              "level": 7,
+              "osmId": "40000260419",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              4004,
+              176,
+              4176,
+              309
+            ]
+          },
+          {
+            "properties": {
+              "area": "141622406.17",
+              "level": 7,
+              "osmId": "40000266447",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3822,
+              309,
+              4004,
+              443
+            ]
+          },
+          {
+            "properties": {
+              "area": "141529648.67",
+              "level": 7,
+              "osmId": "40000258910",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3822,
+              443,
+              4004,
+              576
+            ]
+          },
+          {
+            "properties": {
+              "area": "141622406.17",
+              "level": 7,
+              "osmId": "40000259526",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              4004,
+              309,
+              4176,
+              443
+            ]
+          },
+          {
+            "properties": {
+              "area": "141529648.67",
+              "level": 7,
+              "osmId": "40000261592",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              4004,
+              443,
+              4176,
+              576
+            ]
+          },
+          {
+            "properties": {
+              "area": "141437481.26",
+              "level": 7,
+              "osmId": "40000258240",
+              "subclass": "grassland",
+              "class": "grass"
+            },
+            "type": 3,
+            "bbox": [
+              3640,
+              576,
+              3822,
+              709
+            ]
+          }
+        ]
+      },
+      "water": {
+        "count": 983,
+        "classes": {
+          "ocean": 983
+        },
+        "examples": []
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/6/53/27.pbf",
+    "status": 200,
+    "bytes": 81153,
+    "layers": {
+      "landcover_0": {
+        "count": 4,
+        "classes": {
+          "crop": 1,
+          "grass": 1,
+          "scrub": 1,
+          "wood": 1
+        },
+        "examples": []
+      },
+      "hillshade": {
+        "count": 6,
+        "classes": {
+          "shadow": 4,
+          "highlight": 2
+        },
+        "examples": []
+      },
+      "water": {
+        "count": 2,
+        "classes": {
+          "ocean": 1,
+          "ocean_foreign": 1
+        },
+        "examples": []
+      },
+      "waterway": {
+        "count": 1,
+        "classes": {
+          "river": 1
+        },
+        "examples": []
+      },
+      "landuse": {
+        "count": 15,
+        "classes": {
+          "residential": 15
+        },
+        "examples": [
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              19,
+              318,
+              60,
+              365
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              998,
+              291,
+              1058,
+              345
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1059,
+              843,
+              1149,
+              946
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              755,
+              715,
+              991,
+              877
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              610,
+              1236,
+              830,
+              1371
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              448,
+              1591,
+              537,
+              1675
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              2567,
+              1806,
+              2736,
+              1996
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              2503,
+              2430,
+              2552,
+              2510
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              2155,
+              3409,
+              2220,
+              3473
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              137,
+              1645,
+              465,
+              2004
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              828,
+              1039,
+              986,
+              1183
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1903,
+              1444,
+              2700,
+              2102
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1424,
+              2067,
+              2001,
+              3734
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              -40,
+              2025,
+              46,
+              2125
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              -64,
+              1826,
+              60,
+              2021
+            ]
+          }
+        ]
+      },
+      "boundary": {
+        "count": 555,
+        "classes": {
+          "other": 555
+        },
+        "examples": []
+      },
+      "transportation": {
+        "count": 688,
+        "classes": {
+          "trunk": 490,
+          "motorway": 198
+        },
+        "examples": []
+      },
+      "transportation_name": {
+        "count": 68,
+        "classes": {
+          "motorway": 68
+        },
+        "examples": []
+      },
+      "place": {
+        "count": 87,
+        "classes": {
+          "state": 11,
+          "sea": 1,
+          "city": 75
+        },
+        "examples": [
+          {
+            "properties": {
+              "class": "state",
+              "name": "香港",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              -2878,
+              3800,
+              -2878,
+              3800
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "台湾",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              2464,
+              1633,
+              2464,
+              1633
+            ]
+          },
+          {
+            "properties": {
+              "class": "sea",
+              "name": "东海",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              4401,
+              -2254,
+              4401,
+              -2254
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "上海",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              2438,
+              -3480,
+              2438,
+              -3480
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "澳门",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              -3332,
+              3895,
+              -3332,
+              3895
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "湖北",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -2786,
+              -2931,
+              -2786,
+              -2931
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "江西",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -1626,
+              -1332,
+              -1626,
+              -1332
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "福建",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              860,
+              801,
+              860,
+              801
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "湖南",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -3745,
+              -933,
+              -3745,
+              -933
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "广东",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -3527,
+              3164,
+              -3527,
+              3164
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "浙江",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              1477,
+              -2680,
+              1477,
+              -2680
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "安徽",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -613,
+              -4018,
+              -613,
+              -4018
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "揭阳",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -1288,
+              2832,
+              -1288,
+              2832
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "赣州",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -2319,
+              983,
+              -2319,
+              983
+            ]
+          },
+          {
+            "properties": {
+              "capital": 2,
+              "class": "city",
+              "name": "武汉",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -2786,
+              -2931,
+              -2786,
+              -2931
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "萍乡",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -3112,
+              -462,
+              -3112,
+              -462
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "深圳",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -2941,
+              3621,
+              -2941,
+              3621
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "宁波",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              2494,
+              -2327,
+              2494,
+              -2327
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "台州",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              2406,
+              -1320,
+              2406,
+              -1320
+            ]
+          },
+          {
+            "properties": {
+              "capital": 2,
+              "class": "city",
+              "name": "杭州",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              1477,
+              -2680,
+              1477,
+              -2680
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "温州",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              1855,
+              -773,
+              1855,
+              -773
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "泉州",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              338,
+              1742,
+              338,
+              1742
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "安庆",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -787,
+              -2867,
+              -787,
+              -2867
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "抚州",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -1287,
+              -759,
+              -1287,
+              -759
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "三明",
+              "rank": 11
+            },
+            "type": 1,
+            "bbox": [
+              -357,
+              647,
+              -357,
+              647
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "鹰潭",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -794,
+              -970,
+              -794,
+              -970
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "清远",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -3695,
+              2720,
+              -3695,
+              2720
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "衡阳",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -4017,
+              130,
+              -4017,
+              130
+            ]
+          },
+          {
+            "properties": {
+              "capital": 2,
+              "class": "city",
+              "name": "长沙",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -3745,
+              -933,
+              -3745,
+              -933
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "咸宁",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -2764,
+              -2297,
+              -2764,
+              -2297
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "潮州",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -1087,
+              2738,
+              -1087,
+              2738
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "龙岩",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -797,
+              1595,
+              -797,
+              1595
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "铜陵",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              -224,
+              -3223,
+              -224,
+              -3223
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "南平",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              39,
+              346,
+              39,
+              346
+            ]
+          },
+          {
+            "properties": {
+              "class": "city",
+              "name": "丽水",
+              "rank": 12
+            },
+            "type": 1,
+            "bbox": [
+              1309,
+              -1146,
+              1309,
+              -1146
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/5/26/12.pbf",
+    "status": 200,
+    "bytes": 211879,
+    "layers": {
+      "landcover_0": {
+        "count": 4,
+        "classes": {
+          "crop": 1,
+          "grass": 1,
+          "scrub": 1,
+          "wood": 1
+        },
+        "examples": []
+      },
+      "hillshade": {
+        "count": 303,
+        "classes": {
+          "shadow": 301,
+          "highlight": 2
+        },
+        "examples": []
+      },
+      "water": {
+        "count": 12,
+        "classes": {
+          "ocean": 1,
+          "lake": 11
+        },
+        "examples": []
+      },
+      "waterway": {
+        "count": 4,
+        "classes": {
+          "river": 4
+        },
+        "examples": []
+      },
+      "landuse": {
+        "count": 119,
+        "classes": {
+          "residential": 119
+        },
+        "examples": [
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              197,
+              -51,
+              253,
+              -4
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1885,
+              -15,
+              1950,
+              30
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              3458,
+              -64,
+              3504,
+              -51
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              3114,
+              -64,
+              3176,
+              -33
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              835,
+              42,
+              900,
+              120
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              3022,
+              90,
+              3090,
+              158
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              3716,
+              103,
+              3785,
+              151
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              3517,
+              113,
+              3605,
+              175
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              877,
+              134,
+              969,
+              212
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              3628,
+              145,
+              3684,
+              188
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1853,
+              187,
+              1917,
+              224
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1247,
+              199,
+              1302,
+              315
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              979,
+              206,
+              1034,
+              260
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1566,
+              242,
+              1612,
+              309
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1483,
+              260,
+              1530,
+              345
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1228,
+              326,
+              1557,
+              647
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              109,
+              345,
+              327,
+              587
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1658,
+              375,
+              1709,
+              419
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1769,
+              424,
+              1820,
+              490
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              2522,
+              436,
+              2665,
+              565
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              646,
+              472,
+              720,
+              526
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              2019,
+              523,
+              2195,
+              707
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              17,
+              588,
+              68,
+              638
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              -64,
+              641,
+              49,
+              808
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1492,
+              647,
+              1571,
+              731
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1603,
+              731,
+              1934,
+              1141
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1903,
+              769,
+              1964,
+              856
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              2148,
+              785,
+              2232,
+              868
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              2039,
+              802,
+              2095,
+              865
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1136,
+              904,
+              1214,
+              948
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              -57,
+              969,
+              -2,
+              1035
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1048,
+              965,
+              1119,
+              1064
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1644,
+              987,
+              1695,
+              1029
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1288,
+              1042,
+              1344,
+              1112
+            ]
+          },
+          {
+            "properties": {
+              "class": "residential"
+            },
+            "type": 3,
+            "bbox": [
+              1561,
+              1229,
+              1621,
+              1295
+            ]
+          }
+        ]
+      },
+      "boundary": {
+        "count": 655,
+        "classes": {
+          "other": 655
+        },
+        "examples": []
+      },
+      "transportation": {
+        "count": 5395,
+        "classes": {
+          "trunk": 3996,
+          "motorway": 1399
+        },
+        "examples": []
+      },
+      "place": {
+        "count": 325,
+        "classes": {
+          "country": 1,
+          "state": 31,
+          "sea": 3,
+          "city": 290
+        },
+        "examples": [
+          {
+            "properties": {
+              "class": "country",
+              "iso_a2": "CN",
+              "name": "中华人民共和国",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              -2624,
+              3552,
+              -2624,
+              3552
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "香港",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              609,
+              8044,
+              609,
+              8044
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "台湾",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              3280,
+              6961,
+              3280,
+              6961
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "北京",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              1422,
+              514,
+              1422,
+              514
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "天津",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              1708,
+              882,
+              1708,
+              882
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "澳门",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              382,
+              8091,
+              382,
+              8091
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "上海",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              3267,
+              4404,
+              3267,
+              4404
+            ]
+          },
+          {
+            "properties": {
+              "class": "sea",
+              "name": "东海",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              4249,
+              5017,
+              4249,
+              5017
+            ]
+          },
+          {
+            "properties": {
+              "class": "sea",
+              "name": "黄海",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              4229,
+              2919,
+              4229,
+              2919
+            ]
+          },
+          {
+            "properties": {
+              "class": "sea",
+              "name": "渤海",
+              "rank": 1
+            },
+            "type": 1,
+            "bbox": [
+              2717,
+              1042,
+              2717,
+              1042
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "重庆",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -2183,
+              5121,
+              -2183,
+              5121
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "四川",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -3071,
+              4647,
+              -3071,
+              4647
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "贵州",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -2107,
+              6340,
+              -2107,
+              6340
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "云南",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -3564,
+              6962,
+              -3564,
+              6962
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "陕西",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -1293,
+              3091,
+              -1293,
+              3091
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "甘肃",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -3159,
+              2292,
+              -3159,
+              2292
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "青海",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -3903,
+              2037,
+              -3903,
+              2037
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "宁夏",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -2265,
+              1190,
+              -2265,
+              1190
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "河北",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              729,
+              1385,
+              729,
+              1385
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "山西",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              18,
+              1472,
+              18,
+              1472
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "内蒙古",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -302,
+              78,
+              -302,
+              78
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "辽宁",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              3979,
+              -396,
+              3979,
+              -396
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "吉林",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              4669,
+              -1434,
+              4669,
+              -1434
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "黑龙江",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              5149,
+              -2395,
+              5149,
+              -2395
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "江苏",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              2282,
+              4058,
+              2282,
+              4058
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "浙江",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              2787,
+              4804,
+              2787,
+              4804
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "安徽",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              1741,
+              4135,
+              1741,
+              4135
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "湖北",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              655,
+              4679,
+              655,
+              4679
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "河南",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              424,
+              2873,
+              424,
+              2873
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "山东",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              1639,
+              2013,
+              1639,
+              2013
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "江西",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              1235,
+              5478,
+              1235,
+              5478
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "福建",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              2478,
+              6544,
+              2478,
+              6544
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "湖南",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              175,
+              5678,
+              175,
+              5678
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "广东",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              284,
+              7726,
+              284,
+              7726
+            ]
+          },
+          {
+            "properties": {
+              "class": "state",
+              "name": "广西",
+              "rank": 2
+            },
+            "type": 1,
+            "bbox": [
+              -1522,
+              7845,
+              -1522,
+              7845
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_admin_pro/4/13/6.pbf",
+    "status": 200,
+    "bytes": 49944,
+    "layers": {
+      "area": {
+        "count": 21,
+        "classes": {
+          "1": 21
+        },
+        "examples": []
+      },
+      "border": {
+        "count": 22,
+        "classes": {
+          "1": 22
+        },
+        "examples": []
+      },
+      "center": {
+        "count": 18,
+        "classes": {
+          "1": 18
+        },
+        "examples": []
+      },
+      "gov": {
+        "count": 18,
+        "classes": {
+          "1": 18
+        },
+        "examples": []
+      }
+    }
+  }
+]

@@ -1,11 +1,11 @@
 import { paletteColor, paletteOpacity, paletteStyle } from '../style/palette.js';
 import { mapVertex, mapFacing } from '../globe/projection.js';
-import { Vector4, DoubleSide, EqualStencilFunc, InstancedBufferAttribute, InstancedBufferGeometry, KeepStencilOp, Mesh, MeshBasicNodeMaterial, PlaneGeometry } from 'three/webgpu';
-import { Fn, If, attribute, uniformArray, float, fwidth, max, min, mix, uint, positionLocal, smoothstep, uniform, uv, varying, vec2, vec3, vec4 } from 'three/tsl';
+import { type ArrayNode, DoubleSide, EqualStencilFunc, InstancedBufferAttribute, InstancedBufferGeometry, KeepStencilOp, Mesh, MeshBasicNodeMaterial, PlaneGeometry } from 'three/webgpu';
+import { Fn, If, attribute, buffer, element, float, fwidth, max, min, mix, uint, smoothstep, uniform, uv, varying, vec3, vec4 } from 'three/tsl';
 import type { LineData } from './lines.js';
 import { createLineState, lineStyleCapacity } from './lineStyle.js';
 
-/** 单次绘制批量合成所有线图层，胶囊距离场提供圆端点与抗锯齿。 */
+/** 连续中心线带采用共享折点挤出，端点为 butt，横向距离提供解析抗锯齿。 */
 export function createLineSurface(data: LineData, curved = false, themed = false) {
   const plane = new PlaneGeometry(1, 1);
   const geometry = new InstancedBufferGeometry();
@@ -39,17 +39,16 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
   const viewZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.lineState.viewZoom.value);
   const segment = attribute<'vec4'>('lineSegment', 'vec4');
   const style = varying(attribute<'vec4'>('lineStyle', 'vec4')).setInterpolation('flat');
-  const widths = uniformArray(Array.from({ length: count }, () => new Vector4()), 'vec4' as const).onObjectUpdate(frame => frame?.object?.userData.lineState.widths);
-  const dashes = uniformArray(Array.from({ length: count }, () => new Vector4()), 'vec4' as const).onObjectUpdate(frame => frame?.object?.userData.lineState.dashes);
+  // 固定 BufferNode 在新瓦片编译期间保持缓冲引用；绘制时绑定当前对象的数据。
+  const widths = buffer(new Float32Array(count * 4), 'vec4', count).onObjectUpdate(frame => frame.object!.userData.lineState.widths) as unknown as ArrayNode<'vec4'>;
+  const dashes = buffer(new Float32Array(count * 4), 'vec4', count).onObjectUpdate(frame => frame.object!.userData.lineState.dashes) as unknown as ArrayNode<'vec4'>;
   // 查表在顶点阶段求值，flat 保持每个实例的离散样式与宽度。
   const sourceColor = attribute<'vec3'>('lineColor', 'vec3');
-  const width = varying(max(widths.element(uint(style.x)).x.mul(themed ? paletteStyle(sourceColor).x : 1), 1e-10)).setInterpolation('flat');
-  const dash = varying(dashes.element(uint(style.x))).setInterpolation('flat');
+  const width = varying(max(element(widths, uint(style.x)).x.mul(themed ? paletteStyle(sourceColor).x : 1), 1e-10)).setInterpolation('flat');
+  const dash = varying(element(dashes, uint(style.x))).setInterpolation('flat');
   const delta = segment.zw.sub(segment.xy); const length = varying(delta.length()).setInterpolation('flat');
   const radius = width.mul(.5);
-  const caps = varying(attribute<'vec2'>('lineCaps', 'vec2')).setInterpolation('flat');
-  const extension = radius.add(pixelScale);
-  const along = uv().x.mul(length.add(extension.mul(caps.x.add(caps.y)))).sub(extension.mul(caps.x));
+  const along = uv().x.mul(length);
   const across = uv().y.mul(2).sub(1).mul(radius.add(pixelScale));
   const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: DoubleSide,
     stencilWrite: true, stencilWriteMask: 0, stencilFunc: EqualStencilFunc, stencilZPass: KeepStencilOp });
@@ -64,7 +63,7 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
   material.positionNode = linePosition;
   if (curved) material.vertexNode = mapVertex(linePosition);
   material.colorNode = Fn(() => {
-    const distance = vec2(max(max(along.negate(), along.sub(length)), 0), across).length().sub(radius);
+    const distance = across.abs().sub(radius);
     const aa = max(fwidth(distance), 1e-10).toVar();
     const period = dash.x.add(dash.y).add(dash.z).add(dash.w);
     const dashAA = max(fwidth(along).div(width), 1e-5).toVar();
@@ -83,7 +82,6 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
     const alpha = float(1).sub(smoothstep(aa.negate(), aa, distance)).mul(style.y).mul(dashAlpha).mul(themed ? paletteOpacity(sourceColor) : 1);
     // 导数在分支裁剪之前求值，保留片元四元组的完整采样。
     if (curved) mapFacing.lessThan(0).discard();
-    max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();
     viewZoom.lessThan(style.z).or(viewZoom.greaterThanEqual(style.w.add(1))).discard();
     alpha.lessThanEqual(.001).discard();
     return vec4(paletteColor(attribute<'vec3'>('lineColor', 'vec3'), themed), alpha);

@@ -1,8 +1,7 @@
 import { surfaceStateBytes } from './surfaceBytes.js';
-import type { WebGPURenderer } from 'three/webgpu';
+import type { Camera, WebGPURenderer } from 'three/webgpu';
 import type { Map3DOptions, MapError } from '../types.js';
-import { overlayAddress, packTileSources } from './tileSources.js';
-import { requestUrl } from './address.js';
+import { requestTile } from './tileRequest.js';
 import { PaintWorkers } from './workers.js';
 import { Samples } from './samples.js';
 import { TILE_LIMITS } from './limits.js';
@@ -10,7 +9,7 @@ import { resultBytes, TileStore, type TileEntry } from './tileStore.js';
 import { lineBytes } from './lines.js';
 import { buildingBytes } from './buildings.js';
 import { fillBytes } from './fills.js';
-import { OverlayCache } from './overlayCache.js';
+import { OverlayCache, ResponseCapacityError } from './overlayCache.js';
 
 /** 网络、Worker 和上传分别准入，已解码数据可在 CPU 等待新的可见需求。 */
 export class TilePipeline {
@@ -63,45 +62,23 @@ export class TilePipeline {
     const controller = entry.controller; this.active++; this.starts++; this.log('fetch', entry.key);
     const timeout = setTimeout(() => controller.abort('timeout'), 8000);
     try {
-      const templates = [...this.options.source.tiles];
-      if (entry.attempts > 1) templates.push(...templates.splice(0, (entry.attempts - 1) % templates.length));
-      const buffers: ArrayBuffer[] = []; let accumulated = 0;
-      const requests = [{ url: requestUrl(entry.address, templates), enabled: true }, ...(this.options.source.overlays ?? []).map(source => ({
-        url: requestUrl(overlayAddress(entry.address, source), source.tiles), enabled: entry.address.z >= source.minZoom,
-      }))];
-      for (const [index, request] of requests.entries()) {
-        if (!request.enabled || (index > 0 && this.options.source.overlays?.[index - 1]?.onlyWhenPrimaryEmpty && buffers[0]!.byteLength > 0)) { buffers.push(new ArrayBuffer(0)); continue; }
-        const read = async (signal: AbortSignal): Promise<ArrayBuffer> => {
-          const httpStarted = performance.now(); this.httpStarts++;
-          const response = await fetch(request.url, { signal });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const buffer = response.status === 204 ? new ArrayBuffer(0) : await readTileBody(response, index ? 2 * 1024 * 1024 : TILE_LIMITS.requestBytes, bytes => {
-            if (index) return;
-            const reserve = bytes * 3;
-            if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
-            entry.reservedBytes = reserve;
-          });
-          this.httpTime.add(performance.now() - httpStarted); return buffer;
-        };
-        const part = index ? await this.overlays.read(request.url, controller.signal, read) : await read(controller.signal);
-        if (accumulated + part.byteLength > TILE_LIMITS.requestBytes) throw new Error('MVT 组合响应超出预算。');
-        const reserve = (accumulated + part.byteLength) * 3;
-        if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
-        entry.reservedBytes = reserve;
-        buffers.push(part); accumulated += part.byteLength;
-      }
-      const buffer = buffers.every(b => !b.byteLength) ? new ArrayBuffer(0) : buffers.length > 1 ? packTileSources(buffers) : buffers[0]!;
+      const { buffer, empty, primaryEmpty } = await requestTile(entry.address, this.options.source, entry.attempts,
+        this.overlays, controller.signal, reserve => {
+          if (!this.alive(entry) || !this.store.makeRoom(reserve - entry.reservedBytes, 0, 0, entry.priority, entry.key)) throw new CapacityError();
+          entry.reservedBytes = reserve;
+        }, elapsed => { if (elapsed === undefined) this.httpStarts++; else this.httpTime.add(elapsed); });
       this.bytes += buffer.byteLength;
       if (!this.alive(entry)) return;
+      entry.primaryEmpty = primaryEmpty;
       entry.reservedBytes = 0;
-      if (!buffer.byteLength) { entry.empty = true; entry.state = 'ready'; this.changed(); this.log('empty', entry.key); return; }
+      if (empty) { entry.empty = true; entry.state = 'ready'; this.changed(); this.log('empty', entry.key); return; }
       if (!this.store.makeRoom(buffer.byteLength, 0, 0, entry.priority, entry.key)) {
         this.discardedBytes += buffer.byteLength; entry.state = 'queued'; entry.retryAt = performance.now() + 250; return;
       }
       entry.buffer = buffer; entry.state = 'decoded'; entry.touched = performance.now();
     } catch (error) {
       if (!this.alive(entry)) return;
-      if (error instanceof CapacityError) { entry.state = 'queued'; entry.retryAt = performance.now() + 250; entry.attempts--; }
+      if (error instanceof CapacityError || error instanceof ResponseCapacityError) { entry.state = 'queued'; entry.retryAt = performance.now() + 250; entry.attempts--; }
       else if (controller.signal.aborted && controller.signal.reason !== 'timeout') {
         entry.state = 'queued'; entry.attempts = Math.max(0, entry.attempts - 1);
       } else this.fail(entry, error, 'request');
@@ -113,7 +90,7 @@ export class TilePipeline {
     entry.reservedBytes = reservation;
     const buffer = entry.buffer!; delete entry.buffer; entry.state = 'painting';
     try {
-      const result = await this.workers.run({ address: entry.address, buffer, spherical: this.store.surfaces.spherical, layers: this.options.layers.filter(layer => entry.address.z === this.options.source.maxZoom || (layer.minZoom ?? 0) < entry.address.z + 1), background: this.background, overlays: this.options.source.overlays ?? [] });
+      const result = await this.workers.run({ address: entry.address, buffer, spherical: this.store.surfaces.spherical, layers: this.options.layers, background: this.background, overlays: this.options.source.overlays ?? [] });
       if (!this.alive(entry)) { result.bitmap?.close(); return; }
       if (!Number.isFinite(entry.priority)) {
         this.discardedBytes += resultBytes(result); result.bitmap?.close(); this.store.release(entry); this.log('discard-build', entry.key); return;
@@ -126,7 +103,8 @@ export class TilePipeline {
     } catch (error) { if (this.alive(entry)) this.fail(entry, error, 'build'); }
     finally { this.dirty = true; entry.reservedBytes = 0; }
   }
-  upload(now: number): void {
+  upload(now: number, camera: Camera): void {
+    if ([...this.store.entries.values()].some(e => e.state === 'preparing')) return;
     const start = performance.now(); let bytes = 0; let count = 0;
     const queue = [...this.store.entries.values()].filter(e => e.state === 'upload' && Number.isFinite(e.priority))
       .sort((a, b) => a.priority - b.priority);
@@ -142,8 +120,19 @@ export class TilePipeline {
       const time = performance.now();
       const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills, result.buildings, result.labels);
       this.renderer.initTexture(surface.map);
-      entry.surface = surface; this.store.available.add(entry.key); delete entry.result; entry.state = 'ready'; entry.touched = now;
-      this.uploadTime.add(performance.now() - time); this.requestTime.add(performance.now() - entry.startedAt); this.changed(); this.log('ready', entry.key);
+      entry.surface = surface; delete entry.result; entry.state = 'preparing';
+      // 编译全部绘制管线后原子发布，覆盖树只消费 GPU 可绘制资源。
+      surface.mesh.visible = true;
+      void this.renderer.compileAsync(surface.mesh, camera, this.store.surfaces.scene).then(() => {
+        surface.mesh.visible = false;
+        if (!this.alive(entry)) return;
+        entry.state = 'ready'; entry.touched = performance.now(); this.store.available.add(entry.key);
+        this.requestTime.add(performance.now() - entry.startedAt); this.changed(); this.log('ready', entry.key);
+      }).catch(error => {
+        if (!this.alive(entry)) return;
+        this.store.surfaces.release(surface); delete entry.surface; this.fail(entry, error, 'build');
+      }).finally(() => { this.dirty = true; });
+      this.uploadTime.add(performance.now() - time);
       bytes += gpu; count++; this.uploadDispatch++;
       // 一次上传中的几何初始化也在该帧渲染阶段计入 CPU 与 GPU 成本。
       if (count >= 1) break;
@@ -166,21 +155,4 @@ class CapacityError extends Error {}
 function demandSlot(index: number, urgent: boolean) {
   return urgent ? (['fallback', 'visible', 'predicted'] as const)[index % 3]!
     : index % 6 === 0 ? 'fallback' : index % 6 === 5 ? 'predicted' : 'visible';
-}
-async function readTileBody(response: Response, limit: number, reserve: (bytes: number) => void): Promise<ArrayBuffer> {
-  if (!response.body) return new ArrayBuffer(0);
-  const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let total = 0;
-  try {
-    while (true) {
-      const chunk = await reader.read(); if (chunk.done) break;
-      total += chunk.value.byteLength;
-      if (total > limit) { await reader.cancel(); throw new Error(`MVT 响应超过 ${limit} 字节预算。`); }
-      reserve(total);
-      chunks.push(chunk.value);
-    }
-    const result = new Uint8Array(total); let offset = 0;
-    for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.byteLength; }
-    return result.buffer;
-  } catch (error) { await reader.cancel(); throw error; }
-  finally { reader.releaseLock(); }
 }

@@ -23,6 +23,7 @@
 
 ## 当前架构入口
 
+- 瓦片准备、模板所有权、道路和文字当前规范：`docs/architecture/maplibre-aligned-streaming.md`。
 - `StreamingEngine` 当前规范：`docs/architecture/nova-tile-engine.md`。
 - 瓦片公开资料与验收定义：`docs/research/streaming-rebuild-public-sources.md`。
 - 当前实现和验证范围以 `docs/project-state.md` 与 StreamingEngine 规范为入口。

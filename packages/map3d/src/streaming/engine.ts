@@ -66,7 +66,7 @@ export class StreamingEngine {
       planned = true; const started = performance.now();
       this.targetZoom = stableTileZoom(view.zoom, this.targetZoom);
       const spherical = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
-      if (view.zoom >= 8) this.predict(origin, view, viewport, now);
+      if (view.zoom >= 6) this.predict(origin, view, viewport, now);
       // 条目较小的实例为缓存、回退和在途工作保留独立容量。
       const limit = Math.min(TILE_LIMITS.visible, Math.max(8, Math.floor(this.maxEntries * .6)));
       this.selection = spherical ? selectGlobeTiles(camera, origin, view, this.options.source.maxZoom, limit, frame, this.targetZoom) : selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, limit, this.targetZoom);
@@ -75,6 +75,14 @@ export class StreamingEngine {
       const signature = this.selection.leaves.map(keyOf).sort().join('|');
       if (signature !== this.selectionSignature) {
         if (spherical && view.zoom < 6) this.overview = []; else this.prepareOverview(origin, view, viewport); this.selectionSignature = signature;
+        // 同级一圈邻居优先预热，平移进入边缘时可直接提交目标细节。
+        const neighbors = new Map<string, Address>();
+        const selected = new Set(this.selection.leaves.map(canonicalKey));
+        for (const a of this.selection.leaves) for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+          const next = { z: a.z, x: a.x + dx!, y: a.y + dy! };
+          if (next.y >= 0 && next.y < 2 ** next.z && !selected.has(canonicalKey(next))) neighbors.set(canonicalKey(next), next);
+        }
+        this.addPrefetch([...neighbors.values()], 1500, 10);
         this.demandDirty = true; this.coverDirty = true;
       }
       this.previousView = view; this.lastPlan = now; this.viewDirty = false;
@@ -84,12 +92,12 @@ export class StreamingEngine {
     this.surfaces.fogCenter.value.set(frame.position.x, frame.position.y, frame.position.z);
     this.surfaces.fogStart.value = this.selection.fogStart; this.surfaces.fogEnd.value = this.selection.fogEnd;
     // 上传与相机规划共享主线程预算，超预算时下一帧获得独立上传机会。
-    if (performance.now() - startedFrame < 1.5 || !planned) this.pipeline.upload(now);
+    if (performance.now() - startedFrame < 1.5 || !planned) this.pipeline.upload(now, camera);
     if (this.coverDirty) { this.commit(origin, now); this.coverDirty = false; }
     this.surfaces.update(origin, view.zoom); this.pipeline.pump(now);
     if (now - this.lastRecycle >= 250) {
       const start = performance.now();
-      for (const [key, item] of this.prefetch) if (item.until <= now) { this.prefetch.delete(key); this.viewDirty = true; }
+      for (const [key, item] of this.prefetch) if (item.until <= now) { this.prefetch.delete(key); this.demandDirty = true; }
       this.store.makeRoom(); this.recycleTime.add(performance.now() - start); this.lastRecycle = now;
     }
   }
@@ -123,7 +131,8 @@ export class StreamingEngine {
       zoom: Math.max(this.options.source.minZoom, view.zoom + Math.max(-2, Math.min(1, dz * ahead))),
       bearing: view.bearing + bearing * ahead, pitch: Math.min(MAX_MAP_PITCH, Math.max(0, view.pitch + pitch * ahead)) };
     const nextFrame = updateMapCamera(this.predictiveCamera, future, viewport, origin);
-    // 预测视域的粗级覆盖与近处细节共用预取限额；粗级保持完整视域。
+    // 缩小时预热概览；平移时将预测容量用于当前层级。
+    if (dz < -.001) {
     let coarseZoom = Math.max(this.options.source.minZoom, Math.floor(future.zoom) - 2);
     let coarse: Address[];
     do {
@@ -132,6 +141,7 @@ export class StreamingEngine {
       coarseZoom--;
     } while (true);
     this.addPrefetch(coarse, 700, 5);
+    }
     const selected = selectTiles(this.predictiveCamera, nextFrame, origin, future, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, 32);
     this.addPrefetch(selected.leaves, 700, 30);
   }
@@ -148,11 +158,12 @@ export class StreamingEngine {
     for (const leaf of this.selection.leaves) demand(leaf, 'visible', this.selection.priorities.get(keyOf(leaf)) ?? 0);
     const fallback = fallbackRequests(this.selection.leaves, cover.patches, this.options.source.minZoom,
       TILE_LIMITS.fallbackRequests, address => this.entries.get(canonicalKey(address))?.empty === true,
-      address => ['fetching', 'decoded', 'painting', 'upload'].includes(this.entries.get(canonicalKey(address))?.state ?? ''));
+      address => ['fetching', 'decoded', 'painting', 'upload', 'preparing'].includes(this.entries.get(canonicalKey(address))?.state ?? ''));
     for (const address of fallback) demand(address, 'fallback', -100);
     for (const patch of cover.patches) demand(patch.source, 'fallback', 100);
-    for (const address of this.overview) demand(address, 'predicted', 900);
-    let predicted = this.overview.length;
+    let predicted = 0;
+    // 概览拥有独立预取名额，完整覆盖快速缩小和平移进入的新视域。
+    for (const address of this.overview.slice(0, TILE_LIMITS.fallbackRequests)) { demand(address, 'predicted', 1005); predicted++; }
     for (const [key, item] of [...this.prefetch].sort((a, b) => a[1].priority - b[1].priority || b[1].until - a[1].until)) {
       if (item.until <= now) this.prefetch.delete(key); else demand(item.address, 'predicted', 1000 + item.priority);
       if (++predicted >= TILE_LIMITS.predicted) break;

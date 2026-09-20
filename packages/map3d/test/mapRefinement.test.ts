@@ -95,6 +95,14 @@ describe('球面瓦片、稳定文字与连续线连接', () => {
     expect(geometry.getAttribute('labelStyle').getZ(0)).toBeCloseTo(20 / 24);
     expect(geometry.getAttribute('labelStyle').getY(0)).toBe(2);
     expect(geometry.getAttribute('labelColor').getX(0)).toBeCloseTo(new Color('#123456').r);
+    surface.labels = [];
+    system.update(surfaces, camera, origin, view, viewport, 3, 600, Infinity);
+    expect(system.placed).toBe(1); expect(geometry.getAttribute('labelStyle').getW(0)).toBe(born);
+    system.update(surfaces, camera, origin, view, viewport, 3, 900, Infinity);
+    expect(system.placed).toBe(0);
+    surface.labels = labels;
+    system.update(surfaces, camera, origin, view, viewport, 4, 1000, Infinity);
+    expect(system.placed).toBe(1);
     system.dispose(); surfaces.dispose(); surfaces.release(surface);
   });
 });

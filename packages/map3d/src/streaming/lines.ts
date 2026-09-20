@@ -6,7 +6,7 @@ import type { VectorTile } from '@mapbox/vector-tile';
 import type { LineLayerOptions, MapLayerOptions } from '../types.js';
 import { matches } from './paint.js';
 
-/** 每个线段作为一个胶囊实例；样式索引引用共享的连续缩放宽度表。 */
+/** 连续中心线带按段实例化；共享折点挤出与样式索引支持视图缩放。 */
 export interface LineData extends ColorBindings { segments: Float32Array; styles: Float32Array; colors: Float32Array; distances: Float32Array; joins?: Float32Array; caps?: Uint8Array; paints: LineLayerOptions['paint'][] }
 
 /** 亚像素折点简化：误差上限为数据层级的四分之一 CSS 像素。 */
@@ -45,7 +45,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
       features = [];
       for (let i = 0; i < source.length; i++) {
         const feature = source.feature(i); if (feature.type !== 2) continue;
-        features.push({ properties: feature.properties, rings: feature.loadGeometry().map(ring => simplifyLine(ring, source.extent / 1024)) });
+        features.push({ properties: feature.properties, rings: feature.loadGeometry().map(ring => zoom >= 14 ? ring : simplifyLine(ring, source.extent / 1024)) });
       }
       cache.set(layer.sourceLayer, features);
     }
@@ -63,7 +63,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
         for (let j = 1; j < curved.length; j++) if (curved[j - 1]!.x !== curved[j]!.x || curved[j - 1]!.y !== curved[j]!.y) count++;
       }
     }
-    const combined = layer.paint.dashArray ? rings : joinLineChains(rings).map(ring => zoom < 6 ? ring : simplifyLine(ring, source.extent / 512));
+    const combined = layer.paint.dashArray ? rings : joinLineChains(rings).map(ring => zoom < 6 || zoom >= 14 ? ring : simplifyLine(ring, source.extent / 512));
     for (const ring of rings) count -= Math.max(0, ring.length - 1);
     for (const ring of combined) count += Math.max(0, ring.length - 1);
     batches.push({ layer, color: new Color(layer.paint.color), extent: source.extent, rings: combined });

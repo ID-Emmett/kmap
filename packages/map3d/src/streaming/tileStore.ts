@@ -12,10 +12,11 @@ import { labelBytes } from '../labels/candidates.js';
 
 export type DemandKind = 'visible' | 'fallback' | 'predicted';
 export interface TileEntry {
-  address: Address; key: string; state: 'queued' | 'fetching' | 'decoded' | 'painting' | 'upload' | 'ready' | 'failed';
+  address: Address; key: string; state: 'queued' | 'fetching' | 'decoded' | 'painting' | 'upload' | 'preparing' | 'ready' | 'failed';
   priority: number; kind: DemandKind; touched: number; lastWanted: number; attempts: number; retryAt: number;
   buffer?: ArrayBuffer; result?: PaintResponse; surface?: Surface; controller?: AbortController;
   features: number; empty: boolean; reservedBytes: number; startedAt: number;
+  primaryEmpty?: boolean;
 }
 export const resultBytes = (result?: PaintResponse): number => result?.bitmap
   ? result.bitmap.width * result.bitmap.height * 4 + lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + labelBytes(result.labels)
@@ -50,7 +51,7 @@ export class TileStore {
     if (enough()) return true;
     const candidates = [...this.entries.values()].filter(e => e.key !== exclude && !this.protectedKeys.has(e.key)
       && (!e.empty || this.entries.size + slots > this.maxEntries)
-      && e.state !== 'fetching' && e.state !== 'painting' && e.priority > priority)
+      && e.state !== 'fetching' && e.state !== 'painting' && e.state !== 'preparing' && e.priority > priority)
       .sort((a, b) => b.priority - a.priority || a.touched - b.touched);
     for (const entry of candidates) {
       cpuTotal -= (entry.surface?.cpuBytes ?? 0) + (entry.buffer?.byteLength ?? 0) + resultBytes(entry.result);

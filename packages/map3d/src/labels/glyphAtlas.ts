@@ -11,7 +11,7 @@ export class GlyphAtlas {
   readonly pages = new Map<number, Map<number, Glyph>>();
   readonly pending = new Map<number, AbortController>();
   readonly failed = new Map<number, number>();
-  revision = 0; errors = 0; missing = 0;
+  revision = 0; generation = 0; errors = 0; missing = 0;
   private x = 1; private y = 1; private row = 0; private dirty = false; private disposed = false;
   private wanted = new Set<number>();
   private readonly unavailable = new Set<number>();
@@ -29,7 +29,7 @@ export class GlyphAtlas {
       if (glyph && !this.insert(glyph)) { overflow = true; break; }
     }
     if (overflow) {
-      this.glyphs.clear(); this.x = this.y = 1; this.row = 0;
+      this.glyphs.clear(); this.x = this.y = 1; this.row = 0; this.generation++;
       (this.texture.image.data as Uint8Array).fill(0); this.dirty = true; this.revision++;
       for (const code of this.wanted) { const glyph = this.pages.get(code >>> 8)?.get(code); if (glyph) this.insert(glyph); }
     }

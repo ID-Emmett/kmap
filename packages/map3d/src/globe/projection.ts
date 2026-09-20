@@ -1,5 +1,5 @@
 import { Vector3, Vector4, type Scene, type Node } from 'three/webgpu';
-import { Fn, If, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, float, mix, highpModelViewMatrix, modelWorldMatrix, positionLocal, uniform, varying, vec3, vec4, viewportSize } from 'three/tsl';
+import { Fn, If, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, float, mix, highpModelViewMatrix, modelWorldMatrix, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
 import { projectLngLat, WEB_MERCATOR_WORLD_SIZE as WORLD } from '../spatial/mercator.js';
 import type { MapOrigin } from '../spatial/types.js';
 import { globeBlend } from './globeCamera.js';
@@ -43,8 +43,6 @@ export function mapVertex(position: Node<'vec3'>): Node<'vec4'> {
   return Fn(() => {
     // 平面分支使用 CPU 双精度合成的 modelViewMatrix，避免高倍缩放时相减消减。
     const clip = cameraProjectionMatrix.mul(highpModelViewMatrix).mul(vec4(position, 1)).toVar();
-    // 平面公共边对齐设备像素的 1/64 网格中心，稳定浮点变换后的三角形边归属。
-    clip.xy.assign(clip.xy.div(clip.w).mul(viewportSize).mul(32).floor().add(.5).div(viewportSize).div(32).mul(clip.w));
     If(center.w.greaterThan(0), () => { clip.assign(cameraProjectionMatrix.mul(cameraViewMatrix).mul(vec4(projectMapPosition(modelWorldMatrix.mul(vec4(position, 1)).xyz), 1))); });
     return clip;
   })();

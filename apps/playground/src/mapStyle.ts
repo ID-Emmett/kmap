@@ -1,3 +1,4 @@
+import { roadWidth } from './roadStyle.js';
 import type { MapLayerOptions } from '@kmap/map3d';
 
 /** Playground 浅色底图的固定视觉 token。 */
@@ -23,12 +24,6 @@ export const MAJOR_ROAD_CLASSES = Object.freeze([
 ] as const);
 const LOCAL_ROAD_CLASSES = ['service', 'unclassified', 'pedestrian', 'path', 'footway', 'steps', 'track'] as const;
 
-/** 米制线宽 stop 控制概览制图概化，街区级保留真实地图平面宽度。 */
-const roadWidth = (meters: number, casing = false) => ({
-  widthUnit: 'meters' as const, widthBase: .5,
-  widthStops: [[5, (casing ? 1.3 : 1) * 1800], [10, (casing ? 1.3 : 1) * 180], [15, meters + (casing ? 2 : 0)], [20, meters + (casing ? 2 : 0)]] as const,
-});
-
 /** kind 原始代码颜色表；类别业务名称由上游数据字典定义。 */
 export const BUILDING_CATEGORY_COLORS = {
   '1002': '#D5DFEB', '1102': '#E1E3E5', '1102_osm': '#E1E3E5',
@@ -50,53 +45,57 @@ const roads = [
 ];
 
 export const PLAYGROUND_LAYERS: readonly MapLayerOptions[] = [
-  { type: 'fill', id: 'ocean-base', sourceLayer: 'ocean_base', paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
+  { type: 'fill', id: 'ocean-base', sourceLayer: 'ocean_base', maxZoom: 6, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
   { type: 'fill', id: 'ocean-fill', sourceLayer: 'ocean', minZoom: 7, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
   { type: 'fill', id: 'landuse-neutral', sourceLayer: 'landuse', minZoom: 5,
     filters: [{ operator: '!=', property: 'class', value: 'grass' }], paint: { color: PLAYGROUND_STYLE_TOKENS.landuseNeutral } },
   { type: 'fill', id: 'landuse-vegetation', sourceLayer: 'landuse', minZoom: 5,
-    filters: [{ operator: '==', property: 'class', value: 'grass' }], paint: { color: PLAYGROUND_STYLE_TOKENS.vegetation } },
+    // KYE normal.json 的 landuse_grass 明确筛选 subclass；grassland 是区域草地栅格。
+    filters: [{ operator: '==', property: 'class', value: 'grass' }, { operator: '!=', property: 'subclass', value: 'grassland' }], paint: { color: PLAYGROUND_STYLE_TOKENS.vegetation } },
   { type: 'fill', id: 'water-fill', sourceLayer: 'water', minZoom: 0, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
   { type: 'line', id: 'waterway-line', sourceLayer: 'waterway', minZoom: 5,
-    paint: { color: PLAYGROUND_STYLE_TOKENS.waterway, ...roadWidth(5) } },
+    paint: { color: PLAYGROUND_STYLE_TOKENS.waterway, widthUnit: 'pixels', widthStops: [[6, .5], [13, 1], [19, 3]] } },
   ...(['ground', 'bridge'] as const).flatMap(level => (['casing', 'fill'] as const).flatMap(part => roads.map(road => ({
     type: 'line' as const, id: `${road.id}-${part}${level === 'bridge' ? '-bridge' : ''}`, sourceLayer: 'road', minZoom: road.minZoom,
     filters: [{ operator: 'in' as const, property: 'class', values: road.classes }, { operator: '!=' as const, property: 'brunnel', value: 'tunnel' },
       { operator: level === 'bridge' ? '==' as const : '!=' as const, property: 'brunnel', value: 'bridge' }],
     paint: { color: road.width >= 14 ? PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'majorRoadCasing' : 'majorRoadFill']
-      : PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'roadCasing' : 'roadFill'], ...roadWidth(road.width, part === 'casing') },
+      : PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'roadCasing' : 'roadFill'], ...roadWidth(road.width >= 14 ? 'major' : road.id === 'link-road' ? 'link' : road.id === 'local-road' ? 'service' : road.id === 'street-road' ? 'minor' : 'secondary', part === 'casing') },
   })))),
   ...(['casing', 'fill'] as const).map(part => ({ type: 'line' as const, id: `transportation-${part}`, sourceLayer: 'transportation', minZoom: 5, maxZoom: 8,
     filters: [{ operator: 'in' as const, property: 'class', values: MAJOR_ROAD_CLASSES }],
-    paint: { color: PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'majorRoadCasing' : 'majorRoadFill'], ...roadWidth(20, part === 'casing') } })),
+    paint: { color: PLAYGROUND_STYLE_TOKENS[part === 'casing' ? 'majorRoadCasing' : 'majorRoadFill'], ...roadWidth('major', part === 'casing') } })),
   { type: 'line', id: 'tunnel', sourceLayer: 'road', minZoom: 10, filters: [{ operator: '==', property: 'brunnel', value: 'tunnel' }],
-    paint: { color: '#D8C9A2', ...roadWidth(10), opacity: .5, dashArray: [2, 1] } },
+    paint: { color: '#D8C9A2', ...roadWidth('major'), opacity: .5, dashArray: [2, 1] } },
   { type: 'line', id: 'ferry', sourceLayer: 'road', minZoom: 9, filters: [{ operator: '==', property: 'class', value: 'ferry' }],
-    paint: { color: '#7AACC4', ...roadWidth(2), opacity: .55, dashArray: [2, 3] } },
+    paint: { color: '#7AACC4', widthUnit: 'pixels', widthStops: [[10, .5], [16, 1]], opacity: .55, dashArray: [2, 3] } },
   { type: 'line', id: 'rail-border', sourceLayer: 'road', minZoom: 9,
     filters: [{ operator: 'in', property: 'class', values: ['rail', 'light_rail', 'major_rail', 'minor_rail', 'service_rail'] }],
-    paint: { color: '#A6ADB5', widthUnit: 'meters', widthBase: .5, widthStops: [[9, 55], [10, 40], [13, 12], [16, 3]], opacity: .38 } },
+    paint: { color: '#A6ADB5', widthUnit: 'pixels', widthStops: [[9, .7], [13, 1.4], [18, 2.4]], opacity: .38 } },
   { type: 'line', id: 'rail-dash', sourceLayer: 'road', minZoom: 9,
     filters: [{ operator: 'in', property: 'class', values: ['rail', 'light_rail', 'major_rail', 'minor_rail', 'service_rail'] }],
-    paint: { color: '#FFFFFF', widthUnit: 'meters', widthBase: .5, widthStops: [[9, 24], [10, 18], [13, 5], [16, 1.4]], opacity: .45, dashArray: [4, 6] } },
+    paint: { color: '#FFFFFF', widthUnit: 'pixels', widthStops: [[9, .35], [13, .7], [18, 1.2]], opacity: .45, dashArray: [4, 6] } },
   { type: 'line', id: 'boundary-country', sourceLayer: 'boundary',
     filters: [{ operator: '==', property: 'admin_level', value: 2 }, { operator: '!in', property: 'ogc_fid', values: [5000, 6000] }],
-    paint: { color: '#C6959C', widthBase: .5, widthStops: [[3, 19000], [8, 1100], [14, 12], [20, 12]], dashArray: [6, 2] } },
+    paint: { color: '#C6959C', widthUnit: 'pixels', widthStops: [[3, .8], [8, 1.4], [14, 2], [20, 2.5]], dashArray: [6, 2] } },
   { type: 'line', id: 'boundary-china', sourceLayer: 'boundary',
     filters: [{ operator: 'in', property: 'ogc_fid', values: [500, 501] }],
-    paint: { color: '#CC8992', widthBase: .5, widthStops: [[3, 25000], [8, 1800], [14, 16], [20, 16]] } },
+    paint: { color: '#CC8992', widthUnit: 'pixels', widthStops: [[3, 1], [8, 2], [14, 2.5], [20, 3]] } },
   { type: 'line', id: 'province-boundary', sourceLayer: 'province_border', minZoom: 3,
     filters: [{ operator: 'in', property: 'level', values: ['1', 1] }],
-    paint: { color: '#A7A0AE', widthBase: .5, widthStops: [[3, 10000], [8, 800], [14, 8], [20, 8]], dashArray: [2, 2, 6, 2] } },
+    paint: { color: '#A7A0AE', widthUnit: 'pixels', widthStops: [[3, .5], [8, 1], [14, 1.4], [20, 1.8]], dashArray: [2, 2, 6, 2] } },
   { type: 'fill-extrusion', id: 'building-3d', sourceLayer: 'building', minZoom: 15.74,
     filters: [{ operator: '!=', property: 'type', value: 'building:part' }],
     paint: { color: PLAYGROUND_STYLE_TOKENS.building, heightProperty: 'height', colorProperty: 'kind', categoryColors: BUILDING_CATEGORY_COLORS } },
-  { type: 'symbol', id: 'country-label', sourceLayer: 'place', minZoom: 0, maxZoom: 5,
+  { type: 'symbol', id: 'country-label', sourceLayer: 'place', minZoom: 0, maxZoom: 3.5,
     filters: [{ operator: '==', property: 'class', value: 'country' }, { operator: '==', property: 'iso_a2', value: 'CN' }],
     layout: { textFields: ['name'], textSize: 21, priority: 0 }, paint: { color: '#52606A', haloWidth: 1.5 } },
-  { type: 'symbol', id: 'capital-label', sourceLayer: 'place', minZoom: 5,
+  { type: 'symbol', id: 'province-label', sourceLayer: 'place', minZoom: 3.5, maxZoom: 5,
+    filters: [{ operator: '==', property: 'class', value: 'state' }],
+    layout: { textFields: ['name'], textSize: 18, priority: 5 }, paint: { color: '#52606A', haloWidth: 1.4 } },
+  { type: 'symbol', id: 'capital-label', sourceLayer: 'place', minZoom: 6,
     filters: [{ operator: '==', property: 'class', value: 'city' }, { operator: 'in', property: 'capital', values: [1, 2] }],
-    layout: { textFields: ['name'], textSize: 17, priority: 10 }, paint: { color: '#52606A', haloWidth: 1.4 } },
+    layout: { textFields: ['name'], textSize: 17, priority: 10, iconByClass: { city: 'capital' } }, paint: { color: '#52606A', haloWidth: 1.4 } },
   { type: 'symbol', id: 'place-label', sourceLayer: 'place', minZoom: 7,
     filters: [{ operator: '==', property: 'class', value: 'city' }, { operator: '!in', property: 'capital', values: [1, 2] }],
     layout: { textFields: ['name', 'name_en'], textSize: 15, priority: 30 }, paint: { color: '#52606A', haloWidth: 1.2 } },

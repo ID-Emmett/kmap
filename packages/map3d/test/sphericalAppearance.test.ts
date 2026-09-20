@@ -69,9 +69,9 @@ describe('平面与地球过渡及运行时外观', () => {
     expect(data.segments.length / 4).toBeGreaterThanOrEqual(32);
     for (let i = 0; i < data.segments.length; i += 4) expect(Math.hypot(data.segments[i + 2]! - data.segments[i]!, data.segments[i + 3]! - data.segments[i + 1]!)).toBeLessThanOrEqual(1 / 32 + 1e-6);
   });
-  it('九种图标具备不同的有效距离场与固定容量', () => {
-    const icons = [...iconGlyphs().values()]; expect(icons).toHaveLength(9);
-    expect(new Set(icons.map(icon => Array.from(icon.bitmap).join(','))).size).toBe(9);
+  it('十种图标具备不同的有效距离场与固定容量', () => {
+    const icons = [...iconGlyphs().values()]; expect(icons).toHaveLength(10);
+    expect(new Set(icons.map(icon => Array.from(icon.bitmap).join(','))).size).toBe(10);
     for (const icon of icons) { expect(Math.max(...icon.bitmap)).toBeGreaterThan(191); expect(Math.min(...icon.bitmap)).toBe(0); }
   });
 });

@@ -1,16 +1,16 @@
 # Kmap Current Project State
 
-更新日期：2026-09-17
+更新日期：2026-09-20
 
 本文件是 Kmap AI 会话的低 token 启动入口。新会话先读本文件，再按会话类型和当前任务读取索引、任务文件和必要分片；不得用本文件替代 `PROJECT.md`、`TASKS.md`、任务文件、decisions、knowledge 或 evidence。
 
 ## 当前结论
 
-- 运动瓦片以绘制通道模板编号初始化、子区域视锥刷新、整数层级滞回和驻留子级覆盖保证显示一致性；真实 WebGPU/WebGL2 对照与性能见 `docs/evidence/streaming-motion/README.md`。
+- 当前瓦片采用 canonical 数据身份、GPU 管线准备后发布、父到子完整来源模板和逐采样点所有权；道路使用缩放曲线，文字采用持久身份与连续显隐。实现规范见 `docs/architecture/maplibre-aligned-streaming.md`，验证入口为 `docs/evidence/maplibre-alignment/README.md`。
 - 城市平面地图在 z4.5～5.5 连续过渡到地球；Inspector 支持三主题、地图元素和文字样式编辑。默认背景/雾为 #dbdeff，陆地为 #e6f4f3。近景精度、地名层级和瓦片加载验证见 `docs/evidence/map-inspector/README.md`。
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
-- 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、米制线宽、加载、缓存、帧提交和资源回收。
+- 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、多单位线宽、加载、缓存、帧提交和资源回收。
 - 当前画质支持 75° 强雾与统一目标层级、15.74 建筑门槛、kind 分类色、国省界和连续虚线；证据入口为 `docs/evidence/map-quality/README.md`。
 - T046 状态为 IN_PROGRESS，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - 浏览器入口为 `http://127.0.0.1:6661/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。

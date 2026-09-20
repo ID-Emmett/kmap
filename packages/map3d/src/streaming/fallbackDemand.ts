@@ -10,9 +10,9 @@ export function fallbackRequests(targets: readonly Address[], patches: readonly 
     const covering = patches.filter(p => contains(target, p.cell));
     const missing = coveredFraction(target, covering.map(p => p.cell)) < .999999;
     const coarse = covering.some(p => target.z - p.source.z > 2);
-    if ((!missing && !coarse) || empty(target)) continue;
+    if (!missing && !coarse) continue;
     let address = target;
-    for (let i = 0; i < 2 && address.z > minZoom; i++) address = parentOf(address);
+    for (let i = 0; i < (empty(target) ? 1 : 2) && address.z > minZoom; i++) address = parentOf(address);
     // 已进入下载或构建的祖先可以直接补足缺口，保持该工作的当前显示用途。
     if (missing) {
       let ancestor = target;

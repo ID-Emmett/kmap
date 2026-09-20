@@ -1,4 +1,5 @@
 import { getPointerMode, takeWheelZoomStep, getEventTime, createDefaultFrameScheduler, releasePointerCapture } from './eventHelpers.js';
+import { zoomAroundPixel } from './zoomAnchor.js';
 import type { ViewportSize, ViewState } from '../types.js';
 import {
   INERTIA_MAX_DURATION_MS,
@@ -57,6 +58,7 @@ interface InteractionLifecycleTarget extends InteractionEventTarget {
 }
 
 interface InteractionTarget extends InteractionEventTarget {
+  getBoundingClientRect?(): { left: number; top: number; width: number; height: number };
   readonly ownerDocument?: InteractionLifecycleTarget;
   setPointerCapture?(pointerId: number): void;
   hasPointerCapture?(pointerId: number): boolean;
@@ -110,6 +112,7 @@ export class MapInteractionController {
   #inertia: InertiaState | undefined;
   #wheelFrame: FrameHandle | undefined;
   #pendingWheelZoomDelta = 0;
+  #wheelPixel: { x: number; y: number } | undefined;
   #lastWheelFrameTimeMs: number | undefined;
   #disposed = false;
 
@@ -290,6 +293,11 @@ export class MapInteractionController {
     }
 
     this.#cancelInertia();
+    const rect = this.#options.target.getBoundingClientRect?.(), viewport = this.#options.getViewport();
+    this.#wheelPixel = rect && Number.isFinite(wheel.clientX + wheel.clientY) ? {
+      x: (wheel.clientX - rect.left) * viewport.width / rect.width,
+      y: (wheel.clientY - rect.top) * viewport.height / rect.height,
+    } : { x: viewport.width / 2, y: viewport.height / 2 };
     this.#pendingWheelZoomDelta += getWheelZoomDelta(
       wheel.deltaY,
       wheel.deltaMode,
@@ -404,7 +412,9 @@ export class MapInteractionController {
           zoomDelta / deltaSeconds,
         ),
       );
-      this.#setViewFromInteraction({ zoom: view.zoom + zoomDelta });
+      const viewport = this.#options.getViewport();
+      this.#setViewFromInteraction(zoomAroundPixel(view, viewport, view.zoom + zoomDelta,
+        this.#wheelPixel ?? { x: viewport.width / 2, y: viewport.height / 2 }, this.#options.globe));
     }
 
     if (this.#pendingWheelZoomDelta !== 0) {

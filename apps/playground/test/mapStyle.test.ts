@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { matches as matchesLayerFilters, decodeVectorTile } from '../../../packages/map3d/src/streaming/paint.js';
+import { lineWidth } from '../../../packages/map3d/src/streaming/lineStyle.js';
 import {
   MAJOR_ROAD_CLASSES,
   PLAYGROUND_LAYERS,
@@ -20,11 +21,20 @@ function decodeMvt(buffer: Uint8Array) {
 }
 
 describe('Playground light basemap style', () => {
+  it('截图层级的高速宽度受屏幕像素约束，概览草地使用显式样式范围', () => {
+    const road = PLAYGROUND_LAYERS.find(l => l.id === 'motorway-road-fill')!;
+    if (road.type !== 'line') throw new Error('道路类型错误');
+    expect(road.paint.widthUnit).toBe('pixels');
+    expect(lineWidth(road.paint, 19.89)).toBeGreaterThan(10);
+    expect(lineWidth(road.paint, 21)).toBe(18);
+    expect(lineWidth(road.paint, 22)).toBeLessThan(25);
+    expect(PLAYGROUND_LAYERS.some(l => l.sourceLayer === 'landcover_0')).toBe(false);
+  });
   it('道路按真实类别分层，建筑具有精确可见门槛和分类色', () => {
     const building = PLAYGROUND_LAYERS.find(l => l.type === 'fill-extrusion')!;
     expect(building).toMatchObject({ sourceLayer: 'building', minZoom: 15.74, paint: { colorProperty: 'kind', heightProperty: 'height' } });
     for (const layer of PLAYGROUND_LAYERS) if (layer.type === 'line') {
-      expect(layer.paint.widthUnit ?? 'meters').toBe('meters');
+      if (/road|transportation/.test(layer.id)) expect(layer.paint.widthUnit).toBe('pixels');
       expect(layer.paint.widthStops?.length).toBeGreaterThan(1);
     }
     expect(PLAYGROUND_STYLE_TOKENS.canvas).toBe('#dbdeff');

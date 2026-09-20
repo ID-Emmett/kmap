@@ -12,6 +12,7 @@ import type { LabelCandidate } from './candidates.js';
 import { GlyphAtlas, type AtlasGlyph } from './glyphAtlas.js';
 import { GLYPH_BORDER, GLYPH_EM } from './glyphs.js';
 import { LabelSurface, type GlyphQuad } from './labelSurface.js';
+import { SymbolPlacement } from './symbolPlacement.js';
 
 interface Projected { score: number; label: LabelCandidate; id: string; x: number; y: number; worldX: number; worldY: number; endWorldX: number; endWorldY: number; angle: number; length: number }
 /** 字形加载、稳定碰撞与一个全局文字批次共用有界生命周期。 */
@@ -28,13 +29,16 @@ export class LabelSystem {
   private readonly retained = new Set<string>(); private batchOrigin = { x: 0, y: 0 };
   private readonly births = new Map<string, number>();
   private readonly anchors = new Map<string, { x: number; y: number; at: number }>();
+  private readonly retainedPoints = new Map<string, { label: LabelCandidate; x: number; y: number; seen: number }>();
+  private retentionUntil = Infinity;
+  private readonly placement = new SymbolPlacement();
   private readonly point = new Vector3(); private readonly end = new Vector3();
   candidates = 0; placed = 0; layoutMs = 0; layouts = 0;
   constructor(readonly options: NonNullable<Map3DOptions['labels']>, private readonly scene: Scene) {
     this.atlas = new GlyphAtlas(options); this.surface = new LabelSurface(this.atlas); scene.add(this.surface.mesh);
     this.atlas.pages.set(0xe0, iconGlyphs());
   }
-  invalidate(): void { this.styleRevision++; this.styledCache = new WeakMap(); }
+  invalidate(): void { this.styleRevision++; this.styledCache = new WeakMap(); this.retainedPoints.clear(); this.retentionUntil = Infinity; this.placement.clear(); }
   setStyle(style: LabelAppearance): void {
     this.appearance = { ...style, sizeScale: Math.max(.5, Math.min(2, style.sizeScale ?? 1)), maxLabels: Math.max(1, Math.min(512, style.maxLabels ?? this.options.maxLabels ?? 256)) };
     this.invalidate();
@@ -48,7 +52,7 @@ export class LabelSystem {
     const result = { ...label, color, haloColor,
       size: Math.max(8, Math.min(40, (style.textSize ?? label.size) * (this.appearance.sizeScale ?? 1))),
       haloWidth: Math.max(0, Math.min(4, style.haloWidth ?? this.appearance.haloWidth ?? label.haloWidth)),
-      iconColor: style.iconColor ?? color, iconSize: Math.max(8, Math.min(32, style.iconSize ?? label.size)), iconGap: Math.max(0, Math.min(16, style.iconGap ?? 4)),
+      iconColor: style.iconColor ?? label.iconColor ?? color, iconSize: Math.max(8, Math.min(32, style.iconSize ?? label.iconSize ?? label.size)), iconGap: Math.max(0, Math.min(16, style.iconGap ?? 4)),
       icon: this.appearance.icons === false || style.icon === 'none' ? undefined : style.icon === 'auto' ? label.icon : style.icon ?? label.icon };
     this.styledCache.set(label, result); return result;
   }
@@ -59,11 +63,12 @@ export class LabelSystem {
     }
     this.surface.origin.value.set(origin.meters.x - this.batchOrigin.x, 0, this.batchOrigin.y - origin.meters.y);
     this.surface.clock.value = now / 1000;
+    this.surface.pixelRatio.value = viewport.pixelRatio ?? 1;
     this.surface.viewport.value.set(viewport.width, viewport.height); this.atlas.tick(); this.atlas.flush();
     const signature = `${this.styleRevision}:${revision}:${view.center.lng}:${view.center.lat}:${view.zoom}:${view.bearing}:${view.pitch}:${viewport.width}:${viewport.height}`;
-    if (signature === this.signature && this.atlasRevision === this.atlas.revision) return;
+    if (signature === this.signature && this.atlasRevision === this.atlas.revision && now < Math.min(this.retentionUntil, this.placement.expires)) return;
     const last = this.lastView, viewportKey = `${viewport.width}:${viewport.height}`;
-    if (last && this.lastRevision === revision && this.lastStyleRevision === this.styleRevision && this.atlasRevision === this.atlas.revision && viewportKey === this.lastViewport) {
+    if (last && this.lastRevision === revision && this.lastStyleRevision === this.styleRevision && this.atlasRevision === this.atlas.revision && viewportKey === this.lastViewport && now < Math.min(this.retentionUntil, this.placement.expires)) {
       const travel = Math.hypot((view.center.lng - last.center.lng) * Math.cos(view.center.lat * Math.PI / 180), view.center.lat - last.center.lat) * 256 * 2 ** view.zoom / 360;
       // 小于碰撞安全边距的移动由顶点投影逐帧跟随，布局按累计位移更新。
       if (travel < 8 && Math.abs(view.zoom - last.zoom) < .025 && Math.abs(view.bearing - last.bearing) < 1 && Math.abs(view.pitch - last.pitch) < 1) return;
@@ -104,7 +109,7 @@ export class LabelSystem {
           length = Math.hypot(dx, dy) * 2;
           if (length < pTextWidth(label)) continue;
         }
-        const score = label.priority - (this.retained.has(id) ? 8 : 0);
+        const score = label.priority - (this.retained.has(id) ? 1000 : 0);
         const cell = Math.floor(screenX / 48) + Math.floor(screenY / 48) * 65536;
         const bucket = buckets.get(cell) ?? [];
         const candidate = { score, label, id, x: screenX, y: screenY, worldX: x, worldY: y, endWorldX, endWorldY, angle, length };
@@ -115,13 +120,30 @@ export class LabelSystem {
       }
     }
     const projected = [...buckets.values()].flat();
-    projected.sort((a, b) => a.score - b.score || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    const availableIds = new Set(projected.map(p => p.id));
+    // 已显示点标签在瓦片接替的短暂候选缺口中保持同一世界锚点。
+    for (const [id, saved] of this.retainedPoints) {
+      if (now - saved.seen >= 350 || view.zoom < saved.label.minZoom || view.zoom >= saved.label.maxZoom) {
+        this.retainedPoints.delete(id); continue;
+      }
+      if (availableIds.has(id)) continue;
+      point.set(saved.x - origin.meters.x, 0, origin.meters.y - saved.y);
+      if (projection) { if (!facesCamera(point, camera.position, projection)) continue; projectMapPoint(point, projection); }
+      if (point.distanceTo(camera.position) > fogEnd * .9) continue;
+      point.project(camera); if (point.z < -1 || point.z > 1 || Math.abs(point.x) > 1 || Math.abs(point.y) > 1) continue;
+      projected.push({ id, label: saved.label, score: saved.label.priority - 1000,
+        x: (point.x + 1) * viewport.width / 2, y: (1 - point.y) * viewport.height / 2,
+        worldX: saved.x, worldY: saved.y, endWorldX: saved.x, endWorldY: saved.y, angle: 0, length: Infinity });
+    }
+    const anchorDistance = (p: Projected) => { const a = this.anchors.get(p.id); return a ? Math.hypot(a.x - p.worldX, a.y - p.worldY) : 0; };
+    projected.sort((a, b) => a.score - b.score || (a.id < b.id ? -1 : a.id > b.id ? 1 : anchorDistance(a) - anchorDistance(b)));
     const candidates = projected.slice(0, 2000); this.candidates = candidates.length;
     const characters = new Set<number>();
     for (const p of candidates) for (const char of p.label.text) if (characters.size < 2048) characters.add(char.codePointAt(0)!);
     for (const p of candidates) if (p.label.icon) characters.add(iconCode(p.label.icon));
-    this.atlas.ensure(characters);
-    const grid = new CollisionGrid(), quads: GlyphQuad[] = [], selected = new Set<string>();
+    const generation = this.atlas.generation; this.atlas.ensure(characters);
+    if (generation !== this.atlas.generation) this.placement.invalidateGlyphs();
+    const grid = new CollisionGrid(), quads: GlyphQuad[] = [], selected = new Set<string>(), runs = new Map<string, GlyphQuad[]>();
     const names = new Map<string, { x: number; y: number }[]>();
     const maxLabels = Math.min(512, Math.max(1, this.appearance.maxLabels ?? this.options.maxLabels ?? 256));
     this.batchOrigin = { ...origin.meters }; this.surface.origin.value.set(0, 0, 0);
@@ -142,7 +164,9 @@ export class LabelSystem {
       const box: LabelBox = { left: p.x - halfX - pad, right: p.x + halfX + pad, top: p.y - halfY - pad, bottom: p.y + halfY + pad };
       if (box.left < 0 || box.right > viewport.width || box.top < 0 || box.bottom > viewport.height || grid.collides(box)) continue;
       grid.insert(box); selected.add(p.id); this.anchors.set(p.id, { x: p.worldX, y: p.worldY, at: now }); const same = names.get(nameKey) ?? []; same.push(p); names.set(nameKey, same);
+      if (!p.label.line && availableIds.has(p.id)) this.retainedPoints.set(p.id, { label: p.label, x: p.worldX, y: p.worldY, seen: now });
       const born = this.births.get(p.id) ?? now / 1000; this.births.set(p.id, born);
+      const firstQuad = quads.length;
       let cursor = -width / 2;
       if (p.label.icon) {
         const icon = this.atlas.glyphs.get(iconCode(p.label.icon));
@@ -160,10 +184,14 @@ export class LabelSystem {
           angle: p.angle, endX: p.label.line ? p.endWorldX - origin.meters.x : undefined, endY: p.label.line ? origin.meters.y - p.endWorldY : undefined, color: p.label.color, haloColor: p.label.haloColor, haloWidth: p.label.haloWidth, scale, born });
         cursor += glyph.advance * scale;
       }
+      runs.set(p.id, quads.slice(firstQuad));
     }
     this.retained.clear(); for (const id of selected) this.retained.add(id);
+    for (const id of this.retainedPoints.keys()) if (!selected.has(id)) this.retainedPoints.delete(id);
+    this.retentionUntil = Infinity;
+    for (const [id, saved] of this.retainedPoints) if (!availableIds.has(id)) this.retentionUntil = Math.min(this.retentionUntil, saved.seen + 350);
     for (const [id, anchor] of this.anchors) if (now - anchor.at > 2000) { this.anchors.delete(id); this.births.delete(id); }
-    this.placed = selected.size; this.surface.write(quads); this.atlas.flush(); this.layoutMs = performance.now() - start; this.layouts++;
+    this.placed = selected.size; this.surface.write(this.placement.update(runs, origin.meters, now / 1000)); this.atlas.flush(); this.layoutMs = performance.now() - start; this.layouts++;
   }
   dispose(): void { this.surface.dispose(); this.atlas.dispose(); }
 }

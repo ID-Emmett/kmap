@@ -1,6 +1,6 @@
 # Kmap Verified Knowledge Index
 
-更新日期：2026-09-17
+更新日期：2026-09-20
 
 本文件是 Kmap 已验证事实的轻量入口。默认启动只读本文件；需要细节时先按主题读取 `docs/knowledge/` 分片，再按证据索引追溯具体文件。
 
@@ -24,6 +24,9 @@
 | AI Governance | `docs/knowledge/ai-governance.md` | 低 token 入口、Task Context Packet、会话记录和治理门禁 |
 
 ## 当前高信号事实
+
+- canonical 来源、GPU 准备、父子模板所有权、道路缩放曲线及文字连续显隐的当前设计见 `docs/architecture/maplibre-aligned-streaming.md`。指标定义见 `docs/evidence/maplibre-alignment/metrics.md`。
+- 台湾主源 `7/107/55` 返回 HTTP 204，`6/53/27` 提供有效祖先数据；省名来自 `place/class=state`。数据与渲染验证见 `docs/evidence/map-continuity/README.md`。
 
 - Three r185 WebGPU 模板编号缓存、运动中的子区域覆盖和整数层级滞回已通过定点与逐帧验证，见 `docs/evidence/streaming-motion/README.md`。
 - 平面与地球过渡、近景精度、调色板编译时序、地名层级和 Inspector 的双后端验证见 `docs/evidence/map-inspector/README.md`。

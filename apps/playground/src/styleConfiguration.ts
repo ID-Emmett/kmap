@@ -17,7 +17,7 @@ export const ELEMENT_OPTIONS = Object.fromEntries([
   ...PLAYGROUND_LAYERS.filter(layer => layer.type !== 'symbol').map(layer => [layerName(layer.id), layer.id]),
   ...Object.keys(BUILDING_CATEGORY_COLORS).map(kind => [`建筑分类 ${kind}`, `building-3d/${kind}`]),
 ]);
-export const LABEL_OPTIONS = { 国家: 'country-label', 省会与直辖市: 'capital-label', 城市: 'place-label', 道路: 'road-label', 兴趣点: 'poi-label', 地铁: 'rail_metro', 机场: 'airport', 医疗: 'hospital',
+export const LABEL_OPTIONS = { 国家: 'country-label', 省名: 'province-label', 省会与直辖市: 'capital-label', 城市: 'place-label', 道路: 'road-label', 兴趣点: 'poi-label', 地铁: 'rail_metro', 机场: 'airport', 医疗: 'hospital',
   学校: 'school', 学院: 'college', 大学: 'university', 公园: 'park', 文化: 'museum', 餐饮: 'restaurant', 购物: 'shop', 商场: 'mall', 酒店: 'hotel' };
 export const hexColor = (color: string | number) => `#${new Color(color).getHexString()}`;
 

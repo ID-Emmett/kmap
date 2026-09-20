@@ -7,7 +7,7 @@ import { THEMES } from '../src/themes.js';
 describe('Inspector 配置模型', () => {
   it('每个地图图层具有独立编辑入口，主题配置独立保留与重置', () => {
     for (const layer of PLAYGROUND_LAYERS.filter(layer => layer.type !== 'symbol')) expect(Object.values(ELEMENT_OPTIONS)).toContain(layer.id);
-    const config = new StyleConfiguration(); config.setElement('water-fill', { color: '#ff0000', opacity: .5 });
+    const config = new StyleConfiguration(); config.theme = 'default'; config.setElement('water-fill', { color: '#ff0000', opacity: .5 });
     expect(config.getElement('ocean-fill').color).not.toBe('#ff0000');
     config.theme = 'dark'; expect(config.getElement('water-fill').color).not.toBe('#ff0000');
     config.theme = 'default'; expect(config.getElement('water-fill').opacity).toBe(.5);

@@ -11,11 +11,11 @@ describe('有限覆盖与细节补充需求', () => {
     expect(cover.uncovered).toBe(0);
     expect(fallbackRequests([target], cover.patches, 0, 8, () => false)).toEqual([parentOf(parentOf(target))]);
   });
-  it('两级内可用覆盖与已确认空目标消除额外请求', () => {
+  it('完整覆盖停止补充请求，空目标的缺口请求最近父级', () => {
     const near = parentOf(parentOf(target));
     const cover = resolveRenderCover([target], new Set([canonicalKey(near)]), 0);
     expect(fallbackRequests([target], cover.patches, 0, 8, () => false)).toEqual([]);
-    expect(fallbackRequests([target], [], 0, 8, a => canonicalKey(a) === canonicalKey(target))).toEqual([]);
+    expect(fallbackRequests([target], [], 0, 8, a => canonicalKey(a) === canonicalKey(target))).toEqual([parentOf(target)]);
   });
   it('快速缩小时保留已经在构建且可以填补当前缺口的祖先', () => {
     expect(fallbackRequests([target], [], 0, 8, () => false, a => canonicalKey(a) === canonicalKey(ancestor))).toEqual([ancestor]);

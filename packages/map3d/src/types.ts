@@ -65,6 +65,8 @@ export interface TileOverlaySource {
   targetLayer: string;
   /** 主源为空时加载该来源，提供具有实际几何的背景覆盖。 */
   onlyWhenPrimaryEmpty?: boolean;
+  /** 目标数据层缺少要素时使用该来源。 */
+  onlyWhenLayerMissing?: boolean;
 }
 
 /** MVP 图层属性过滤器。 */
@@ -106,9 +108,9 @@ export interface LineLayerOptions extends BaseLayerOptions {
     color: string | number;
     opacity?: number;
     width?: number;
-    /** 默认米制；pixel 用于兼容显式像素样式。 */
+    /** 默认米制；pixels 表示制图像素，挤出后参与地图投影。 */
     widthUnit?: 'meters' | 'pixels';
-    /** 米制宽度随 zoom 作指数插值；省略时使用固定 width。 */
+    /** 宽度按 widthUnit 随 zoom 作指数插值；省略时使用固定 width。 */
     widthStops?: readonly (readonly [zoom: number, width: number])[];
     widthBase?: number;
     /** 交替实线/空白长度，单位为当前线宽；支持 2 或 4 项。 */
@@ -142,7 +144,7 @@ export interface LabelStyle {
   color?: string | number; haloColor?: string | number; haloWidth?: number; textSize?: number; visible?: boolean;
   icon?: MapIcon | 'none' | 'auto'; iconColor?: string | number; iconSize?: number; iconGap?: number;
 }
-export type MapIcon = 'metro' | 'airport' | 'hospital' | 'school' | 'park' | 'museum' | 'food' | 'shop' | 'hotel';
+export type MapIcon = 'metro' | 'airport' | 'hospital' | 'school' | 'park' | 'museum' | 'food' | 'shop' | 'hotel' | 'capital';
 export interface LabelAppearance {
   visible?: boolean; sizeScale?: number; haloWidth?: number; maxLabels?: number; icons?: boolean;
   layers?: Readonly<Record<string, LabelStyle>>;

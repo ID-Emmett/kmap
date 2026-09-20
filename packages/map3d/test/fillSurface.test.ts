@@ -13,7 +13,7 @@ const data = (): FillData => ({ positions: new Float32Array([-.5, 0, -.5, .5, 0,
 const bitmap = () => ({ width: 1, height: 1, close: vi.fn() }) as unknown as ImageBitmap;
 
 describe('原生面批次的裁剪与资源所有权', () => {
-  it('父级剩余区域的面和线使用同一 stencil，完整来源直接显示', () => {
+  it('父级剩余区域的面和线使用同一 stencil，完整来源使用独立模板编号', () => {
     const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const children = childrenOf(address);
     const parent = surfaces.create(bitmap(), address, { segments: new Float32Array([-.5, 0, .5, 0]),
@@ -26,12 +26,13 @@ describe('原生面批次的裁剪与资源所有权', () => {
       expect(material.stencilWrite).toBe(true); expect(material.stencilWriteMask).toBe(0);
       expect(material.stencilFunc).toBe(EqualStencilFunc); expect(material.stencilRef).toBe(parent.mesh.material.stencilRef);
     }
-    expect(parent.mesh.geometry.drawRange.count).toBe(18);
-    expect(child.mesh.material.visible).toBe(false); expect(child.fills!.mesh.material.stencilWrite).toBe(false);
+    expect(parent.mesh.geometry.drawRange.count).toBe(6);
+    expect(parent.mesh.renderOrder).toBeLessThan(child.mesh.renderOrder);
+    expect(child.mesh.material.visible).toBe(true); expect(child.fills!.mesh.material.stencilWrite).toBe(true);
     surfaces.update(origin, 14.5);
     expect(parent.fills!.viewZoom.value).toBe(14.5); expect(child.fills!.viewZoom.value).toBe(14.5);
     surfaces.commit(resolveRenderCover([address], new Set(resources.keys()), 0).patches, resources, origin);
-    expect(parent.fills!.mesh.material.stencilWrite).toBe(false); expect(parent.mesh.material.visible).toBe(false);
+    expect(parent.fills!.mesh.material.stencilWrite).toBe(true); expect(parent.mesh.material.visible).toBe(true);
     expect(scene.children).toHaveLength(2);
     surfaces.dispose(); surfaces.release(parent); surfaces.release(child);
     expect(surfaces.geometryBytes).toBe(0); expect(scene.children).toHaveLength(0);

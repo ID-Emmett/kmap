@@ -6,7 +6,7 @@ vi.mock('three/webgpu', async original => {
   return { ...three, WebGPURenderer: class {
     backend = { isWebGPUBackend: true }; callback: ((time: number) => void) | null = null;
     info = { render: { drawCalls: 0, triangles: 0 }, memory: { geometries: 0, textures: 0 } };
-    init = vi.fn(async () => {}); dispose = vi.fn(); initTexture = vi.fn();
+    init = vi.fn(async () => {}); dispose = vi.fn(); initTexture = vi.fn(); compileAsync = vi.fn(async () => {});
     setPixelRatio() {} setSize() {} render() {}
     setAnimationLoop(callback: ((time: number) => void) | null) { this.callback = callback; }
     constructor() { mocks.renderers.push(this); }
@@ -23,6 +23,7 @@ vi.mock('../src/streaming/workers.js', () => ({ PaintWorkers: class {
 } }));
 
 import { Map3D } from '../src/Map3D.js';
+import type { StreamingEngine } from '../src/streaming/engine.js';
 import type { Map3DOptions } from '../src/types.js';
 
 const maps: Map3D[] = [];
@@ -39,6 +40,17 @@ const tick = async (frames = 200) => {
 afterEach(() => { maps.splice(0).forEach(map => map.dispose()); mocks.renderers.length = 0; mocks.bitmaps.length = 0; vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('Map3D 生命周期与流式覆盖', () => {
+  it('预测名额饱和时概览祖先仍保持独立需求', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})));
+    const map = create(); map.resize({ width: 2560, height: 1305 }); await map.initialize();
+    const engine = (map as unknown as { engine: StreamingEngine }).engine;
+    engine.addPrefetch(Array.from({ length: 32 }, (_, x) => ({ z: 15, x, y: 100 })), 30000, -100, true);
+    await tick(1);
+    const predicted = [...engine.entries.values()].filter(e => e.kind === 'predicted' && engine.wanted.has(e.key));
+    expect(predicted.some(e => e.address.z <= 13)).toBe(true);
+    expect(predicted.length).toBeLessThanOrEqual(32);
+  });
   it('首批覆盖请求使用相邻父级并包含当前细节', async () => {
     vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
     const fetcher = vi.fn((_url: string) => new Promise<Response>(() => {})); vi.stubGlobal('fetch', fetcher);
@@ -72,7 +84,8 @@ describe('Map3D 生命周期与流式覆盖', () => {
     vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
     vi.stubGlobal('fetch', vi.fn(async (url: string) => Number(new URL(url).pathname.split('/')[1]) >= 14 ? new Response(null, { status: 204 }) : new Response(new Uint8Array([1]))));
     const map = create(); await map.initialize(); await tick();
-    expect(map.getStats().tiles.empty).toBeGreaterThan(0); expect(map.getStats().tiles.visible).toBeGreaterThan(0);
+    expect(map.getDiagnostics().tiles?.primaryFallbacks.length).toBeGreaterThan(0); expect(map.getStats().tiles.visible).toBeGreaterThan(0);
+    expect(map.getDiagnostics().tiles?.primaryFallbacks.every(p => p.source.startsWith('13/'))).toBe(true);
     expect(map.getDiagnostics().tiles?.targetMissing).toBe(0); expect(map.getDiagnostics().tiles?.uncoveredCells).toBe(0);
     expect(map.getDiagnostics().tiles?.resources.gpuBytes).toBeLessThanOrEqual(256 * 1048576);
   });

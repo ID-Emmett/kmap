@@ -15,6 +15,15 @@ const disjoint = (patches: ReturnType<typeof resolveRenderCover>['patches']) => 
   for (const a of patches) for (const b of patches) if (a !== b) expect(contains(a.cell, b.cell)).toBe(false);
 };
 describe('实际显示区域归属', () => {
+  it('加载期采用最近可绘制祖先，目标就绪后区域保持互斥', () => {
+    const target = childrenOf(children[0]!)[0]!;
+    const initial = resolveRenderCover([target], ready(parent), 0);
+    const intermediate = resolveRenderCover([target], ready(parent, children[0]!), 0);
+    expect(initial.patches[0]!.source).toEqual(parent); expect(intermediate.patches[0]!.source).toEqual(children[0]);
+    const final = resolveRenderCover([target], ready(parent, children[0]!, target), 0);
+    expect(final.patches).toEqual([{ cell: target, source: target, key: canonicalKey(target) }]);
+    expect(final.uncovered).toBe(0); disjoint(final.patches);
+  });
   it('区域网格具有正确朝向、纹理坐标与稳定的几何所有权', () => {
     const geometry = new PatchGeometry(); geometry.update(parent, [children[0]!, children[3]!]);
     const p = geometry.getAttribute('position'), uv = geometry.getAttribute('uv');
@@ -25,9 +34,9 @@ describe('实际显示区域归属', () => {
       expect(cross).toBeGreaterThan(0); area += cross / 2;
     }
     expect(area).toBe(.5);
-    for (let i = 0; i < p.count; i++) { expect(p.getX(i) + .5).toBe(uv.getX(i)); expect(p.getZ(i) + .5).toBe(uv.getY(i)); }
+    for (let i = 0; i < p.count; i++) { expect(uv.getX(i)).toBe(i % 4 < 2 ? 0 : 1); expect(uv.getY(i)).toBe(i % 2); }
     geometry.update(parent, [parent]); expect(geometry.getAttribute('position')).toBe(p);
-    expect(geometry.drawRange.count).toBe(6); expect(geometry.bytes).toBe(184); geometry.dispose();
+    expect(geometry.drawRange.count).toBe(6); expect(geometry.bytes).toBe(280); geometry.dispose();
   });
   it('增量祖先计数保留兄弟依赖，最后一个资源释放后树索引归零', () => {
     const available = new TileAvailability(); children.forEach(a => available.add(canonicalKey(a)));
@@ -76,7 +85,7 @@ describe('实际显示区域归属', () => {
     expect(result.uncovered).toBe(0); expect(new Set(result.patches.map(p => p.key)).size).toBe(1);
     expect(coverSources(result.patches)).toHaveLength(2); disjoint(result.patches);
   });
-  it('WebGPU 表面以固定透明度提交，部分区域开启裁剪且完整目标解除裁剪', () => {
+  it('WebGPU 表面以固定透明度提交，部分区域开启裁剪且完整目标保持模板裁剪', () => {
     const scene = new Scene(); const surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const bitmap = () => ({ width: 256, height: 256, close() {} }) as ImageBitmap;
     const p = surfaces.create(bitmap(), parent, { segments: new Float32Array([-.5, 0, .5, 0]), styles: new Float32Array([0, 1, 0, 17]), distances: new Float32Array([0]), paints: [{ color: '#ffffff', width: 7 }], colors: new Float32Array([1, 1, 1]) });
@@ -84,13 +93,13 @@ describe('实际显示区域归属', () => {
     const resources = new Map([[canonicalKey(parent), { surface: p }], [canonicalKey(children[0]!), { surface: c }]]);
     const origin = selectMapOrigin({ lng: 116.39, lat: 39.9 }, 15);
     surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);
-    expect(p.mesh.material.stencilWrite).toBe(true); expect(c.mesh.material.stencilWrite).toBe(false);
+    expect(p.mesh.material.stencilWrite).toBe(true); expect(c.mesh.material.stencilWrite).toBe(true);
     expect(p.mesh.material.opacity).toBe(1); expect(c.mesh.material.opacity).toBe(1);
-    expect(scene.children).toHaveLength(3); expect(p.mesh.geometry.drawRange.count).toBe(18);
+    expect(scene.children).toHaveLength(3); expect(p.mesh.geometry.drawRange.count).toBe(6);
     expect(p.lines!.mesh.material.stencilRef).toBe(p.mesh.material.stencilRef);
     for (const node of [surfaces.fogCenter, surfaces.fogStart, surfaces.fogEnd, surfaces.fogColor]) expect(node.groupNode).toBe(renderGroup);
     surfaces.commit(resolveRenderCover([parent], new Set(resources.keys()), 0).patches, resources, origin);
-    expect(p.mesh.material.stencilWrite).toBe(false); expect(c.mesh.visible).toBe(false);
+    expect(p.mesh.material.stencilWrite).toBe(true); expect(c.mesh.visible).toBe(false);
     expect(p.mesh.geometry).toBe(geometry); expect(geometry.drawRange.count).toBe(6);
     surfaces.dispose(); surfaces.release(p); surfaces.release(c);
     expect(surfaces.geometryBytes).toBe(0);

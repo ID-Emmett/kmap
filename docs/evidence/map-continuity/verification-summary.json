@@ -1,0 +1,895 @@
+{
+  "date": "2026-09-19",
+  "url": "http://127.0.0.1:6661/",
+  "commands": {
+    "pnpm check": {
+      "passed": true,
+      "sdkTests": 165,
+      "playgroundTests": 16,
+      "typecheck": true,
+      "productionBuild": true
+    },
+    "pnpm ai:check": {
+      "passed": true
+    },
+    "git diff --check": {
+      "passed": true
+    }
+  },
+  "method": {
+    "pixelReadback": {
+      "width": 480,
+      "height": 270,
+      "channelThreshold": 16,
+      "anomalyPixelThreshold": 120
+    },
+    "comparison": "相机与资源状态固定后重复提交渲染，统计像素差；性能阶段独立运行 12 秒。",
+    "coldLoad": "逐帧观察 9 个海面点首次出现后的退回空白次数，并检查同状态重复渲染。",
+    "inputError": "实际滚轮事件前后指针地理位置的 Mercator 距离，按最终层级每像素米数换算。"
+  },
+  "matrices": [
+    {
+      "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z.json",
+      "backend": "webgpu",
+      "at": "2026-09-18T16:17:42.481Z",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "comparisons": 1303,
+      "maxChangedPixels": 0,
+      "anomalies": 0,
+      "errors": 0,
+      "scenes": [
+        {
+          "name": "taiwan-7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 17
+        },
+        {
+          "name": "taiwan-8",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 4
+        },
+        {
+          "name": "taiwan-10",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 0
+        },
+        {
+          "name": "taiwan-12",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 0
+        },
+        {
+          "name": "hierarchy-3",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 1
+        },
+        {
+          "name": "hierarchy-4",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 24
+        },
+        {
+          "name": "hierarchy-5",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 28
+        },
+        {
+          "name": "hierarchy-6",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 19
+        },
+        {
+          "name": "hierarchy-7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 68
+        },
+        {
+          "name": "pan-7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 29
+        },
+        {
+          "name": "pan-15.5",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 128
+        },
+        {
+          "name": "pitch-0",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 102
+        },
+        {
+          "name": "pitch-60",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 113
+        },
+        {
+          "name": "pitch-75",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 85
+        }
+      ],
+      "performance": {
+        "frames": 1963,
+        "fps": 163.42807666050584,
+        "intervalP95": 6.099999999998545,
+        "cpuP95": 6.800000004470348,
+        "uncovered": 0,
+        "maxCpuBytes": 261384643,
+        "maxGpuBytes": 184275258
+      },
+      "screenshots": [
+        {
+          "name": "taiwan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0003.jpg"
+        },
+        {
+          "name": "taiwan-8",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0004.jpg"
+        },
+        {
+          "name": "taiwan-10",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0006.jpg"
+        },
+        {
+          "name": "taiwan-12",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0008.jpg"
+        },
+        {
+          "name": "hierarchy-3",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0010.jpg"
+        },
+        {
+          "name": "hierarchy-4",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0012.jpg"
+        },
+        {
+          "name": "hierarchy-5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0014.jpg"
+        },
+        {
+          "name": "hierarchy-6",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0016.jpg"
+        },
+        {
+          "name": "hierarchy-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0018.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0020.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0021.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0022.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0023.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0024.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0025.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0026.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0027.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0030.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0031.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0032.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0033.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0034.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0035.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0036.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0037.jpg"
+        },
+        {
+          "name": "pitch-0",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0047.jpg"
+        },
+        {
+          "name": "pitch-60",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0048.jpg"
+        },
+        {
+          "name": "pitch-75",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0050.jpg"
+        }
+      ]
+    },
+    {
+      "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z.json",
+      "backend": "webgl2",
+      "at": "2026-09-18T16:25:07.671Z",
+      "viewport": {
+        "width": 806,
+        "height": 1272,
+        "pixelRatio": 1
+      },
+      "comparisons": 1345,
+      "maxChangedPixels": 0,
+      "anomalies": 0,
+      "errors": 0,
+      "scenes": [
+        {
+          "name": "taiwan-7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 18
+        },
+        {
+          "name": "taiwan-8",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 3
+        },
+        {
+          "name": "taiwan-10",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 0
+        },
+        {
+          "name": "taiwan-12",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 0
+        },
+        {
+          "name": "hierarchy-3",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 1
+        },
+        {
+          "name": "hierarchy-4",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 24
+        },
+        {
+          "name": "hierarchy-5",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 27
+        },
+        {
+          "name": "hierarchy-6",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 21
+        },
+        {
+          "name": "hierarchy-7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 57
+        },
+        {
+          "name": "pan-7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 33
+        },
+        {
+          "name": "pan-15.5",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 128
+        },
+        {
+          "name": "pitch-0",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 128
+        },
+        {
+          "name": "pitch-60",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 128
+        },
+        {
+          "name": "pitch-75",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "placedLabels": 101
+        }
+      ],
+      "performance": {
+        "frames": 2023,
+        "fps": 168.33924143325515,
+        "intervalP95": 6,
+        "cpuP95": 5.5,
+        "uncovered": 0,
+        "maxCpuBytes": 259533176,
+        "maxGpuBytes": 202076324
+      },
+      "screenshots": [
+        {
+          "name": "taiwan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0003.jpg"
+        },
+        {
+          "name": "taiwan-8",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0004.jpg"
+        },
+        {
+          "name": "taiwan-10",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0006.jpg"
+        },
+        {
+          "name": "taiwan-12",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0009.jpg"
+        },
+        {
+          "name": "hierarchy-3",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0011.jpg"
+        },
+        {
+          "name": "hierarchy-4",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0013.jpg"
+        },
+        {
+          "name": "hierarchy-5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0015.jpg"
+        },
+        {
+          "name": "hierarchy-6",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0016.jpg"
+        },
+        {
+          "name": "hierarchy-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0019.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0021.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0022.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0023.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0024.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0025.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0026.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0027.jpg"
+        },
+        {
+          "name": "pan-7",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0028.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0031.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0032.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0033.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0034.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0035.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0036.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0037.jpg"
+        },
+        {
+          "name": "pan-15.5",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0038.jpg"
+        },
+        {
+          "name": "pitch-0",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0048.jpg"
+        },
+        {
+          "name": "pitch-60",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0049.jpg"
+        },
+        {
+          "name": "pitch-75",
+          "file": "streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0050.jpg"
+        }
+      ]
+    }
+  ],
+  "coldLoads": [
+    {
+      "file": "streaming-rebuild/webgpu-2026-09-18T16-29-58-684Z.json",
+      "backend": "webgpu",
+      "at": "2026-09-18T16:29:57.190Z",
+      "viewport": {
+        "width": 806,
+        "height": 1272,
+        "pixelRatio": 1
+      },
+      "network": {
+        "latencyMs": 150,
+        "downloadBytesPerSecond": 500000,
+        "browserCache": false
+      },
+      "completed": true,
+      "frames": 505,
+      "observedDurationMs": 4870.5,
+      "oceanSamples": 9,
+      "seen": 9,
+      "reversions": 0,
+      "maxChangedPixels": 0,
+      "errors": 0,
+      "initialUncovered": 24,
+      "finalUncovered": 0,
+      "finalMissing": 0,
+      "screenshot": "streaming-rebuild/webgpu-2026-09-18T16-29-58-684Z.png"
+    },
+    {
+      "file": "streaming-rebuild/webgpu-2026-09-18T16-27-44-509Z.json",
+      "backend": "webgl2",
+      "at": "2026-09-18T16:27:43.059Z",
+      "viewport": {
+        "width": 806,
+        "height": 1272,
+        "pixelRatio": 1
+      },
+      "network": {
+        "latencyMs": 150,
+        "downloadBytesPerSecond": 500000,
+        "browserCache": false
+      },
+      "completed": true,
+      "frames": 565,
+      "observedDurationMs": 4840.499999999996,
+      "oceanSamples": 9,
+      "seen": 9,
+      "reversions": 0,
+      "maxChangedPixels": 0,
+      "errors": 0,
+      "initialUncovered": 24,
+      "finalUncovered": 0,
+      "finalMissing": 0,
+      "screenshot": "streaming-rebuild/webgpu-2026-09-18T16-27-44-509Z.png"
+    }
+  ],
+  "actualInput": {
+    "file": "streaming-rebuild/webgpu-2026-09-19T03-42-34-377Z.json",
+    "kind": "map-input-continuity",
+    "at": "2026-09-19T03:42:34.292Z",
+    "backend": "webgpu",
+    "scenarios": [
+      {
+        "name": "wheel-planar-pitch55-bearing35",
+        "viewport": {
+          "width": 1280,
+          "height": 720,
+          "pixelRatio": 1
+        },
+        "pixel": {
+          "x": 850,
+          "y": 430
+        },
+        "before": {
+          "center": {
+            "lng": 116.39,
+            "lat": 39.9
+          },
+          "zoom": 10,
+          "bearing": 35,
+          "pitch": 55
+        },
+        "after": {
+          "center": {
+            "lng": 116.45282629146546,
+            "lat": 39.795787376613184
+          },
+          "zoom": 11,
+          "bearing": 35,
+          "pitch": 55
+        },
+        "mercatorEquivalentErrorPixels": 7.771177128905166e-10,
+        "frame": {
+          "id": 32921,
+          "at": 205713.4,
+          "ms": 5.899999999994179,
+          "cpuMs": 1.900000000023283,
+          "engineMs": 0.2000000000698492,
+          "renderMs": 1.6999999999534339,
+          "view": {
+            "center": {
+              "lng": 116.45282629146546,
+              "lat": 39.795787376613184
+            },
+            "zoom": 11,
+            "bearing": 35,
+            "pitch": 55
+          },
+          "revision": 81,
+          "uncovered": 0,
+          "missing": 0,
+          "gap": 0,
+          "pendingDetailGap": 0,
+          "fogStart": 84590.9862660757,
+          "fogEnd": 138456.83311968128,
+          "cutoff": 133930.05508179797,
+          "target": 14,
+          "sources": 14,
+          "entries": 112,
+          "fetching": 0,
+          "cpuBytes": 93707340,
+          "gpuBytes": 78534176
+        }
+      },
+      {
+        "name": "drag",
+        "from": {
+          "x": 700,
+          "y": 400
+        },
+        "to": {
+          "x": 850,
+          "y": 480
+        },
+        "before": {
+          "center": {
+            "lng": 116.45282629146546,
+            "lat": 39.795787376613184
+          },
+          "zoom": 11,
+          "bearing": 35,
+          "pitch": 55
+        },
+        "after": {
+          "center": {
+            "lng": 116.400365427432,
+            "lat": 39.981200534640024
+          },
+          "zoom": 11,
+          "bearing": 35,
+          "pitch": 55
+        },
+        "frame": {
+          "id": 34813,
+          "at": 217366,
+          "ms": 5.899999999994179,
+          "cpuMs": 1.1999999999534339,
+          "engineMs": 0.09999999997671694,
+          "renderMs": 1.099999999976717,
+          "view": {
+            "center": {
+              "lng": 116.400365427432,
+              "lat": 39.981200534640024
+            },
+            "zoom": 11,
+            "bearing": 35,
+            "pitch": 55
+          },
+          "revision": 85,
+          "uncovered": 0,
+          "missing": 0,
+          "gap": 0,
+          "pendingDetailGap": 0,
+          "fogStart": 84590.9862660757,
+          "fogEnd": 138456.83311968128,
+          "cutoff": 133930.05508179797,
+          "target": 13,
+          "sources": 13,
+          "entries": 112,
+          "fetching": 0,
+          "cpuBytes": 93707340,
+          "gpuBytes": 78534176
+        }
+      },
+      {
+        "name": "wheel-globe-transition-pitch35-bearing25",
+        "viewport": {
+          "width": 1280,
+          "height": 720,
+          "pixelRatio": 1
+        },
+        "pixel": {
+          "x": 850,
+          "y": 430
+        },
+        "before": {
+          "center": {
+            "lng": 112,
+            "lat": 35
+          },
+          "zoom": 4.7,
+          "bearing": 25,
+          "pitch": 35
+        },
+        "after": {
+          "center": {
+            "lng": 115.87152445279088,
+            "lat": 31.731187223852857
+          },
+          "zoom": 5.699999999999999,
+          "bearing": 25,
+          "pitch": 35
+        },
+        "mercatorEquivalentErrorPixels": 0.015520753373258183,
+        "frame": {
+          "id": 40750,
+          "at": 254853.3,
+          "ms": 6,
+          "cpuMs": 1.9000000001396984,
+          "engineMs": 0.10000000009313226,
+          "renderMs": 1.8000000000465661,
+          "view": {
+            "center": {
+              "lng": 115.87152445279088,
+              "lat": 31.731187223852857
+            },
+            "zoom": 5.699999999999999,
+            "bearing": 25,
+            "pitch": 35
+          },
+          "revision": 155,
+          "uncovered": 0,
+          "missing": 0,
+          "gap": 0,
+          "pendingDetailGap": 0,
+          "fogStart": 13514299.813756354,
+          "fogEnd": 18810515.071157657,
+          "cutoff": 18365431.733356167,
+          "target": 18,
+          "sources": 18,
+          "entries": 226,
+          "fetching": 0,
+          "cpuBytes": 147358612,
+          "gpuBytes": 128735108
+        }
+      }
+    ],
+    "screenshot": "streaming-rebuild/webgpu-2026-09-19T03-42-34-377Z.png"
+  },
+  "capitalsVisual": {
+    "file": "streaming-rebuild/webgpu-2026-09-19T03-44-03-476Z.json",
+    "view": {
+      "center": {
+        "lng": 112,
+        "lat": 35
+      },
+      "zoom": 6,
+      "bearing": 0,
+      "pitch": 0
+    },
+    "labels": {
+      "candidates": 21,
+      "placed": 19,
+      "glyphs": 881,
+      "glyphErrors": 0,
+      "missingGlyphs": 0,
+      "layoutMs": 5,
+      "layouts": 93,
+      "quads": 60,
+      "atlasBytes": 4194304,
+      "pendingRanges": 0,
+      "cachedRanges": 32
+    },
+    "screenshot": "streaming-rebuild/webgpu-2026-09-19T03-44-03-476Z.png"
+  },
+  "limits": [
+    "两种后端使用各自记录的视口，FPS 用于本机样本评估。",
+    "台湾空主源区域使用有效祖先地表；道路、建筑、地名细节依赖上游数据。",
+    "首次数据到达前存在加载等待；无闪烁结论适用于已记录的场景、像素阈值和采样点。"
+  ],
+  "sourceSha256": {
+    "apps/playground/src/coldContinuityBenchmark.ts": "31917efae3a789bfa37f6fd39ddc8a1854c97716446219bf1e647ee72acd889d",
+    "apps/playground/src/continuityBenchmark.ts": "ffdb3a3e77d95eff117e62fed9d1a1121cde4e3f6682ce005ed949fb43caa403",
+    "apps/playground/src/main.ts": "8a8e6c4147a9f8caa72df39c521bfd547414c028e0f774a14ea1e5afb3654b57",
+    "apps/playground/src/mapStyle.ts": "4a159ed3a0f54c502bca23a3865ef855029baa5974e2304937f5f232f23af8d8",
+    "apps/playground/src/styleConfiguration.ts": "7109e71a0d27ffa9a4a6b03a574c667014a838470bbf2ccd128214e5c2cf6fe3",
+    "apps/playground/test/cityFlight.test.ts": "6f920ac47e63a4d241f4e1ea30d905b09ac267441392a7d967d4616631a3d034",
+    "apps/playground/test/mapHierarchy.test.ts": "42adbdadc75618a69730d630b13383edbf21c8771f5bb9eae70b3a79a73d6eff",
+    "apps/playground/test/styleConfiguration.test.ts": "a7659092834da84094e90505ad3c6fde6857996c3109a0c54028832b4621a140",
+    "packages/map3d/src/interaction/mapInteractions.ts": "58344abebecfc809c4bec4daced22df3d3923412c3213a2e3c45fc7e43af46f6",
+    "packages/map3d/src/interaction/zoomAnchor.ts": "4d08c27ebe8cf97987352c594c1ab09491261eb395e5264725258849326ab888",
+    "packages/map3d/src/labels/candidates.ts": "9d3e70cbcb9c7cf442ab89fc4bfdf8693a6baf917597822773511475fda67186",
+    "packages/map3d/src/labels/icons.ts": "a8d3122c20ecee0c66974b670433a4921cd2ccbfb6b7cffc0029dc7c0b3c3d53",
+    "packages/map3d/src/labels/labelSystem.ts": "fd2f9d476fcc96820fb2c1ea5c23605dd25e5bd298dddb7babe700a8e79d49b3",
+    "packages/map3d/src/streaming/diagnostics.ts": "71fb89b75c0d7c1127cafb22063e5e861fc98f5099471b306432641087a17631",
+    "packages/map3d/src/streaming/engine.ts": "8e2733f74cca118378f99f495f48c56130a77ab4a1bdb476c0393bcc10254e10",
+    "packages/map3d/src/streaming/lineSurface.ts": "88ea00f4feb2352599467f4ab23b3da59f36a27f349421fca4b56c5149b2026f",
+    "packages/map3d/src/streaming/paint.worker.ts": "1a9a3cb959722a5b76f5949d53accb580e4fa061f92054609b922530309521e8",
+    "packages/map3d/src/streaming/pipeline.ts": "e21a11968a8c0ba699af34f35a3b726de9d7db880ec2add0e51c43c16bfaa631",
+    "packages/map3d/src/streaming/protocol.ts": "615e5fb4d48a1b73425a2bba7a366f567731ced908437f1508980e797af3608c",
+    "packages/map3d/src/streaming/renderCover.ts": "3fd6f5ff1de320e42b981f6dd4dc25b809b485701497fb1480fd22de7ba8ff32",
+    "packages/map3d/src/streaming/tileSources.ts": "98244337b567622224e2592522e9b2ba20ff592700383744e81060105b0c845d",
+    "packages/map3d/src/streaming/tileStore.ts": "3c0d211f81631152bdeb1f527d99da6cafe961857929c4bc3cd7a08725faafaa",
+    "packages/map3d/src/types.ts": "14c761f1027e2eccea50b4f22cdd6b5630c220c5efdacf9e059fa2d9119a3fef",
+    "packages/map3d/test/map3d.test.ts": "4974bf50588e4260fec2a298967eb25635c0b5ad239c217d89ac01e1ece0f5e1",
+    "packages/map3d/test/mapQuality.test.ts": "577b2174b36ace4a5143f46c74e0ddd9c7fe363157a12420706d95b6e61308e0",
+    "packages/map3d/test/mapRefinement.test.ts": "8a5165a8b05e65be5a9730e663dd39bb836826f1ff79e1f3010aab9beaefff29",
+    "packages/map3d/test/pipeline.test.ts": "359de4112b5e4f0fbe2872530423ab93776111124aeb182d4c869a94a115b021",
+    "packages/map3d/test/renderCover.test.ts": "a500b776dc394df4853673e2d9475164cc90afb043eaa2b2370eb48a6b4e2cbd",
+    "packages/map3d/test/shaderCompilation.test.ts": "9ae6e16843888cf65822aadc9fe6a38ff42b50ead021f81c6dbe30e33ea6dc03",
+    "packages/map3d/test/sourceContinuity.test.ts": "daaff82b94847a4c91ef8ed2418b72082c6cef5d0792aba7588e0a640ff366b4",
+    "packages/map3d/test/sphericalAppearance.test.ts": "23b5cea4f07ad41b638be2ff0a46ed072b28ddb8605844efcb09461e1ad201de",
+    "packages/map3d/test/zoomAnchor.test.ts": "4b2fa14b953c987190000135e232a2a98ac6be377c39ef2304bb15fc4b2f149f",
+    "scripts/inspect-map-data.mjs": "16b2f756a98e032e6c26f88dfb11efd793ae36fc05fa4f9796d691c2a9fb83b4",
+    "scripts/summarize-map-continuity.mjs": "92ebabeb64ede9ae73df4f459ffa8ba75228db6d4cd84ee4d524d1fb82475dc7"
+  },
+  "artifactSha256": {
+    "docs/evidence/map-continuity/ai-check.log": "730d80d924042716f5e6c9d448c9c5b95f6a148047faaebc4f8210954f992055",
+    "docs/evidence/map-continuity/check.log": "bfebd958781d0b9d76f00460b6b4b731fde3b33d860866a270962b179ecc6c9d",
+    "docs/evidence/map-continuity/data.json": "7cd615fe9b089cec2c1cc4ba2fc29e51ee4016e1e3f2c16e167e92e01ff4fe0a",
+    "docs/evidence/map-continuity/v8Maptile-6-53-27.mvt": "0d2fac50ff7a445e9597aa99f971e42a0dbff39f8786c712570281c3c9549605",
+    "docs/evidence/map-continuity/v8Maptile-7-106-55.mvt": "6b401c9fbf6d434da051b36a9f6776a563995a9e31e9c0b62b6a1afc7f5838cc",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0003.jpg": "2f9be6190b820cd3442d1c4185ececaf9bbdc68771b5a9d6259b1dfcb40446a8",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0004.jpg": "667c943f7ceab7473003d37fe481b33a585eb212b5f9ef6662e893aaec0cca7c",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0006.jpg": "cd36b1db44f28741c949c8976b111ac6f2204f99f5fc8e4f64e2cd509566441a",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0008.jpg": "d3cdc43f6d5b4abfe905afa7d9548a12094a45becaf4a0208fe62797ab457188",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0010.jpg": "2c1905ce45ed985a5c5d981ae546ce647ffee16700e820b3e3f30334bb2e0290",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0012.jpg": "4f1b4f621752d4071ebbf1cb7ed992c8b5ab2535edc8d01dad2d63f31538cb92",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0014.jpg": "c15d3b2bb076dc475d21538ba5deec33b60b2d8e56a5c1e339c673dab76e6c6c",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0016.jpg": "ad31cf194c5746b45bba2be43bfd39feda2bf5378ce382a2785c3d1d8a8e1251",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0018.jpg": "db6b8728d7d91941b4925319cb95b1dfdfe4d213ff1614aea0c94adcc368ba3c",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0020.jpg": "2ce5db656884028ab202b0f5eb82df4750ad53a12aeac4b23cec0c376885ad3b",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0021.jpg": "a8a08c71c8f4a2526b833fa43585bac548fa46ff41638649e9a6cae5ecb1bf42",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0022.jpg": "dd075a62bd3e43379455874fdd1031f13236a7204c644071e0db403a4ae4d516",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0023.jpg": "06f52ca610753b89c1e9179e07098dafa6eb293bde612cd5f52ca1f0ec19057f",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0024.jpg": "78842c6fced53db7c818ea595e601b1ae742f25c744b228d7cf753fc57711332",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0025.jpg": "98521e9977d325cf566eb843dc2c6622997810e3cb2688c547da4cba4afe7407",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0026.jpg": "81d5974e7d3019173561b49427729a68e31a836e2913bbe6656fd243554e10d5",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0027.jpg": "dfad9687e9b29705b2cfec52b07c498b21b4badae55b8d0fbe2bea5d4c096099",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0030.jpg": "af4e62357c03727fde8f9c06338cb83ba8a1bc6ecb5cfd75e977416aef67bb0a",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0031.jpg": "f36dfb8d985901f80133f2af3672d9c4e432777dec4e58b0645c534d8cd76273",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0032.jpg": "9a9ff50cc792e3b19de1227a214c3a2950bff31123c49ad88a092842f7c337f1",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0033.jpg": "ba49b595b7a3e3d448c944561aa56c74e61dfc4fcec8284a112af3c94076f897",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0034.jpg": "59e2ee9c4204e820086c4168cd9b5aa0432026d11c3d3699fe6dde3d2bdc551b",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0035.jpg": "38fcbb9bff30ad8a6d01653e0e722c9a563eda7bf8c8265385e737f1603d032b",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0036.jpg": "5195cb75d97fa6e28701099dc6d4ed3bd87820f40f1d2abfbb7612d270de3fc5",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0037.jpg": "910ef99e46c99f458b2fe5a917a8f81ce4a65735a86655bba2e787412f606171",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0047.jpg": "b3916339b78b03ec8f13f36fb2414c5b437f29d10216675ca19bf9260d2f9ea5",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0048.jpg": "329211dd4c2fe918b8abdb276eab9051a029593bc6444d3ac7bf84ca8c2e2b5b",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z-frames/0050.jpg": "48e68675ff9606cab7824a5b7bed079c874443ff405d1cfaa5b93c9deb3e0c61",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-17-42-561Z.json": "3f5172c63d418eb7378fad5250aba18ab008a8b2d1e3f6d8f1d8a58cca6e5897",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0003.jpg": "d54a105960d6722a4d5c5f31d3a92ee62c9592dfde053f199ca9ad7e0bb9a6c4",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0004.jpg": "aa3155532c87dc252b5aa6e22ff3d9a9a2aecd47ab431220763335d5c8814f13",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0006.jpg": "ac59da864a34fbe37d8af544997e0ac307d70ea204e10f240626ca842947b88c",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0009.jpg": "d3cdc43f6d5b4abfe905afa7d9548a12094a45becaf4a0208fe62797ab457188",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0011.jpg": "ecde3bc29d9dc1c05833f51bffd7185408272e5cd7f1c8f1de3498d22fab4e7d",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0013.jpg": "740a1cd8b9c682b58df9979e9ed783bdecf7592ff109d138f8c4c86702d6e5b3",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0015.jpg": "210362c25dd0fa388f1f9fb0877d4851c5e9b251ac5bafeb6f4dd465717387e6",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0016.jpg": "607a3ffc45f999b4331ad64913778e1f4f5d48ca307fc22cd1bc8e9783b6b84d",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0019.jpg": "a270ad2fd8cb411af15619a3784fc5b16c58a68ac7229f0c56962ef616fc2301",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0021.jpg": "0ef865f34d1cb894ab2adbb08117b49e8c753552fa49b8a199c00ccf5191ae98",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0022.jpg": "4acc7db93f9efb18acc39865e8397fa18ac8e0eaa23ed4ac7039f76700e9239c",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0023.jpg": "ec0c17920e51239ee2925ed38471f535b695e00514e6c44820b7b7d756c73f7d",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0024.jpg": "d68112c07427516af99f560faddf211f47331921eaeca4d4db153ac6a83186c9",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0025.jpg": "0d1a42657b922d6ed72f88a1b9e45d3eca6c82123a5a91f8bdfab06796ced6cb",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0026.jpg": "9b70e4f27c4a0131803d84e54f611ac16535818144e20ad8d2a0d6441fea4efc",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0027.jpg": "33a3ec9b254f00f3d8b7c66b420bfa1aec2766f5e8b48c41e456db818d43c61c",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0028.jpg": "81bcbe676905dd7d1ae96dabd376667ec7cb83c2db69c3875455cc7f5bb12dc5",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0031.jpg": "549cb0fc17953dc8a3cf5b9b1ac6cc2ff03d8bbb1c2f94d4169dd6825c5b8d19",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0032.jpg": "5d332dd2f90dc2578dc202102d8665f1e22a011393b3ca71d275d28a5b64b994",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0033.jpg": "40b9c33f6b3ee96bbe329e198739f0b78243b5c5953d6a2cafc5c231027eea54",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0034.jpg": "af3b60b22b1527ea3414a0a76ccd7276b4d78e08b2047023bd61531a93ad5e6e",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0035.jpg": "8f9ca3e0450514d0f0da98011c5e4d4799dd8f741d8741521bfcaa74ee803ba2",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0036.jpg": "7ebdce105f375fc924db75fbe824a8026005d638b345bde25ca88ba721152c16",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0037.jpg": "5810d04ec44d1eceaab8f496ecd93de4a7c4a9b6490e684e9c3b9c990652f0e5",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0038.jpg": "88b9125efe9893689ee20351ee2634c9f3268dfc7fa1e63bb3faf5fb3342864e",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0048.jpg": "98b8a37aa306e105eceafc08380a76a669b17c0a59ad976936f7159c2e2e90db",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0049.jpg": "8dee70ca5e9fd8580ee29812387bcaa31ca785384692a45a8c68c032fd03a63d",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z-frames/0050.jpg": "d65fcd8aa6921b7bfd103269a947d721ff76ce1a740c8305e757f99463389102",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-25-07-741Z.json": "1cd55e0ffd0eaa14b779e07b6715cee052da15c9c29e0c6ba02828d7f63a6655",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-27-44-509Z.json": "d5a5b96952c8d3f06fbfbeedd175504cc36f6480a48579d1b7a988bd93498d95",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-27-44-509Z.png": "a098578637998992715a417ce25947480e3c37b108f2e546cb880e985e2bea7f",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-29-58-684Z.json": "0f8cbe5afa019d37a4cab020d97d147b45e20e37344c06b843110a68647c9c6f",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-18T16-29-58-684Z.png": "10c18448676087fa459e1546ab6697f7253f7d76fcb8158a3d9f3fcfd4c71dae",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-19T03-42-34-377Z.json": "3d13483c0d876fe1a4ec787b0cf46145714ef80549e200915b45be668a3e2522",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-19T03-42-34-377Z.png": "b8f4cd959b0d9a1c27792515b6616e2a8b3764646038889c8c17bfd39ad46b83",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-19T03-44-03-476Z.json": "20b39ccf797803a21ffef55458ed5cde649b4022d5f194da810dcfd4403c03a6",
+    "docs/evidence/streaming-rebuild/webgpu-2026-09-19T03-44-03-476Z.png": "1ba3677539392dabde077eacca75cdebb319396ba0241d168494307bf2b4cec2"
+  }
+}

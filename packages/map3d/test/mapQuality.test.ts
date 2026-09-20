@@ -108,10 +108,13 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     const packed = packTileSources([Uint8Array.from(main).buffer, Uint8Array.from(admin).buffer]);
     const tile = decodeTileSources(packed, source, [overlay]); expect(tile.layers.province_border!.length).toBe(12);
     const data = decodeTileSources(packed, child, [overlay]);
-    const p = tile.layers.province_border!.feature(0).loadGeometry()[0]![0]!;
-    const q = data.layers.province_border!.feature(0).loadGeometry()[0]![0]!;
     expect(overlayAddress(child, overlay)).toEqual(source);
-    expect(q.x).toBe(p.x * 4 - 4096); expect(q.y).toBe(p.y * 4 - 4096);
+    const points = Array.from({ length: tile.layers.province_border!.length }, (_, i) => tile.layers.province_border!.feature(i).loadGeometry()[0]![0]!);
+    expect(data.layers.province_border!.length).toBeGreaterThan(0);
+    for (let i = 0; i < data.layers.province_border!.length; i++) {
+      const q = data.layers.province_border!.feature(i).loadGeometry()[0]![0]!;
+      expect(points.some(p => q.x === p.x * 4 - 4096 && q.y === p.y * 4 - 4096)).toBe(true);
+    }
   });
 
   it.each([0, 45, 135, 270])('75° 倾角、方位 %s° 顶部 40%% 完全入雾且统一层级', bearing => {

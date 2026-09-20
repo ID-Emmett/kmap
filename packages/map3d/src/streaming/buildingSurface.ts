@@ -1,7 +1,7 @@
 import { paletteColor, paletteOpacity, paletteStyle } from '../style/palette.js';
 import { mapVertex } from '../globe/projection.js';
-import { Vector4, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
-import { Fn, Loop, attribute, uniformArray, float, max, normalWorld, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
+import { type ArrayNode, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
+import { Fn, Loop, attribute, buffer, element, float, max, normalWorld, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
 import type { BuildingData } from './buildings.js';
 import type { Address } from './address.js';
 
@@ -33,7 +33,7 @@ export function createBuildingSurface(data: BuildingData, curved = false, themed
 const viewZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.buildingState.viewZoom.value);
 const style = attribute<'vec3'>('buildingStyle', 'vec3');
 const zoomRange = varying(style.xy).setInterpolation('flat');
-const clips = uniformArray(Array.from({ length: 256 }, () => new Vector4()), 'vec4' as const).onObjectUpdate(frame => frame?.object?.userData.buildingState.clips);
+const clips = buffer(new Float32Array(256 * 4), 'vec4', 256).onObjectUpdate(frame => frame.object!.userData.buildingState.clips) as unknown as ArrayNode<'vec4'>;
 const clipCount = uniform(0, 'int').onObjectUpdate(({ object }) => object!.userData.buildingState.clipCount);
 // 底图透明队列先绘制；建筑在同一队列末尾以不透明 alpha 和深度写入合成。
 function createMaterial(curved: boolean, themed: boolean) {
@@ -48,7 +48,7 @@ material.colorNode = Fn(() => {
   viewZoom.lessThan(zoomRange.x).or(viewZoom.greaterThanEqual(zoomRange.y)).discard();
   const inside = float(0).toVar();
   Loop({ start: 0, end: clipCount, type: 'int' }, ({ i }) => {
-    const rect = clips.element(i);
+    const rect = element(clips, i);
     inside.addAssign(positionLocal.x.greaterThanEqual(rect.x).and(positionLocal.x.lessThanEqual(rect.z))
       .and(positionLocal.z.greaterThanEqual(rect.y)).and(positionLocal.z.lessThanEqual(rect.w)).select(1, 0));
   });
