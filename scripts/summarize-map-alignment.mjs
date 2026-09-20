@@ -3,10 +3,12 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 
 const directory = 'docs/evidence/streaming-rebuild';
 const chosen = new Map();
-for (const file of (await readdir(directory)).filter(f => f.endsWith('.json')).sort()) {
+for (const file of (await readdir(directory)).filter(f => f.startsWith('webgpu-2026-09-20T') && f >= 'webgpu-2026-09-20T00-40' && f.endsWith('.json')).sort()) {
   const data = JSON.parse(await readFile(`${directory}/${file}`, 'utf8'));
-  if (!['maplibre-alignment-real', 'maplibre-alignment-seams', 'label-subpixel-motion', 'cold-continuity', 'pointer-anchor-ui'].includes(data.kind)) continue;
+  if (!['maplibre-alignment-real', 'maplibre-alignment-seams', 'label-subpixel-motion', 'cold-continuity', 'pointer-anchor-ui', 'actual-pan-ui', 'ocean-content-continuity'].includes(data.kind)) continue;
   if (data.at < '2026-09-20T00:40:00Z') continue;
+  // 海洋合成的最终配置由当日 06:00 UTC 之后的真实矩阵与冷加载记录验证。
+  if (['maplibre-alignment-real', 'cold-continuity'].includes(data.kind) && data.at < '2026-09-20T06:00:00Z') continue;
   const key = `${data.kind}:${data.backend}:${data.viewport?.width}:${data.viewport?.pixelRatio}`;
   chosen.set(key, { file: `${directory}/${file}`, data });
 }
@@ -28,6 +30,16 @@ for (const { file, data } of chosen.values()) {
   if (data.kind === 'cold-continuity') Object.assign(record, { network: data.network, completed: data.completed, frames: data.frames.length,
     reversions: data.reversions, maxRepeatedRenderDifference: data.maxChanged, seenOceanSamples: data.seen, errors: data.errors });
   if (data.kind === 'pointer-anchor-ui') Object.assign(record, { errorPixels: data.errorPixels, before: data.before, after: data.after });
+  if (data.kind === 'actual-pan-ui') Object.assign(record, { frames: data.frames.length,
+    uncoveredFrames: data.frames.filter(f => f.uncovered).length, zooms: [...new Set(data.frames.map(f => f.view.zoom))] });
+  if (data.kind === 'ocean-content-continuity') Object.assign(record, {
+    scenes: data.scenes.map(s => ({ name: s.name, settled: s.settled, sourceLevels: s.diagnostics.tiles.drawnLevels,
+      samples: s.samples.length, failedSamples: s.samples.filter(p => !p.pass).length })),
+    motionFrames: data.frames.length, failedMotionFrames: data.frames.filter(f => f.samples.some(p => !p.pass)).length,
+    motionSamples: data.frames.reduce((sum, f) => sum + f.samples.length, 0),
+    uncoveredFrames: data.frames.filter(f => f.uncovered).length, errors: data.errors,
+    screenshots: data.visualFrames.map(f => ({ name: f.name, file: `docs/evidence/${f.image}` })),
+  });
   evidence.push(record);
 }
 const references = [
@@ -48,7 +60,7 @@ for (const dir of ['packages/map3d/src/streaming', 'packages/map3d/src/labels', 
     const file = `${dir}/${name}`; implementation.push({ file, sha256: sha256(await readFile(file)) });
   }
 }
-for (const file of ['packages/map3d/src/globe/projection.ts', 'apps/playground/src/mapStyle.ts', 'apps/playground/src/roadStyle.ts', 'apps/playground/src/main.ts']) {
+for (const file of ['packages/map3d/src/globe/projection.ts', 'apps/playground/src/mapStyle.ts', 'apps/playground/src/mapSource.ts', 'apps/playground/src/roadStyle.ts', 'apps/playground/src/main.ts', 'apps/playground/src/oceanContinuityBenchmark.ts', 'packages/map3d/test/oceanComposition.test.ts']) {
   implementation.push({ file, sha256: sha256(await readFile(file)) });
 }
 await writeFile('docs/evidence/maplibre-alignment/verification-summary.json', `${JSON.stringify({ at: new Date().toISOString(), sources, implementation, evidence }, null, 2)}\n`);

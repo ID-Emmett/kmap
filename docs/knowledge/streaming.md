@@ -16,6 +16,8 @@
 
 ## 画质与数据契约
 
+- KYE `kye_water_ocean/7/108/55` 含局部海洋几何，`7/109/55` 返回 204；`kye_water/6/54/27` 提供该区域基础水面。Playground 基础海洋持续参与合成，详细海洋独立补充，两者共享填充批次。真实数据 fixture、同级缩放与海陆像素证据见 `docs/evidence/maplibre-alignment/README.md`。
+
 - 当前平面/地球过渡、Inspector、地名层级和逐帧冷加载证据见 [地图样式与稳定性验证](../evidence/map-inspector/README.md)。
 
 - 最大倾角为 75°。CPU 与 TSL 使用一致的球面距离雾约束，球缘薄雾作用于地平线。目标集合保持单一层级，向下/向上 zoom 滞回分别为 0.18/0.08。

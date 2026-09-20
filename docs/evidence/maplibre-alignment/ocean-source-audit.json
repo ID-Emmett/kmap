@@ -1,0 +1,167 @@
+[
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/108/55.pbf",
+    "status": 200,
+    "bytes": 11784,
+    "sha256": "92403c047535336a21780ba297213956bf2a56ffbb64065223c326c78e0330fd",
+    "extent": 4096,
+    "features": 313,
+    "classes": {
+      "ocean": 313
+    },
+    "areaWithBuffer": 0.3944689631462097,
+    "large": [],
+    "gridSamples": 1024,
+    "waterSamples": 369
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/109/55.pbf",
+    "status": 204,
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "classes": {},
+    "areaWithBuffer": 0,
+    "large": [],
+    "gridSamples": 1024,
+    "waterSamples": 0
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/107/55.pbf",
+    "status": 200,
+    "bytes": 31350,
+    "sha256": "76bd505747d48533b404ec51e3096d523487e39ac2a2289bbc217ec12b76fd39",
+    "extent": 4096,
+    "features": 769,
+    "classes": {
+      "ocean": 769
+    },
+    "areaWithBuffer": 0.9054527282714844,
+    "large": [],
+    "gridSamples": 1024,
+    "waterSamples": 874
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water/6/54/27.pbf",
+    "status": 200,
+    "bytes": 950,
+    "sha256": "211becb5dc9c2cddf410e31cc802db867c5cf01021730b08f546d26a01e8e2e3",
+    "extent": 4096,
+    "features": 1,
+    "classes": {
+      "ocean": 1
+    },
+    "areaWithBuffer": 1.0727799236774445,
+    "large": [
+      {
+        "properties": {
+          "maxLevel": 6,
+          "level": 5,
+          "class": "ocean"
+        },
+        "area": 1.0727799236774445,
+        "bbox": [
+          -80,
+          -80,
+          4176,
+          4176
+        ],
+        "points": [
+          {
+            "x": 4176,
+            "y": -80
+          },
+          {
+            "x": 4176,
+            "y": 4176
+          },
+          {
+            "x": -80,
+            "y": 4176
+          },
+          {
+            "x": -80,
+            "y": -80
+          },
+          {
+            "x": 4176,
+            "y": -80
+          }
+        ]
+      }
+    ],
+    "gridSamples": 1024,
+    "waterSamples": 1017
+  },
+  {
+    "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water/6/53/27.pbf",
+    "status": 200,
+    "bytes": 4081,
+    "sha256": "a48324f868175d017c799f904bd79a882eb964ff31327e02d8e77bf4a8118598",
+    "extent": 4096,
+    "features": 1,
+    "classes": {
+      "ocean": 1
+    },
+    "areaWithBuffer": 0.8334907591342926,
+    "large": [
+      {
+        "properties": {
+          "maxLevel": 6,
+          "level": 5,
+          "class": "ocean"
+        },
+        "area": 0.8334907591342926,
+        "bbox": [
+          -80,
+          -80,
+          4176,
+          4176
+        ],
+        "points": [
+          {
+            "x": 4176,
+            "y": 2262
+          },
+          {
+            "x": 4176,
+            "y": 4176
+          },
+          {
+            "x": -80,
+            "y": 4176
+          },
+          {
+            "x": -80,
+            "y": 2307
+          },
+          {
+            "x": -74,
+            "y": 2304
+          },
+          {
+            "x": -48,
+            "y": 2273
+          },
+          {
+            "x": -39,
+            "y": 2265
+          },
+          {
+            "x": -30,
+            "y": 2270
+          },
+          {
+            "x": -12,
+            "y": 2260
+          },
+          {
+            "x": 0,
+            "y": 2259
+          }
+        ]
+      }
+    ],
+    "gridSamples": 1024,
+    "waterSamples": 789
+  }
+]

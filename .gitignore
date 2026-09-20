@@ -75,3 +75,4 @@ docs/evidence/maplibre-alignment/*
 !docs/evidence/maplibre-alignment/README.md
 !docs/evidence/maplibre-alignment/metrics.md
 !docs/evidence/maplibre-alignment/verification-summary.json
+!docs/evidence/maplibre-alignment/ocean-source-audit.json

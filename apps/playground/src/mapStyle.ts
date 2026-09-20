@@ -45,8 +45,9 @@ const roads = [
 ];
 
 export const PLAYGROUND_LAYERS: readonly MapLayerOptions[] = [
-  { type: 'fill', id: 'ocean-base', sourceLayer: 'ocean_base', maxZoom: 6, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
-  { type: 'fill', id: 'ocean-fill', sourceLayer: 'ocean', minZoom: 7, paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
+  // 基础海洋持续覆盖；详细海洋是地理范围稀疏的补充源，二者按内容合成。
+  { type: 'fill', id: 'ocean-base', sourceLayer: 'ocean_base', paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
+  { type: 'fill', id: 'ocean-fill', sourceLayer: 'ocean', paint: { color: PLAYGROUND_STYLE_TOKENS.water } },
   { type: 'fill', id: 'landuse-neutral', sourceLayer: 'landuse', minZoom: 5,
     filters: [{ operator: '!=', property: 'class', value: 'grass' }], paint: { color: PLAYGROUND_STYLE_TOKENS.landuseNeutral } },
   { type: 'fill', id: 'landuse-vegetation', sourceLayer: 'landuse', minZoom: 5,

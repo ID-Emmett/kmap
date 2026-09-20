@@ -1,0 +1,1070 @@
+{
+  "at": "2026-09-20T06:39:31.170Z",
+  "sources": [
+    {
+      "url": "https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/7/107/55.pbf",
+      "file": "docs/evidence/maplibre-alignment/../map-continuity/kye-ocean-7-107-55.mvt",
+      "sha256": "76bd505747d48533b404ec51e3096d523487e39ac2a2289bbc217ec12b76fd39"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/maplibre/maplibre-gl-js/b044d9f8de4ee1c22430c1b79d10e004e5e86994/src/shaders/line.vertex.glsl",
+      "file": "docs/evidence/maplibre-alignment/line.vertex.glsl",
+      "sha256": "c200e78b483009508091719b3a25af64e977df5a26ee9165c337749257df1481"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/maplibre/maplibre-gl-js/b044d9f8de4ee1c22430c1b79d10e004e5e86994/src/shaders/line.fragment.glsl",
+      "file": "docs/evidence/maplibre-alignment/line.fragment.glsl",
+      "sha256": "918360d897aaae17235043b1f7aa1612bbafed490898f53f8adbdd98c64efee3"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/maplibre/maplibre-gl-js/b044d9f8de4ee1c22430c1b79d10e004e5e86994/src/data/bucket/line_bucket.ts",
+      "file": "docs/evidence/maplibre-alignment/line_bucket.ts",
+      "sha256": "20d3eccdb641515b8bdf9b59b09b4c6c5a8dd902b381ce81c4808fd67f03b987"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/maplibre/maplibre-gl-js/b044d9f8de4ee1c22430c1b79d10e004e5e86994/src/shaders/symbol_sdf.fragment.glsl",
+      "file": "docs/evidence/maplibre-alignment/symbol_sdf.fragment.glsl",
+      "sha256": "1027b693db2d44f13bab820fb8bb32e50ad2a9dc78322a08268a2b936e763c58"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/maplibre/maplibre-style-spec/main/src/reference/v8.json",
+      "file": "docs/evidence/maplibre-alignment/style-spec-v8.json",
+      "sha256": "4ca10f51e276389ccc73d27efb3f585310c7ad154190672b12e1678286236e55"
+    },
+    {
+      "url": "https://tiles.openfreemap.org/styles/liberty",
+      "file": "docs/evidence/maplibre-alignment/liberty.json",
+      "sha256": "6010998863b4876911ac9a2d62c9a28d97c8877f6d20cd158b74808572257b60"
+    },
+    {
+      "url": "https://tiles.kye-erp.com/maptiles/styles/v3/normal.json",
+      "file": "docs/evidence/maplibre-alignment/kye-normal.json",
+      "sha256": "3d2ae2173ad31232addaa3978074e8e9b134ef532f69ded1702e4c9983ddab46"
+    }
+  ],
+  "implementation": [
+    {
+      "file": "packages/map3d/src/streaming/address.ts",
+      "sha256": "afd02ddc514fd37fb1a7109c2cb8d1790b05b94f9af0863565106740f66a7be8"
+    },
+    {
+      "file": "packages/map3d/src/streaming/availability.ts",
+      "sha256": "d65ed9f5b6144047cafc1864f7bbb5536928a63968f498ef1d0f231cb376376a"
+    },
+    {
+      "file": "packages/map3d/src/streaming/buildings.ts",
+      "sha256": "21b4978396035daf7efb0374e9b126e288f38deb0a15623148516ee36ecfecbe"
+    },
+    {
+      "file": "packages/map3d/src/streaming/buildingSurface.ts",
+      "sha256": "37f6005453da22402b43d0849abc06a9904f44795c1d146ae66b5761736d8f83"
+    },
+    {
+      "file": "packages/map3d/src/streaming/coverage.ts",
+      "sha256": "d6ede61075ba9b8fb88e779d5ad1f0e9c253de1e97ade1b5d883a752a5ffe2a2"
+    },
+    {
+      "file": "packages/map3d/src/streaming/coveringTiles.ts",
+      "sha256": "512eb4edf3866a75610821ee6e9290ca95b9cf121828460a472b7f82fdd5bf6a"
+    },
+    {
+      "file": "packages/map3d/src/streaming/diagnostics.ts",
+      "sha256": "3ddee78bdef7b315e66f11068dca0cebbcd5740640c62bbff42ed5ce10ba937c"
+    },
+    {
+      "file": "packages/map3d/src/streaming/engine.ts",
+      "sha256": "8800e07d7a3286a4c5ffb59cab5f9b7748e710828395791c054071279097cb3d"
+    },
+    {
+      "file": "packages/map3d/src/streaming/fallbackDemand.ts",
+      "sha256": "1ba3a63addccb1682de838b796868d6d3b1f510b79a3ede0a6b36865b6ec7312"
+    },
+    {
+      "file": "packages/map3d/src/streaming/fills.ts",
+      "sha256": "a354a01b7525786f32ea0b0cc6c45352a1cec7ff198f9ac9c7903f7139657b22"
+    },
+    {
+      "file": "packages/map3d/src/streaming/fillSample.ts",
+      "sha256": "c31795c5f1b9f8ba30c28585f8a78541940b3d38e5d2c132f15d34a849344f82"
+    },
+    {
+      "file": "packages/map3d/src/streaming/fillSurface.ts",
+      "sha256": "af0f7b5e919b6f8aef2325f9e0cec7c158efcc5c4ef2ab038eff37294fcd88d4"
+    },
+    {
+      "file": "packages/map3d/src/streaming/fog.ts",
+      "sha256": "4c364b05abbcdbdd7725dfbd791bc77b407c16eb9b2f238a120793b67bdb9af5"
+    },
+    {
+      "file": "packages/map3d/src/streaming/groundVisibility.ts",
+      "sha256": "2ea98a3418aeb125c6d4cc379a96b691014ba7c7040ae480f8fe76206d60dd75"
+    },
+    {
+      "file": "packages/map3d/src/streaming/limits.ts",
+      "sha256": "08c9d1f2f602d3abfd3af287378c08d9b241de51d8e6e045a188ed2f743c4876"
+    },
+    {
+      "file": "packages/map3d/src/streaming/lineChains.ts",
+      "sha256": "168bf220e6f74f8b26341c3f7764e36c64a42ad129efe6dbc8124b2e4de5be08"
+    },
+    {
+      "file": "packages/map3d/src/streaming/lineJoins.ts",
+      "sha256": "046cef86350494409274d0d8d7527b6560e80c8d604626369b878e21a38c7f9d"
+    },
+    {
+      "file": "packages/map3d/src/streaming/lines.ts",
+      "sha256": "d5d40955d1a3b3ee57ca234552c753fb817170ab9d090045b5981b1858233e92"
+    },
+    {
+      "file": "packages/map3d/src/streaming/lineStyle.ts",
+      "sha256": "3596d54fa49b4856963852f35ba533a7ce24b9afa2d7fc43a143292f0702dfcc"
+    },
+    {
+      "file": "packages/map3d/src/streaming/lineSurface.ts",
+      "sha256": "e3bc685c74e6eaeb4740ceefb2d3503dcf27c1781fa6000b984a32a8ca50bf59"
+    },
+    {
+      "file": "packages/map3d/src/streaming/lod.ts",
+      "sha256": "0df72909e27108d10eee714a7aaa45134fbe4a550fbba665f47914b675fa8270"
+    },
+    {
+      "file": "packages/map3d/src/streaming/maskVertex.ts",
+      "sha256": "55985241eed5c535eb1d5d515a87f544c58bf75287ebbfbab03a9cddc168a892"
+    },
+    {
+      "file": "packages/map3d/src/streaming/overlayCache.ts",
+      "sha256": "3eec77fc8b2f6574bd69dc551419f8f3a5463fc183622c4e3e86556a2c2e8e15"
+    },
+    {
+      "file": "packages/map3d/src/streaming/paint.ts",
+      "sha256": "bc1ef13c35a32ae151ae1b6c0e4ab87804f752b2c8bf4de5339f9f1a23145f39"
+    },
+    {
+      "file": "packages/map3d/src/streaming/paint.worker.ts",
+      "sha256": "a48e0eba12c86514dfa0a4a22c4e40dfd9459af9165e4f03c5339647d7621c8e"
+    },
+    {
+      "file": "packages/map3d/src/streaming/patchGeometry.ts",
+      "sha256": "0a259a5a6d2eb5843e56959581709e9fc67098dd7b440d5cd519f63b1e83f46e"
+    },
+    {
+      "file": "packages/map3d/src/streaming/pipeline.ts",
+      "sha256": "c7402be4cc0f2247f48d8f1dfdbb3b54b8c532dd25c08813026116c06d927993"
+    },
+    {
+      "file": "packages/map3d/src/streaming/pixelAudit.ts",
+      "sha256": "37f3520e635e01707ab88ccae558ca85292f7426ed100cd82d4ed5e7be88dbf0"
+    },
+    {
+      "file": "packages/map3d/src/streaming/protocol.ts",
+      "sha256": "8a4180ddd41fd8d217abc6a0635fa191ed02511004e896662d7ab299ffd5b9ce"
+    },
+    {
+      "file": "packages/map3d/src/streaming/renderCover.ts",
+      "sha256": "d35340b413156b65a411dbf5b9299549af4e2ce1d0db8f26d9138cf52161605a"
+    },
+    {
+      "file": "packages/map3d/src/streaming/samples.ts",
+      "sha256": "d82759de0abec186fd720982bb7b9ee193579da466b3eb3756deb2620f6ba827"
+    },
+    {
+      "file": "packages/map3d/src/streaming/selection.ts",
+      "sha256": "507be0cd2594ce2c39aad9c1aa3a54c341a96994deebebb926a7ff35cc087e2c"
+    },
+    {
+      "file": "packages/map3d/src/streaming/surface.ts",
+      "sha256": "0008214855012c40138b73eda785cad721cff58475f3fd2559eb6522cacdec05"
+    },
+    {
+      "file": "packages/map3d/src/streaming/surfaceBytes.ts",
+      "sha256": "ef7c42c1fdb244e46d74cdd7c6e39e91abb748d1877da6ada2993dadaa023f86"
+    },
+    {
+      "file": "packages/map3d/src/streaming/tileDebug.ts",
+      "sha256": "0fa6de5fffaa98138d11f90d3e85d4acc4866f16b55e754e930726d7f73286c3"
+    },
+    {
+      "file": "packages/map3d/src/streaming/tileRequest.ts",
+      "sha256": "da4fe791aa2b40d17400e419255e614940162d282088db46722b8ee3299aa21f"
+    },
+    {
+      "file": "packages/map3d/src/streaming/tileSources.ts",
+      "sha256": "cb99d4cc10f4d63e1f7e9551cec6af2572c2fa7510e573db76815d442d1e1b94"
+    },
+    {
+      "file": "packages/map3d/src/streaming/tileStore.ts",
+      "sha256": "288fff2eb0b08ebc4cefb441ab94c05dccc29688fed9529f6904ab84f88d1600"
+    },
+    {
+      "file": "packages/map3d/src/streaming/workers.ts",
+      "sha256": "3624d040f9705abbc881b111310a67027636f419043d6ba046ba44d91ba38646"
+    },
+    {
+      "file": "packages/map3d/src/labels/candidates.ts",
+      "sha256": "9d3e70cbcb9c7cf442ab89fc4bfdf8693a6baf917597822773511475fda67186"
+    },
+    {
+      "file": "packages/map3d/src/labels/collision.ts",
+      "sha256": "3274dc678d6dccbbc2771c774b774c9a08c88bd46dfd433ce3dcbea256d1395e"
+    },
+    {
+      "file": "packages/map3d/src/labels/glyphAtlas.ts",
+      "sha256": "d71b2a3a1253432bf62f98e87e70a516aa6391872f7ef63b00888834796fd4b2"
+    },
+    {
+      "file": "packages/map3d/src/labels/glyphRun.ts",
+      "sha256": "ca9a9bf140a6e82577d535ba502ee1831b9ac0a6f7403fddf3b6c35ecd10bfdc"
+    },
+    {
+      "file": "packages/map3d/src/labels/glyphs.ts",
+      "sha256": "30f1e340a8a459e0ca77a96fa7dcfcedb1b9688233bce26590de80adbcff1807"
+    },
+    {
+      "file": "packages/map3d/src/labels/icons.ts",
+      "sha256": "a8d3122c20ecee0c66974b670433a4921cd2ccbfb6b7cffc0029dc7c0b3c3d53"
+    },
+    {
+      "file": "packages/map3d/src/labels/labelSurface.ts",
+      "sha256": "28776a93a085bae3ba9e7722dfca3e1f2195b17b4b7a6c84d6e7f8cd3dc1feae"
+    },
+    {
+      "file": "packages/map3d/src/labels/labelSystem.ts",
+      "sha256": "9f25c4657a5946a1a2abc79549686b00805856f3520b9f574b286cc6ee2bacc6"
+    },
+    {
+      "file": "packages/map3d/src/labels/symbolPlacement.ts",
+      "sha256": "2904757a2da004341f666bc3269f4f4a102fbaa37af92bba2e2381d5bf8b9ca6"
+    },
+    {
+      "file": "packages/map3d/src/interaction/eventHelpers.ts",
+      "sha256": "221060dcd4dca853aa6c24018a1b0a4980fc53bc79ea8dcfc9b0028ceed58a73"
+    },
+    {
+      "file": "packages/map3d/src/interaction/inertia.ts",
+      "sha256": "34773bd6a9f6405334cd425da7a3da157b636a2d91b7ff9753f553cdf059a185"
+    },
+    {
+      "file": "packages/map3d/src/interaction/mapInteractions.ts",
+      "sha256": "58344abebecfc809c4bec4daced22df3d3923412c3213a2e3c45fc7e43af46f6"
+    },
+    {
+      "file": "packages/map3d/src/interaction/motionSnapshot.ts",
+      "sha256": "b31a7d3d74badc2b9f8c62f45c992e581a09ecb711f067a4f6629f4aff28c9d4"
+    },
+    {
+      "file": "packages/map3d/src/interaction/pointerVelocity.ts",
+      "sha256": "a6d83785af68e0a4d3badaa315186c2e51a4e77b5cffcbd9b66f42a639855304"
+    },
+    {
+      "file": "packages/map3d/src/interaction/viewTransforms.ts",
+      "sha256": "da66c0559fa8eb1846517189336585f6a0a9f0d8150059160b7cc5b6ddd9be06"
+    },
+    {
+      "file": "packages/map3d/src/interaction/zoomAnchor.ts",
+      "sha256": "4d08c27ebe8cf97987352c594c1ab09491261eb395e5264725258849326ab888"
+    },
+    {
+      "file": "packages/map3d/src/globe/projection.ts",
+      "sha256": "772e4daffd4f926335037b63f6e303d805f4899f31afca63e10e374eecc472e8"
+    },
+    {
+      "file": "apps/playground/src/mapStyle.ts",
+      "sha256": "421f8f6f5bbddf72df5376117b325cd5f5d0167df4c6e8a0eb91ba2204150c95"
+    },
+    {
+      "file": "apps/playground/src/mapSource.ts",
+      "sha256": "1df70ea2d976b6532f904a45faf67335a1b50bac122fc4a4e287116b26610e5d"
+    },
+    {
+      "file": "apps/playground/src/roadStyle.ts",
+      "sha256": "5752aaac886b14ea2b1241dd23503870619aaa79be429f31d3ca9a4365aba156"
+    },
+    {
+      "file": "apps/playground/src/main.ts",
+      "sha256": "085b911835c2b2ae932543a5bb0a0ad9326967d47c10f72b3aeec4a7809156a6"
+    },
+    {
+      "file": "apps/playground/src/oceanContinuityBenchmark.ts",
+      "sha256": "378bbd850d6890830b241fb68ce970a9a5b0fabfee3a3c92feb641a2cf68db87"
+    },
+    {
+      "file": "packages/map3d/test/oceanComposition.test.ts",
+      "sha256": "21036f66bad1358a0296127d6887fe1af10af3ccd4733ebce52f7814a865d599"
+    }
+  ],
+  "evidence": [
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T00-47-44-210Z.json",
+      "sha256": "98fd3bf91241e0e29071ce4855e53700df025d8493a545fa348ae5fd6bbaffa8",
+      "kind": "label-subpixel-motion",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "frames": 128,
+      "settled": true,
+      "glyphRange": [
+        597,
+        607
+      ],
+      "relativeRange": 0.000051156683257267634,
+      "maxStep": 0.000005545418200097326
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T00-48-20-981Z.json",
+      "sha256": "5291a2a8be33c72036c2496f57d528e13ce65e9b6a9e3653c4335e3af1a54a1c",
+      "kind": "label-subpixel-motion",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 2
+      },
+      "frames": 128,
+      "settled": true,
+      "glyphRange": [
+        597,
+        597
+      ],
+      "relativeRange": 0.0008639015125056593,
+      "maxStep": 0.0002896035545942751
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T00-48-29-258Z.json",
+      "sha256": "f747b09d6b39a43aefb5636a8d12b7906c5db41950f534725cfa0a0adc705c73",
+      "kind": "maplibre-alignment-seams",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "frames": 720,
+      "requests": 251,
+      "settled": true,
+      "anomalies": 0,
+      "maxHoles": 0,
+      "uncoveredFrames": 0,
+      "errors": []
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T00-50-13-146Z.json",
+      "sha256": "74076d1ea6b7298d9df11a476455ccf383c159fc6daf33fc75d8de9839dfb428",
+      "kind": "label-subpixel-motion",
+      "backend": "webgl2",
+      "viewport": {
+        "width": 2560,
+        "height": 1305,
+        "pixelRatio": 1
+      },
+      "frames": 128,
+      "settled": true,
+      "glyphRange": [
+        633,
+        633
+      ],
+      "relativeRange": 0.0016606139294521247,
+      "maxStep": 0.0004157377940920055
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T00-56-16-404Z.json",
+      "sha256": "90c5be0309f5c24aaff05d1d0527c3757a4e2cd144c39d39fa72347cd6b12d54",
+      "kind": "maplibre-alignment-seams",
+      "backend": "webgl2",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "frames": 720,
+      "requests": 258,
+      "settled": true,
+      "anomalies": 0,
+      "maxHoles": 0,
+      "uncoveredFrames": 0,
+      "errors": []
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T01-14-22-200Z.json",
+      "sha256": "5c25ec7d9eb0b2edae68bdb847a7260873339292c803d8d22309cbdff549e149",
+      "kind": "pointer-anchor-ui",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "errorPixels": 1.827844784926689e-8,
+      "before": {
+        "center": {
+          "lng": 116.39465,
+          "lat": 39.9055
+        },
+        "zoom": 15.8,
+        "bearing": 25,
+        "pitch": 55
+      },
+      "after": {
+        "center": {
+          "lng": 116.39567544924415,
+          "lat": 39.90429290022042
+        },
+        "zoom": 16.800000000000004,
+        "bearing": 25,
+        "pitch": 55
+      }
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T01-15-04-794Z.json",
+      "sha256": "45ffc5775508801ed46ccd3fcb7245be204eb2daed87760cb8b7c7879d71e178",
+      "kind": "actual-pan-ui",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "frames": 200,
+      "uncoveredFrames": 0,
+      "zooms": [
+        16.800000000000004
+      ]
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-26-02-708Z.json",
+      "sha256": "641fdbeaeee6a12ac36341623a04bd7cc5fff211e3483a5048895468b3078a38",
+      "kind": "ocean-content-continuity",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 2550,
+        "height": 1363,
+        "pixelRatio": 1
+      },
+      "scenes": [
+        {
+          "name": "user-6.84",
+          "settled": true,
+          "sourceLevels": {
+            "6": 55
+          },
+          "samples": 12,
+          "failedSamples": 0
+        },
+        {
+          "name": "user-7.34",
+          "settled": true,
+          "sourceLevels": {
+            "7": 104
+          },
+          "samples": 11,
+          "failedSamples": 0
+        },
+        {
+          "name": "same-view-6.84",
+          "settled": true,
+          "sourceLevels": {
+            "6": 57
+          },
+          "samples": 12,
+          "failedSamples": 0
+        },
+        {
+          "name": "threshold-7",
+          "settled": true,
+          "sourceLevels": {
+            "6": 48
+          },
+          "samples": 12,
+          "failedSamples": 0
+        },
+        {
+          "name": "taiwan10",
+          "settled": true,
+          "sourceLevels": {
+            "10": 66
+          },
+          "samples": 2,
+          "failedSamples": 0
+        }
+      ],
+      "motionFrames": 240,
+      "failedMotionFrames": 0,
+      "motionSamples": 2836,
+      "uncoveredFrames": 0,
+      "errors": [],
+      "screenshots": [
+        {
+          "name": "user-6.84",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-26-02-708Z-frames/0000.jpg"
+        },
+        {
+          "name": "user-7.34",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-26-02-708Z-frames/0001.jpg"
+        },
+        {
+          "name": "same-view-6.84",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-26-02-708Z-frames/0002.jpg"
+        },
+        {
+          "name": "threshold-7",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-26-02-708Z-frames/0003.jpg"
+        },
+        {
+          "name": "taiwan10",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-26-02-708Z-frames/0004.jpg"
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z.json",
+      "sha256": "87018099e0fac511f3065029ddc2ff0d81a6a28dfd5f09aa376b3b4451177f16",
+      "kind": "maplibre-alignment-real",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 2560,
+        "height": 1305,
+        "pixelRatio": 1
+      },
+      "scenes": [
+        {
+          "name": "user-road",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 5
+        },
+        {
+          "name": "user-land",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 87
+        },
+        {
+          "name": "taiwan7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 78
+        },
+        {
+          "name": "taiwan10",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 0
+        },
+        {
+          "name": "country",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 1
+        },
+        {
+          "name": "province",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 26
+        },
+        {
+          "name": "capital",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 29
+        },
+        {
+          "name": "beijing",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 128
+        },
+        {
+          "name": "beijing20",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 1
+        }
+      ],
+      "motionFrames": 360,
+      "motionUncovered": 0,
+      "performance": {
+        "frames": 1652,
+        "fps": 137.6712557085239,
+        "intervalP95": 11.899999999965075,
+        "cpuP95": 10.800000000745058,
+        "uncoveredFrames": 0,
+        "maxCpuBytes": 222077310,
+        "maxGpuBytes": 177180714
+      },
+      "errors": [
+        {
+          "code": "NETWORK_ERROR",
+          "message": "timeout"
+        }
+      ],
+      "screenshots": [
+        {
+          "name": "user-road",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0000.jpg",
+          "sha256": "9c4220f22b6868768fb07682f8d7a8fbc4460e9bdc37e98ba8844b352e61fc03"
+        },
+        {
+          "name": "user-land",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0001.jpg",
+          "sha256": "48485197780e31f4cdf1a700950754a8b5c9df4dce98222bcff7c848e9b42718"
+        },
+        {
+          "name": "taiwan7",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0002.jpg",
+          "sha256": "e2c5a9785c64f6eb993480119139d90fc39254ffc2fdc43de3ddc92b85208fd8"
+        },
+        {
+          "name": "taiwan10",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0003.jpg",
+          "sha256": "25e7aed79258c61c5f700c0c30c49b9a0b3f2944867d7280000daef5f941fb76"
+        },
+        {
+          "name": "country",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0004.jpg",
+          "sha256": "98aee8786db7d3b833ed570f8b0faff45683e07e0105f892be70efa496396c4f"
+        },
+        {
+          "name": "province",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0005.jpg",
+          "sha256": "718ad471a5f4487c3badfb77ff95ae77bf3302c74419bee6635b49e7d8f54614"
+        },
+        {
+          "name": "capital",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0006.jpg",
+          "sha256": "40b72ac12107a80710d4dd3d3d9762f1c564e2c3afe55f57157850dafeeaef61"
+        },
+        {
+          "name": "beijing",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0007.jpg",
+          "sha256": "27e383a444621bfc8b8be6ace2bca3952d8723b7b5b0e1c6c7ffcad78110bb48"
+        },
+        {
+          "name": "beijing20",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0008.jpg",
+          "sha256": "ee912753034ce98e2404e25b7bc946ce2dd9fc05786d72017558f9fb37026f43"
+        },
+        {
+          "name": "motion0",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0009.jpg",
+          "sha256": "25a90e60f1f5f3d232b39e1817e337c91e6dbb900f283018f44bcbd18c433592"
+        },
+        {
+          "name": "motion60",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0010.jpg",
+          "sha256": "97105055ad5760c38eaa64969ef4f465da621d2beca959385abd2d71be942bae"
+        },
+        {
+          "name": "motion120",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0011.jpg",
+          "sha256": "d8b9db4b855bf0929abf97979574e9c09dd0e222ed41c68ada4e0eb8bf1dddeb"
+        },
+        {
+          "name": "motion180",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0012.jpg",
+          "sha256": "c9fab7abd457583a4479f07b93d770f53551cda7e8e07f405de666e3cee34d88"
+        },
+        {
+          "name": "motion240",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0013.jpg",
+          "sha256": "c599907b14f44bfad7079426d94ac0484674e1db01f7a654ff86d6f5cb2c87a6"
+        },
+        {
+          "name": "motion300",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-27-54-924Z-frames/0014.jpg",
+          "sha256": "a783c55984d78eb6ad9dce420d0c3d2997fef85747a17d4fc8379e20111eca83"
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-28-52-389Z.json",
+      "sha256": "53bbcb0ea196f8e6eba88c769d45fa87dfbb3b411c945ef24caaf4af169c1f7d",
+      "kind": "ocean-content-continuity",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 1887,
+        "height": 1022,
+        "pixelRatio": 1
+      },
+      "scenes": [
+        {
+          "name": "user-6.84",
+          "settled": true,
+          "sourceLevels": {
+            "6": 39
+          },
+          "samples": 8,
+          "failedSamples": 0
+        },
+        {
+          "name": "user-7.34",
+          "settled": true,
+          "sourceLevels": {
+            "7": 63
+          },
+          "samples": 8,
+          "failedSamples": 0
+        },
+        {
+          "name": "same-view-6.84",
+          "settled": true,
+          "sourceLevels": {
+            "7": 112
+          },
+          "samples": 12,
+          "failedSamples": 0
+        },
+        {
+          "name": "threshold-7",
+          "settled": true,
+          "sourceLevels": {
+            "7": 94
+          },
+          "samples": 11,
+          "failedSamples": 0
+        },
+        {
+          "name": "taiwan10",
+          "settled": true,
+          "sourceLevels": {
+            "10": 40
+          },
+          "samples": 2,
+          "failedSamples": 0
+        }
+      ],
+      "motionFrames": 240,
+      "failedMotionFrames": 0,
+      "motionSamples": 2311,
+      "uncoveredFrames": 0,
+      "errors": [],
+      "screenshots": [
+        {
+          "name": "user-6.84",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-28-52-389Z-frames/0000.jpg"
+        },
+        {
+          "name": "user-7.34",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-28-52-389Z-frames/0001.jpg"
+        },
+        {
+          "name": "same-view-6.84",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-28-52-389Z-frames/0002.jpg"
+        },
+        {
+          "name": "threshold-7",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-28-52-389Z-frames/0003.jpg"
+        },
+        {
+          "name": "taiwan10",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-28-52-389Z-frames/0004.jpg"
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-31-09-618Z.json",
+      "sha256": "5359837b469290c2afa12bd2c89defd20b45f071ec45a4e6c985673c43b5cc3d",
+      "kind": "ocean-content-continuity",
+      "backend": "webgl2",
+      "viewport": {
+        "width": 1887,
+        "height": 1022,
+        "pixelRatio": 1
+      },
+      "scenes": [
+        {
+          "name": "user-6.84",
+          "settled": true,
+          "sourceLevels": {
+            "6": 39
+          },
+          "samples": 8,
+          "failedSamples": 0
+        },
+        {
+          "name": "user-7.34",
+          "settled": true,
+          "sourceLevels": {
+            "7": 63
+          },
+          "samples": 8,
+          "failedSamples": 0
+        },
+        {
+          "name": "same-view-6.84",
+          "settled": true,
+          "sourceLevels": {
+            "7": 112
+          },
+          "samples": 12,
+          "failedSamples": 0
+        },
+        {
+          "name": "threshold-7",
+          "settled": true,
+          "sourceLevels": {
+            "7": 94
+          },
+          "samples": 11,
+          "failedSamples": 0
+        },
+        {
+          "name": "taiwan10",
+          "settled": true,
+          "sourceLevels": {
+            "10": 40
+          },
+          "samples": 2,
+          "failedSamples": 0
+        }
+      ],
+      "motionFrames": 240,
+      "failedMotionFrames": 0,
+      "motionSamples": 2311,
+      "uncoveredFrames": 0,
+      "errors": [],
+      "screenshots": [
+        {
+          "name": "user-6.84",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-31-09-618Z-frames/0000.jpg"
+        },
+        {
+          "name": "user-7.34",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-31-09-618Z-frames/0001.jpg"
+        },
+        {
+          "name": "same-view-6.84",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-31-09-618Z-frames/0002.jpg"
+        },
+        {
+          "name": "threshold-7",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-31-09-618Z-frames/0003.jpg"
+        },
+        {
+          "name": "taiwan10",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-31-09-618Z-frames/0004.jpg"
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z.json",
+      "sha256": "888493a7b96e952273167555e1ea96e09a6f72724ba793d369beac4d3f547ae3",
+      "kind": "maplibre-alignment-real",
+      "backend": "webgl2",
+      "viewport": {
+        "width": 2560,
+        "height": 1305,
+        "pixelRatio": 1
+      },
+      "scenes": [
+        {
+          "name": "user-road",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 5
+        },
+        {
+          "name": "user-land",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 87
+        },
+        {
+          "name": "taiwan7",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 78
+        },
+        {
+          "name": "taiwan10",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 0
+        },
+        {
+          "name": "country",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 1
+        },
+        {
+          "name": "province",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 26
+        },
+        {
+          "name": "capital",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 29
+        },
+        {
+          "name": "beijing",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 128
+        },
+        {
+          "name": "beijing20",
+          "settled": true,
+          "missing": 0,
+          "uncovered": 0,
+          "labels": 1
+        }
+      ],
+      "motionFrames": 360,
+      "motionUncovered": 0,
+      "performance": {
+        "frames": 1555,
+        "fps": 129.52288931831822,
+        "intervalP95": 17.59999999999127,
+        "cpuP95": 11.199999999254942,
+        "uncoveredFrames": 0,
+        "maxCpuBytes": 220080003,
+        "maxGpuBytes": 177441992
+      },
+      "errors": [],
+      "screenshots": [
+        {
+          "name": "user-road",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0000.jpg",
+          "sha256": "338ccc6fa7d6d9437fbd77c8cb7d2b87e43292c9b36f290471a84a717a74185f"
+        },
+        {
+          "name": "user-land",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0001.jpg",
+          "sha256": "80e85c493205574f963613ef29b25a863ae0be1ee5c61103f82a0c5a76968aa9"
+        },
+        {
+          "name": "taiwan7",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0002.jpg",
+          "sha256": "2bc333b057cba48d71c5afb918b38e55f59135834ca9001040524a96c46a6ed9"
+        },
+        {
+          "name": "taiwan10",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0003.jpg",
+          "sha256": "8d197fdb91f8171f3c896f690dbaf198e91e23ce84febf559153b8d094e21425"
+        },
+        {
+          "name": "country",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0004.jpg",
+          "sha256": "d147de95668a19ecc5ef9dcbc9d4d58a1b80eeddc901e7c2600c54394633ca50"
+        },
+        {
+          "name": "province",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0005.jpg",
+          "sha256": "1985c451ea435180902e23bc4411138025fe29015f6c7763b2af1d4b41b06f62"
+        },
+        {
+          "name": "capital",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0006.jpg",
+          "sha256": "c0575b5508e6f50a8a3fc5d86a90f44f7d97f923fb97a013be76df334e248a8a"
+        },
+        {
+          "name": "beijing",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0007.jpg",
+          "sha256": "f332c91f4f19cd58bcdd60391a068c91a2bf8bbbb614a0e87f2fda044bc910fb"
+        },
+        {
+          "name": "beijing20",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0008.jpg",
+          "sha256": "a908298ff0d8186f8571769a12e6921bcbf9367917b537307fe1d7e172697d94"
+        },
+        {
+          "name": "motion0",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0009.jpg",
+          "sha256": "92a897b78f67b365b995da066a3d41fc2b4ecddddfa398e6e3b587fc262d0ca3"
+        },
+        {
+          "name": "motion60",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0010.jpg",
+          "sha256": "31674f2ff01a562c874044f5b58d13adbdc331c75521468b9b309247f8a0abcb"
+        },
+        {
+          "name": "motion120",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0011.jpg",
+          "sha256": "baa4b0c4a09d9420a7cbb7cbfa1f66cdbdd49628ddd64541ab1ca7510e8cbe3d"
+        },
+        {
+          "name": "motion180",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0012.jpg",
+          "sha256": "00b8860c525330334afd01263b1938720b4ce59263c591846167173911977e85"
+        },
+        {
+          "name": "motion240",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0013.jpg",
+          "sha256": "ba3c4af1bf6aff7f840df3bbe48eda11c7760161153b19b5cd975c4e54f16963"
+        },
+        {
+          "name": "motion300",
+          "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-32-59-701Z-frames/0014.jpg",
+          "sha256": "ad7296c54421d557f5e347b68e061d1d416d008551417b25975f5bf83c613493"
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-34-59-435Z.json",
+      "sha256": "835ce357c19a4e73d00ab655f15ee314d59ddebba138719f3b03fd0c4d9e649b",
+      "kind": "cold-continuity",
+      "backend": "webgl2",
+      "viewport": {
+        "width": 806,
+        "height": 1272,
+        "pixelRatio": 1
+      },
+      "network": {
+        "latencyMs": 150,
+        "downloadBytesPerSecond": 500000,
+        "browserCache": false
+      },
+      "completed": true,
+      "frames": 725,
+      "reversions": 0,
+      "maxRepeatedRenderDifference": 0,
+      "seenOceanSamples": 9,
+      "errors": []
+    },
+    {
+      "file": "docs/evidence/streaming-rebuild/webgpu-2026-09-20T06-36-44-188Z.json",
+      "sha256": "c6a974bb35cd7ba419e4911193acb6bdd4fe2e0bd4585416c555ad9d81efedd7",
+      "kind": "cold-continuity",
+      "backend": "webgpu",
+      "viewport": {
+        "width": 806,
+        "height": 1272,
+        "pixelRatio": 1
+      },
+      "network": {
+        "latencyMs": 150,
+        "downloadBytesPerSecond": 500000,
+        "browserCache": false
+      },
+      "completed": true,
+      "frames": 600,
+      "reversions": 0,
+      "maxRepeatedRenderDifference": 0,
+      "seenOceanSamples": 9,
+      "errors": []
+    }
+  ]
+}

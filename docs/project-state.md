@@ -7,6 +7,7 @@
 ## 当前结论
 
 - 当前瓦片采用 canonical 数据身份、GPU 管线准备后发布、父到子完整来源模板和逐采样点所有权；道路使用缩放曲线，文字采用持久身份与连续显隐。实现规范见 `docs/architecture/maplibre-aligned-streaming.md`，验证入口为 `docs/evidence/maplibre-alignment/README.md`。
+- 基础海洋持续覆盖，详细海洋按实际空间范围补充；视图缩放独立于海洋内容可见性。资源覆盖与海陆像素正确性分别验证。
 - 城市平面地图在 z4.5～5.5 连续过渡到地球；Inspector 支持三主题、地图元素和文字样式编辑。默认背景/雾为 #dbdeff，陆地为 #e6f4f3。近景精度、地名层级和瓦片加载验证见 `docs/evidence/map-inspector/README.md`。
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。

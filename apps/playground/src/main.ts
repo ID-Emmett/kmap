@@ -4,6 +4,7 @@ import type { Inspector } from 'three/addons/inspector/Inspector.js';
 import { createDiagnosticsPanel } from './diagnosticsPanel.js';
 
 import { PLAYGROUND_STYLE } from './mapStyle.js';
+import { PLAYGROUND_SOURCE } from './mapSource.js';
 import playgroundStyles from './style.css?inline';
 
 const style = document.createElement('style');
@@ -31,24 +32,7 @@ async function bootstrap(): Promise<void> {
       forceWebGL,
       backgroundColor: PLAYGROUND_STYLE.backgroundColor,
     },
-    source: {
-      id: 'kye-main',
-      overlays: [
-        { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf'], minZoom: 6, maxZoom: 6, sourceLayer: 'place', targetLayer: 'place' },
-        ...(['boundary', 'waterway'] as const).map(sourceLayer => ({ tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf'], minZoom: 7, maxZoom: 6, sourceLayer, targetLayer: sourceLayer, onlyWhenLayerMissing: true })),
-        { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water/{z}/{x}/{y}.pbf'], minZoom: 0, maxZoom: 6, sourceLayer: 'water', targetLayer: 'ocean_base', onlyWhenPrimaryEmpty: true },
-        { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_water_ocean/{z}/{x}/{y}.pbf'], minZoom: 7, maxZoom: 7, sourceLayer: 'water', targetLayer: 'ocean' },
-        { tiles: ['https://tiles0.kye-erp.com/v2/maptile-dispatch/data/kye_admin_pro/{z}/{x}/{y}.pbf'], minZoom: 2, maxZoom: 14, sourceLayer: 'border', targetLayer: 'province_border' },
-      ],
-      tiles: [
-        'https://tiles0.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf',
-        'https://tiles1.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf',
-        'https://tiles2.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf',
-        'https://tiles3.kye-erp.com/v2/maptile-dispatch/data/v8Maptile/{z}/{x}/{y}.pbf',
-      ],
-      minZoom: 0,
-      maxZoom: 17,
-    },
+    source: PLAYGROUND_SOURCE,
     layers: PLAYGROUND_STYLE.layers,
     labels: { glyphs: 'https://tiles.kye-erp.com/maptiles/fonts/{fontstack}/{range}.pbf', fontStack: 'Microsoft YaHei Regular', maxLabels: 256 },
     // 已验证 fixture z15/26978/12416 的 Tile 中心。

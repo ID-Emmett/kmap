@@ -26,6 +26,7 @@
 ## 当前高信号事实
 
 - canonical 来源、GPU 准备、父子模板所有权、道路缩放曲线及文字连续显隐的当前设计见 `docs/architecture/maplibre-aligned-streaming.md`。指标定义见 `docs/evidence/maplibre-alignment/metrics.md`。
+- KYE 详细海洋在台湾东侧具有局部覆盖和 204 响应；基础海洋持续合成。数据与同级缩放像素验证见 `docs/evidence/maplibre-alignment/README.md`。
 - 台湾主源 `7/107/55` 返回 HTTP 204，`6/53/27` 提供有效祖先数据；省名来自 `place/class=state`。数据与渲染验证见 `docs/evidence/map-continuity/README.md`。
 
 - Three r185 WebGPU 模板编号缓存、运动中的子区域覆盖和整数层级滞回已通过定点与逐帧验证，见 `docs/evidence/streaming-motion/README.md`。
