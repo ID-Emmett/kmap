@@ -8,11 +8,18 @@ import {
   zoomViewByWheel,
 } from '../src/interaction/mapInteractions.js';
 import {
+  INERTIA_DECAY_PER_SECOND,
   INERTIA_MAX_DURATION_MS,
+  MIN_RELEASE_WINDOW_MS,
+  POINTER_SAMPLE_WINDOW_MS,
   integrateInertiaStep,
   isInertiaStopped,
 } from '../src/interaction/inertia.js';
 import type { InteractionMotionSnapshot } from '../src/interaction/motionSnapshot.js';
+import {
+  WEB_MERCATOR_WORLD_SIZE,
+  projectLngLat,
+} from '../src/spatial/mercator.js';
 import { normalizeViewState } from '../src/spatial/viewState.js';
 import type { ViewState } from '../src/types.js';
 
@@ -307,6 +314,101 @@ describe('Map interactions', () => {
     controller.cancelMotion();
     expect(motion.at(-1)?.phase).toBe('idle');
   });
+
+  it('打断惯性后停顿再微调释放，按窗口平均速度而不是末段速度', () => {
+    const { target, scheduler, getView } = createInteractionHarness({ zoom: 15 });
+
+    // 第一次：快速拖动后释放，进入惯性。
+    scheduler.setNow(0);
+    target.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 0, clientY: 0, timeStamp: 0 }));
+    scheduler.setNow(40);
+    target.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 200, clientY: 0, timeStamp: 40 }));
+    scheduler.step(0);
+    scheduler.setNow(50);
+    target.dispatch('pointerup', pointerEvent({ pointerId: 1, clientX: 200, clientY: 0, timeStamp: 50 }));
+    const released = centerMeters(getView());
+    for (let elapsed = 0; elapsed < 200; elapsed += 16) {
+      scheduler.step(16);
+    }
+    const interrupted = centerMeters(getView());
+    expect(interrupted - released).toBeLessThan(-500);
+
+    // 第二次：按下接管并停顿 300ms，再快速微调 12px 后立刻释放。
+    scheduler.setNow(250);
+    target.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 0, clientY: 0, timeStamp: 250 }));
+    expect(centerMeters(getView())).toBeCloseTo(interrupted, 6);
+    scheduler.setNow(550);
+    target.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 6, clientY: 0, timeStamp: 550 }));
+    scheduler.step(0);
+    scheduler.setNow(564);
+    target.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 12, clientY: 0, timeStamp: 564 }));
+    scheduler.step(0);
+    scheduler.setNow(570);
+    target.dispatch('pointerup', pointerEvent({ pointerId: 1, clientX: 12, clientY: 0, timeStamp: 570 }));
+    const releasedAgain = centerMeters(getView());
+
+    scheduler.runUntilIdle(16, 2_000);
+    const glide = releasedAgain - centerMeters(getView());
+    // 静止时间计入 120ms 窗口；若只看末段 14ms，速度会被放大一个量级。
+    const gestureMetres = 12 * metersPerPixelAtZoom15();
+    const tailGlide = gestureMetres / ((564 - 550) / 1_000) / INERTIA_DECAY_PER_SECOND;
+
+    expect(glide).toBeGreaterThan(0);
+    expect(glide).toBeLessThan(tailGlide * 0.15);
+  });
+
+  it('拖动后静止再松开不进入惯性，速度窗口以松手时刻结束', () => {
+    const { target, scheduler, getView } = createInteractionHarness({ zoom: 15 });
+
+    // 快速拖动 200px 后停住 300ms 再松开：松手时指针已静止，不应沿用拖动速度。
+    scheduler.setNow(0);
+    target.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 0, clientY: 0, timeStamp: 0 }));
+    scheduler.setNow(40);
+    target.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 200, clientY: 0, timeStamp: 40 }));
+    scheduler.step(0);
+    const dragged = centerMeters(getView());
+    scheduler.setNow(340);
+    target.dispatch('pointerup', pointerEvent({ pointerId: 1, clientX: 200, clientY: 0, timeStamp: 340 }));
+    const released = centerMeters(getView());
+
+    expect(released).toBeCloseTo(dragged, 6);
+    expect(scheduler.pendingCount()).toBe(0);
+    scheduler.runUntilIdle(16, 1_000);
+    expect(centerMeters(getView())).toBe(released);
+  });
+
+  it('松手前仍在移动时保持惯性，静止越久惯性越弱', () => {
+    const moving = releaseGlideMeters(0);
+    const briefPause = releaseGlideMeters(80);
+    const longPause = releaseGlideMeters(200);
+
+    expect(moving).toBeGreaterThan(0);
+    expect(briefPause).toBeGreaterThan(0);
+    expect(briefPause).toBeLessThan(moving * 0.6);
+    expect(longPause).toBe(0);
+  });
+
+  it('亚帧拖拽释放不会把微量位移放大到钳制上限速度', () => {
+    const { target, scheduler, getView } = createInteractionHarness({ zoom: 15 });
+
+    // 按下后 2ms 内完成 50px 位移并释放，没有任何渲染帧提交。
+    scheduler.setNow(0);
+    target.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 0, clientY: 0, timeStamp: 0 }));
+    scheduler.setNow(2);
+    target.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 50, clientY: 0, timeStamp: 2 }));
+    target.dispatch('pointerup', pointerEvent({ pointerId: 1, clientX: 50, clientY: 0, timeStamp: 2 }));
+    const released = centerMeters(getView());
+
+    scheduler.runUntilIdle(16, 2_000);
+    const glide = released - centerMeters(getView());
+    const gestureMetres = 50 * metersPerPixelAtZoom15();
+    const floorGlide = gestureMetres / (MIN_RELEASE_WINDOW_MS / 1_000) / INERTIA_DECAY_PER_SECOND;
+
+    expect(glide).toBeGreaterThan(0);
+    expect(glide).toBeLessThan(floorGlide * 1.2);
+    // 旧行为会把速度放大到钳制上限，终点约为手势位移的 10 倍。
+    expect(glide).toBeLessThan(gestureMetres * 6);
+  });
 });
 
 class FakeInteractionTarget {
@@ -459,6 +561,31 @@ function createInteractionHarness(
     getView: () => view,
     setView,
   };
+}
+
+/** zoom 15 下每 CSS 像素对应的 Web Mercator 米数，用于把像素手势换算为速度。 */
+function metersPerPixelAtZoom15(): number {
+  return WEB_MERCATOR_WORLD_SIZE / (256 * 2 ** 15);
+}
+
+function centerMeters(view: ViewState): number {
+  return projectLngLat(view.center).x;
+}
+
+/** 快速拖动 200px 后静止 pauseMs 再松手，返回松手后的惯性位移（米）。 */
+function releaseGlideMeters(pauseMs: number): number {
+  const { target, scheduler, getView } = createInteractionHarness({ zoom: 15 });
+  scheduler.setNow(0);
+  target.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 0, clientY: 0, timeStamp: 0 }));
+  scheduler.setNow(40);
+  target.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 200, clientY: 0, timeStamp: 40 }));
+  scheduler.step(0);
+  const releaseTimeMs = 40 + pauseMs;
+  scheduler.setNow(releaseTimeMs);
+  target.dispatch('pointerup', pointerEvent({ pointerId: 1, clientX: 200, clientY: 0, timeStamp: releaseTimeMs }));
+  const released = centerMeters(getView());
+  scheduler.runUntilIdle(16, 2_000);
+  return released - centerMeters(getView());
 }
 
 function simulatePanInertiaEndpoint(frameMs: number): number {

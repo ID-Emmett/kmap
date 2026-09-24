@@ -27,6 +27,8 @@ export interface InertiaStep {
 export const INERTIA_DECAY_PER_SECOND = 6.4;
 export const INERTIA_MAX_DURATION_MS = 1_500;
 export const POINTER_SAMPLE_WINDOW_MS = 120;
+/** 释放速度的最短可解释窗口：约两帧 @60Hz；亚帧窗口会把微量位移放大成高速度惯性。 */
+export const MIN_RELEASE_WINDOW_MS = 32;
 
 const MIN_PAN_START_PX_PER_SECOND = 40;
 const MIN_PAN_STOP_PX_PER_SECOND = 8;

@@ -540,8 +540,9 @@ export class MapInteractionController {
     }
 
     const view = this.#options.getView();
+    // 速度窗口以松手时刻结束：拖动结束后静止再松手会被静止时间摊薄，不沿用拖动速度。
     const velocity = clampReleaseVelocity(
-      estimateReleaseVelocity(active.mode, active.samples),
+      estimateReleaseVelocity(active.mode, active.samples, timeMs),
       view,
     );
     if (!shouldStartInertia(velocity, view)) {
