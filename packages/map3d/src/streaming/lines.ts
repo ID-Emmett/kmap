@@ -28,7 +28,7 @@ export function simplifyLine<T extends { x: number; y: number }>(points: T[], to
   return points.filter((_, i) => keep[i]);
 }
 
-export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[], zoom = 24): LineData & { features: number } {
+export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[], zoom = 24, sourceZoom = zoom): LineData & { features: number } {
   type Point = { x: number; y: number };
   type Feature = { properties: Record<string, unknown>; rings: Point[][] };
   const cache = new Map<string, Feature[]>();
@@ -39,6 +39,10 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
   let count = 0; let featureCount = 0;
   for (const layer of layers) {
     if (layer.type !== 'line') continue;
+    // 图层可见性按承载它的瓦片层级判定，而不是相机目标层级：
+    // 断网回退时屏幕由低层级瓦片支撑，低层级数据里只有 transportation、没有 road。
+    // 若仍按目标层级求值，transportation 会被判为超范围而丢弃，road 又没有数据，道路会整片消失。
+    if (sourceZoom < (layer.minZoom ?? 0) || sourceZoom >= (layer.maxZoom ?? 25)) continue;
     const source = tile.layers[layer.sourceLayer]; if (!source) continue;
     let features = cache.get(layer.sourceLayer);
     if (!features) {
@@ -87,7 +91,10 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
           ...lineJoin(a, b, ring[j + 1] ?? (closed ? ring[1] : undefined))], p);
         caps[index * 2] = !closed && j === 1 ? 1 : 0; caps[index * 2 + 1] = !closed && j === ring.length - 1 ? 1 : 0;
         segments[p] = a.x / extent - .5; segments[p + 1] = a.y / extent - .5; segments[p + 2] = b.x / extent - .5; segments[p + 3] = b.y / extent - .5;
-        styles[p] = styleIndex; styles[p + 1] = layer.paint.opacity ?? 1; styles[p + 2] = layer.minZoom ?? 0; styles[p + 3] = layer.maxZoom ?? 25;
+        // 层级范围已在构建时按承载瓦片层级求值，这里写宽松范围，避免渲染期再按相机目标层级二次剔除。
+        // 低层级数据里道路是 transportation(maxZoom:7)，而回退时相机目标层级已是 7：
+        // 若在此写入图层自身范围，整片道路会被判定为超范围而消失。
+        styles[p] = styleIndex; styles[p + 1] = layer.paint.opacity ?? 1; styles[p + 2] = 0; styles[p + 3] = 25;
         distances[index] = cumulative; cumulative += Math.hypot(b.x - a.x, b.y - a.y) / extent;
         colors[c] = color.r; colors[c + 1] = color.g; colors[c + 2] = color.b; index++;
       }

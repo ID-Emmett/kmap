@@ -33,9 +33,8 @@ export function auditPixels(canvas: HTMLCanvasElement, camera: PerspectiveCamera
     let source = Array.from(sourceContext.getImageData(0, 0, 1, 1).data).slice(0, 3);
     if (surface.fills) {
       const background = new Color(source[0]! / 255, source[1]! / 255, source[2]! / 255).convertSRGBToLinear();
-      const sample = sampleFill(surface.fills.data, u - .5, v - .5,
-        engine.surfaces.instances.get(`${patch.source.z}/${patch.source.x}/${patch.source.y}`)?.fills?.tileZoom.value ?? engine.tileZoom,
-        [background.r, background.g, background.b]);
+      // 样式缩放是渲染组共享值：所有瓦片同帧同值，审计直接取引擎当前值。
+      const sample = sampleFill(surface.fills.data, u - .5, v - .5, engine.tileZoom, [background.r, background.g, background.b]);
       if (sample) { const color = new Color(...sample).convertLinearToSRGB(); source = [color.r, color.g, color.b].map(c => Math.round(c * 255)); }
     }
     const actual = Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3));

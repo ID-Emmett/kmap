@@ -19,7 +19,7 @@
 | 数据协议与输入 | `docs/knowledge/data.md` | KYE MVT、fixture、style、动态业务数据、空瓦片和资源格式 |
 | Tile Runtime | `docs/knowledge/tile-runtime.md` | TileKey、coverage、cache、TileEngineV2、调度/显示失败事实 |
 | Rendering | `docs/knowledge/rendering.md` | Three.js 后端、Polygon/Line、视觉基线、网格伪影、渐隐 |
-| Performance | `docs/knowledge/performance.md` | 浏览器性能、资源预算、long task、T016/T025 指标 |
+| Performance | `docs/knowledge/performance.md` | 浏览器性能、资源预算、long task、T016/T025 指标、T048 固定绘制槽位与 WebGPU 绑定事实 |
 | Environment | `docs/knowledge/environment.md` | 目标工作站、浏览器矩阵、验证边界和环境风险 |
 | AI Governance | `docs/knowledge/ai-governance.md` | 低 token 入口、Task Context Packet、会话记录和治理门禁 |
 

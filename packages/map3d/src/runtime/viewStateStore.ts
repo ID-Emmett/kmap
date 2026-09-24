@@ -16,6 +16,11 @@ export class ViewStateStore {
     return cloneView(this.#view);
   }
 
+  /** 帧内高频只读访问；返回内部对象，调用方不得修改，也不得跨帧保留。 */
+  current(): ViewState {
+    return this.#view;
+  }
+
   set(update: Partial<ViewState>): boolean {
     const next = normalizeViewState(update, this.#view);
 

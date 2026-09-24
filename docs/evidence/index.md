@@ -1,6 +1,6 @@
 # Nova Evidence Index
 
-更新日期：2026-09-20
+更新日期：2026-09-23
 
 本文件是 `docs/evidence/` 的轻量索引。默认只读本索引；需要核对具体指标、截图、trace 或脚本时，再按任务号打开具体文件。不得在普通实施会话中整目录通读 evidence。
 
@@ -75,6 +75,8 @@
 | T042 | 4 | `T042-production-browser.json`, `T042-webgpu-initial.png`, `T042-webgl2-initial.png`, `T042-production-runner.mjs` | 生产入口双后端人工验收复跑；最新证据通过初始化、连续交互、pitch 矩阵、缓存回访和 dispose 验证 |
 | T045 | 5 | `T045-nte-initial-coverage-analysis.json`, `T045-production-browser.json`, `T045-webgpu-initial.png`, `T045-webgl2-initial.png`, `T045-production-runner.mjs` | Bootstrap/Exact 初始覆盖修复的 LOD 回归、生产 WebGPU/WebGL2 smoke 和首屏截图；双后端 ready 且目标区域覆盖完整 |
 | T046 | 6 | `T046-lifecycle-audit.json`, `T046-scheduler-churn.json`, `T046-scheduler-cap.json`, `T046-lifecycle-audit.test.ts`, `T046-production-browser.json`, `streaming-rebuild/T046-playground-preview-build.json` | 生命周期引用/回收、连续请求复用、moving active cap、Fetch 取消/超时、双文件 Playground 发布和真实浏览器停止收敛证据；最新真实 KYE WebGPU Preview 复跑通过 |
+| T047 | 4 | `streaming-rebuild/acceptance-60s-T047.json`, `streaming-rebuild/acceptance-60s-T047-baseline.json`, `streaming-rebuild/smoothness-T047-final.json`, `streaming-rebuild/smoothness-T047-pool.json` | 回访窗口请求归因（fetch=0、`cacheRevisitNoFetch:true`）、修复前基线、回退后真实输入探针（P95 4.3ms、长任务 0）与池预热实验证据；性能类断言未达标在验收 JSON 内登记 |
+| T048 | 8 | `streaming-rebuild/acceptance-60s-T048.json`, `acceptance-60s-T048-rerun.json`, `acceptance-60s-T048-baseline.json`, `smoothness-T048-baseline.json`, `smoothness-T048-final.json`, `smoothness-T048-final2.json`, `smoothness-T048-final2-rotate.png`, `smoothness-T048-final2-fixture.png` | 固定绘制槽位前后证据：bufferDelta 合计 2865→2379、属性重建归零、槽位复用 1131/275；60 秒验收两次离散（minWindowFps 125.6 / 100.4），性能断言未达标 |
 
 ## 当前高风险证据
 

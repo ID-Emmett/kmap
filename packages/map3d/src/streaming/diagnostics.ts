@@ -1,8 +1,10 @@
 import type { StreamingEngine } from './engine.js';
+import { geometryPoolStats } from './geometryPool.js';
 
 /** 面板字段由实际队列、纹理与当前覆盖集合计算。 */
 export function tileDiagnostics(engine: StreamingEngine) {
   const entries = [...engine.entries.values()];
+  const slots = engine.surfaces.slotStats;
   const count = (state: string) => entries.filter(e => e.state === state).length;
   const ready = entries.filter(e => e.state === 'ready' && e.surface).length; const queued = count('queued'); const upload = count('upload');
   const levels: Record<string, number> = {};
@@ -32,9 +34,40 @@ export function tileDiagnostics(engine: StreamingEngine) {
     inFlightReservedBytes: entries.reduce((sum, e) => sum + e.reservedBytes, 0), decoded: count('decoded'), discardedBytes: engine.pipeline.discardedBytes,
     demand: { visible: entries.filter(e => e.kind === 'visible' && engine.wanted.has(e.key)).length, fallback: entries.filter(e => e.kind === 'fallback' && engine.wanted.has(e.key)).length, predicted: entries.filter(e => e.kind === 'predicted' && engine.wanted.has(e.key)).length },
     upload: { queued: upload, active: count('preparing') }, cacheHits: engine.hits, cacheMisses: engine.misses, cacheHitRate: engine.hits / Math.max(1, engine.hits + engine.misses),
+    // 每个绘制实例的线段数据与渲染状态：空线段表示该瓦片没有可画的道路内容（数据侧）；
+    // 隐藏、模板编号不一致或槽位未初始化表示线路在渲染上被丢弃。
+    lineInstances: (() => {
+      let empty = 0, hidden = 0, mismatch = 0, uninit = 0, faint = 0, clear = 0; const samples: string[] = [];
+      for (const instance of engine.surfaces.instances.values()) {
+        const key = `${instance.address.z}/${instance.address.x}/${instance.address.y}`;
+        const lines = instance.lines;
+        if (!lines || !lines.data?.segments?.length) { empty++; if (samples.length < 6) samples.push(`${key}:empty`); continue; }
+        if (lines.mesh.visible === false) { hidden++; if (samples.length < 6) samples.push(`${key}:hidden`); }
+        if (instance.mesh.material.stencilRef !== lines.mesh.material.stencilRef) { mismatch++; if (samples.length < 6) samples.push(`${key}:stencil`); }
+        if ((lines.viewZoom?.value ?? 0) < 0) { uninit++; if (samples.length < 6) samples.push(`${key}:uninit`); }
+        // 宽度与透明度：任一为零都会让线路在渲染上不可见，但网格与数据都正常。
+        const widths = lines.widths;
+        if (widths && widths.length > 1 && !((widths[0] ?? 0) > 0) && !((widths[1] ?? 0) > 0)) { faint++; if (samples.length < 6) samples.push(`${key}:faint`); }
+        if ((lines.mesh.material.opacity ?? 1) === 0) { clear++; if (samples.length < 6) samples.push(`${key}:clear`); }
+      }
+      return { count: engine.surfaces.instances.size, empty, hidden, mismatch, uninit, faint, clear, samples };
+    })(),
+    // 逐格线路诊断：列出没有线段可画的格子及其来源瓦片，用于定位"线路整块消失"。
+    noLineCells: (() => {
+      let count = 0; const samples: string[] = [];
+      for (const patch of engine.patches) {
+        const surface = engine.entries.get(patch.key)?.surface;
+        if (surface?.lines?.data?.segments?.length) continue;
+        count++;
+        if (samples.length < 8) samples.push(`${patch.cell.z}/${patch.cell.x}/${patch.cell.y}<-${patch.source.z}/${patch.source.x}/${patch.source.y}${surface ? '' : ':nosurface'}`);
+      }
+      return { count, samples };
+    })(),
     cache: { resident, warm: ready - resident, cold: count('decoded') + upload, entries: entries.length, maxEntries: engine.maxEntries, evictions: engine.evictions,
       cpuBytes: engine.cpuBytes, maxCpuBytes: engine.maxCpuBytes, pressure: engine.cpuBytes > engine.maxCpuBytes || entries.length > engine.maxEntries, pressureReasons: engine.cpuBytes > engine.maxCpuBytes ? ['CPU budget'] : [] },
     resources: { entries: ready, referencedEntries: resident, releases: engine.evictions, gpuBytes: engine.gpuBytes, maxGpuBytes: engine.maxGpuBytes,
+      poolSize: engine.surfaces.poolSize, poolBytes: engine.surfaces.poolBytes,
+      slots, geometryPool: { ...geometryPoolStats },
       pressureReasons: engine.gpuBytes > engine.maxGpuBytes ? ['GPU budget'] : [] },
   };
 }

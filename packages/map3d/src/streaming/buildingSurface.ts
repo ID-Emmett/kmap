@@ -1,9 +1,12 @@
 import { paletteColor, paletteOpacity, paletteStyle } from '../style/palette.js';
 import { mapVertex } from '../globe/projection.js';
-import { type ArrayNode, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
-import { Fn, Loop, attribute, buffer, element, float, max, normalWorld, positionLocal, uniform, varying, vec3, vec4 } from 'three/tsl';
+import { type ArrayNode, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
+import { GeometryPool, registerGeometry, releaseGeometry, writeAttribute, writeIndex } from './geometryPool.js';
+import { Fn, Loop, attribute, buffer, element, float, max, normalWorld, positionLocal, renderGroup, uniform, varying, vec3, vec4 } from 'three/tsl';
 import type { BuildingData } from './buildings.js';
 import type { Address } from './address.js';
+import { capacityTier } from './geometryPool.js';
+import { DrawSlotPool } from './drawSlots.js';
 
 export function createBuildingState() { return { viewZoom: { value: 15 }, clipCount: 0, clips: new Float32Array(256 * 4) }; }
 
@@ -17,20 +20,52 @@ export function setBuildingClip(state: ReturnType<typeof createBuildingState>, s
   });
 }
 
+export const BUILDING_GEOMETRY_KEY = 'building';
+export type BuildingSurface = ReturnType<typeof createBuildingSurface>;
+/** 固定绘制槽位：mesh、材质与裁剪缓冲一体复用，绑定组在交互期保持恒定。 */
+export interface BuildingUnit { mesh: Mesh<BufferGeometry, MeshBasicNodeMaterial>; material: MeshBasicNodeMaterial; state: ReturnType<typeof createBuildingState>; key: string; spawn: () => BuildingUnit }
+
 /** 深度缓冲处理建筑互相遮挡；固定太阳方向与墙脚梯度在单次绘制中计算。 */
-export function createBuildingSurface(data: BuildingData, curved = false, themed = false) {
-  const geometry = new BufferGeometry();
+export function createBuildingSurface(data: BuildingData, curved = false, themed = false, pool?: GeometryPool, slots?: DrawSlotPool<BuildingUnit>) {
+  const vertices = data.positions.length / 3;
+  const tier = capacityTier(Math.max(vertices, data.indices.length));
+  let geometry = pool?.acquire(BUILDING_GEOMETRY_KEY, tier);
+  if (geometry === undefined) { geometry = new BufferGeometry(); geometry.userData.poolTier = tier; registerGeometry(geometry); }
   for (const [name, values] of Object.entries({ position: data.positions, normal: data.normals, buildingColor: data.colors, buildingStyle: data.styles }))
-    geometry.setAttribute(name, new BufferAttribute(values, 3));
-  geometry.setIndex(new BufferAttribute(data.indices, 1));
-  const mesh = new Mesh(geometry, materials[Number(curved) + Number(themed) * 2]!.clone()); mesh.frustumCulled = false; mesh.renderOrder = 3;
-  const state = createBuildingState(); mesh.userData.buildingState = state;
+    writeAttribute(geometry, name, values, 3, false, tier * 3);
+  writeIndex(geometry, data.indices, tier);
+  const key = `${curved}:${themed}`;
+  const unit = slots?.acquire(key, () => createBuildingUnit(curved, themed)) ?? createBuildingUnit(curved, themed);
+  // 槽位复用：裁剪表就地清零，数组对象保持不变以复用已分配的 GPUBuffer。
+  unit.state.clipCount = 0;
+  const mesh = unit.mesh; mesh.geometry = geometry; mesh.visible = true;
   let minZoom = Infinity;
   for (let i = 0; i < data.styles.length; i += 3) minZoom = Math.min(minZoom, Math.round(data.styles[i]! * 10000) / 10000);
-  return { mesh, ...state, minZoom, vertices: data.positions.length / 3, indices: data.indices.length, features: data.features };
+  return { mesh, unit, ...unit.state, minZoom, vertices, indices: data.indices.length, features: data.features };
 }
 
-const viewZoom = uniform(15).onObjectUpdate(({ object }) => object!.userData.buildingState.viewZoom.value);
+/** 释放建筑几何与槽位：几何按分档键回到池中，材质随槽位复用。 */
+export function releaseBuildingSurface(surface: BuildingSurface, pool: GeometryPool, slots?: DrawSlotPool<BuildingUnit>): void {
+  const geometry = surface.mesh.geometry;
+  surface.mesh.removeFromParent();
+  releaseGeometry(pool, BUILDING_GEOMETRY_KEY, geometry);
+  if (slots) slots.release(surface.unit.key, surface.unit);
+  else surface.mesh.material.dispose();
+}
+
+function createBuildingUnit(curved: boolean, themed: boolean): BuildingUnit {
+  const key = `${curved}:${themed}`;
+  const material = materials[Number(curved) + Number(themed) * 2]!.clone();
+  const mesh = new Mesh(undefined, material); mesh.frustumCulled = false; mesh.renderOrder = 3;
+  const state = createBuildingState(); mesh.userData.buildingState = state;
+  return { mesh, material, state, key, spawn: () => createBuildingUnit(curved, themed) };
+}
+
+/** 渲染组共享的视图缩放：所有瓦片同帧同值，每帧只写一次。 */
+const viewZoom = uniform(15).setGroup(renderGroup);
+export function setBuildingViewZoom(value: number): void { viewZoom.value = value; }
+/** 当前共享的视图缩放；用于确认渲染组 uniform 每帧同步一次。 */
+export function buildingViewZoom(): number { return viewZoom.value; }
 const style = attribute<'vec3'>('buildingStyle', 'vec3');
 const zoomRange = varying(style.xy).setInterpolation('flat');
 const clips = buffer(new Float32Array(256 * 4), 'vec4', 256).onObjectUpdate(frame => frame.object!.userData.buildingState.clips) as unknown as ArrayNode<'vec4'>;

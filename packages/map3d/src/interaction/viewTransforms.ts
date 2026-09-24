@@ -2,7 +2,7 @@ import { globeBlend } from '../globe/globeCamera.js';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 
 import {
-  intersectCameraRayWithGround,
+  intersectCameraRayWithGroundInto,
   sceneGroundToMercator,
   updateMapCamera,
 } from '../rendering/mapCamera.js';
@@ -17,6 +17,13 @@ import { MAX_SAFE_TILE_ZOOM } from '../spatial/validation.js';
 import { normalizeViewState } from '../spatial/viewState.js';
 import type { ViewportSize, ViewState } from '../types.js';
 import type { InteractionDisplacement } from './inertia.js';
+
+const scratchCamera = new PerspectiveCamera();
+const scratchRay = new Vector3();
+const scratchFrom = new Vector3();
+const scratchOrigin = new Vector3();
+const scratchCenterGround = new Vector3();
+const scratchMovedGround = new Vector3();
 
 /** 按屏幕拖拽的地面射线差更新中心，支持 bearing/pitch。 */
 export function panViewByPixels(
@@ -33,15 +40,16 @@ export function panViewByPixels(
     Math.floor(normalizedView.zoom),
   );
   const origin = selectMapOrigin(normalizedView.center, originZoom);
-  const camera = new PerspectiveCamera();
+  // 交互期间每帧调用一次，复用相机与射线向量，避免逐事件构造 Three 对象。
+  const camera = scratchCamera;
   updateMapCamera(camera, normalizedView, normalizedViewport, origin, globe);
   const weight = globe ? 1 - globeBlend(normalizedView.zoom) : 0;
   let spherical: ViewState | undefined;
   if (weight > 0) {
     const radius = WEB_MERCATOR_WORLD_SIZE / (2 * Math.PI * Math.cos(normalizedView.center.lat * Math.PI / 180));
     const c = projectLngLat(normalizedView.center), cx = c.x - origin.meters.x, cz = origin.meters.y - c.y;
-    const ray = new Vector3(deltaX / normalizedViewport.width * 2, -deltaY / normalizedViewport.height * 2, .5).unproject(camera).sub(camera.position).normalize();
-    const from = camera.position.clone().sub(new Vector3(cx, -radius, cz));
+    const ray = scratchRay.set(deltaX / normalizedViewport.width * 2, -deltaY / normalizedViewport.height * 2, .5).unproject(camera).sub(camera.position).normalize();
+    const from = scratchFrom.copy(camera.position).sub(scratchOrigin.set(cx, -radius, cz));
     const dot = from.dot(ray), discriminant = dot * dot - (from.lengthSq() - radius * radius);
     const hit = from.addScaledVector(ray, -dot - Math.sqrt(Math.max(0, discriminant))).normalize();
     const lat = normalizedView.center.lat * Math.PI / 180, s = Math.sin(lat), c0 = Math.cos(lat);
@@ -52,13 +60,15 @@ export function panViewByPixels(
     if (weight === 1) return spherical;
   }
   const maxGroundDistance = WEB_MERCATOR_WORLD_SIZE * 4;
-  const centerGround = intersectCameraRayWithGround(
+  const centerGround = intersectCameraRayWithGroundInto(
+    scratchCenterGround,
     camera,
     0,
     0,
     maxGroundDistance,
   );
-  const movedGround = intersectCameraRayWithGround(
+  const movedGround = intersectCameraRayWithGroundInto(
+    scratchMovedGround,
     camera,
     (deltaX / normalizedViewport.width) * 2,
     (-deltaY / normalizedViewport.height) * 2,

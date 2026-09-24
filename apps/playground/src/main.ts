@@ -11,6 +11,10 @@ const style = document.createElement('style');
 style.textContent = playgroundStyles;
 document.head.append(style);
 
+// publishStatus 会在 bootstrap 的同步阶段被调用，状态缓冲必须在模块求值早期建立。
+let pendingStatus: Record<string, unknown> | undefined;
+let statusFrame = 0;
+
 interface InspectorWithTimestampResolution extends Inspector {
   resolveTimestamp(): Promise<void>;
 }
@@ -117,6 +121,11 @@ async function bootstrap(): Promise<void> {
       const { runRapidBenchmark } = await import('./rapidBenchmark.js');
       void runRapidBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; });
     }
+    if (new URLSearchParams(window.location.search).get('capture') === 'smoothness') {
+      const { runSmoothnessBenchmark } = await import('./smoothnessBenchmark.js');
+      void runSmoothnessBenchmark(map, text => { const element = document.getElementById('benchmark-status'); if (element) element.textContent = text; })
+        .catch(error => { document.documentElement.dataset.kmapSmoothness = `error:${String(error)}`; });
+    }
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     ready = true;
 
@@ -184,6 +193,16 @@ async function disposeMapAfterInspectorQueries(
 
 function publishStatus(status: Record<string, unknown>): void {
   window.__kmapStatus = status;
+  // 同步对象供验收脚本即时读取；DOM 字符串写入按帧合并，避免逐事件序列化与布局脏化。
+  pendingStatus = status;
+  if (statusFrame !== 0) return;
+  statusFrame = requestAnimationFrame(flushStatus);
+}
+
+function flushStatus(): void {
+  statusFrame = 0;
+  if (pendingStatus === undefined) return;
+  const status = pendingStatus; pendingStatus = undefined;
   document.documentElement.dataset.kmapStatus = JSON.stringify(status);
 }
 

@@ -4,6 +4,7 @@ import { Color, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import type { VectorTile } from '@mapbox/vector-tile';
 import type { MapLayerOptions } from '../src/types.js';
 import { buildBuildings, buildingBytes } from '../src/streaming/buildings.js';
+import { buildingViewZoom } from '../src/streaming/buildingSurface.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
 import { canonicalKey, childrenOf } from '../src/streaming/address.js';
 import { resolveRenderCover } from '../src/streaming/renderCover.js';
@@ -76,7 +77,8 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     expect(resource.buildings!.mesh.userData.buildingState.clipCount).toBe(2);
     for (const [viewZoom, tileZoom, visible] of [[15.7, 15, false], [15.8, 15, true], [15.2, 16, false], [16.1, 15, true]] as const) {
       surfaces.update(origin, viewZoom, tileZoom);
-      expect(resource.buildings!.viewZoom.value).toBe(viewZoom);
+      // 视图缩放由渲染组共享：每帧写入一次，所有瓦片读到同一值。
+      expect(buildingViewZoom()).toBe(viewZoom);
       expect(resource.buildings!.mesh.visible).toBe(visible);
     }
     expect(resource.buildings!.mesh.material.depthWrite).toBe(true);

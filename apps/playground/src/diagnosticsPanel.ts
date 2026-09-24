@@ -113,6 +113,7 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
     .querySelector<HTMLCanvasElement>("#frame-chart")!
     .getContext("2d")!;
   let latest: Diagnostics | undefined;
+  let latestStamp = 0;
   let running = false;
   let stopped = false;
   const status = panel.querySelector<HTMLElement>("#benchmark-status")!;
@@ -234,10 +235,14 @@ export function createDiagnosticsPanel(map: Map3D): () => void {
       "cutoff",
       `${(t?.footprint?.loadCutoff ?? 0).toFixed(0)} m / ${t?.maxLodDelta ?? 0}`,
     );
-    document.documentElement.dataset.kmapDiagnostics = JSON.stringify(
-      d,
-      (key, value: unknown) => (key === "values" ? undefined : value),
-    );
+    // 面板文本保持 4Hz；整份诊断序列化降到 1Hz，避免交互期产生大字符串与布局抖动。
+    if (latestStamp === 0 || performance.now() - latestStamp >= 1000) {
+      latestStamp = performance.now();
+      document.documentElement.dataset.kmapDiagnostics = JSON.stringify(
+        d,
+        (key, value: unknown) => (key === "values" ? undefined : value),
+      );
+    }
     history.push(d.frame.cpu.p95);
     if (history.length > 120) history.shift();
     chart.clearRect(0, 0, 320, 44);

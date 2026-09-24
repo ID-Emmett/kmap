@@ -9,13 +9,15 @@ export interface FillData extends ColorBindings { positions: Float32Array; color
 export const fillBytes = (data?: FillData): number => data ? data.positions.byteLength + data.colors.byteLength + data.styles.byteLength + data.indices.byteLength : 0;
 
 /** MVT 外环在屏幕坐标中为正面积，洞为负面积；三角剖分共享内部边界采样。 */
-export function buildFills(tile: VectorTile, layers: readonly MapLayerOptions[]): FillData & { features: number } {
+export function buildFills(tile: VectorTile, layers: readonly MapLayerOptions[], zoom = 24): FillData & { features: number } {
   const positions: number[] = [], colors: number[] = [], styles: number[] = [], indices: number[] = [];
   const colorKeys: string[] = [], colorIds: number[] = [];
   let features = 0;
   for (const layer of layers) {
     if (layer.type !== 'fill') continue;
     const colorId = colorKeys.push(layer.id) - 1;
+    // 图层可见性按承载它的瓦片层级判定，与线图层一致：回退到低层级时，高层级才有的面不参与绘制。
+    if (zoom < (layer.minZoom ?? 0) || zoom >= (layer.maxZoom ?? 25)) continue;
     const source = tile.layers[layer.sourceLayer]; if (!source) continue;
     const color = new Color(layer.paint.color);
     for (let i = 0; i < source.length; i++) {
@@ -34,7 +36,8 @@ export function buildFills(tile: VectorTile, layers: readonly MapLayerOptions[])
         for (const p of vertices) {
           positions.push(p.x / source.extent - .5, 0, p.y / source.extent - .5);
           colors.push(color.r, color.g, color.b); colorIds.push(colorId);
-          styles.push(layer.minZoom ?? 0, layer.maxZoom ?? 25, layer.paint.opacity ?? 1);
+          // 层级范围已在构建时按瓦片层级求值，此处写宽松范围避免 GPU 再按目标层级二次剔除。
+          styles.push(0, 25, layer.paint.opacity ?? 1);
         }
         for (const triangle of triangles) indices.push(...triangle.map(index => offset + index));
       }

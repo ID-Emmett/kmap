@@ -1,6 +1,6 @@
 # Kmap Tasks
 
-更新日期：2026-09-15
+更新日期：2026-09-23
 
 状态：`BACKLOG`、`IN_PROGRESS`、`BLOCKED`、`VERIFYING`、`DONE`。
 
@@ -54,10 +54,16 @@
 | T044 | Post-Deletion Regression and Release Verification | BACKLOG | 实施会话 | T042, T043, T045, T046 |
 | T045 | NovaTileEngine Initial Coverage Refinement Fix | DONE | 实施会话 | T041, T043 |
 | T046 | Tile System Full Lifecycle and Streaming Repair | IN_PROGRESS | 实施会话 | T043, T045 |
+| T047 | Interaction Smoothness Hardening | DONE | 实施会话 | T046 |
+| T048 | Material Slot Rendering | IN_PROGRESS | 实施会话 | T046, T047 |
 
 ## 当前任务
 
-T046 当前承担标准瓦片系统修复、性能优化和 Playground 指标面板，状态为 IN_PROGRESS。其浏览器验收使用真实 KYE 数据和 WebGPU，入口为 `http://127.0.0.1:6661/`。当前实施边界与证据要求见 `tasks/T046-tile-system-full-lifecycle-repair.md`。
+T048 承担材质槽位化渲染，状态为 IN_PROGRESS：Three WebGPU 动态模板值核验已通过（模板编号为动态状态，不入管线缓存键）；已实施固定绘制槽位（mesh 与材质按布局键复用）与按档位容量预分配的几何。真实输入探针 bufferDelta 合计由 2865 降至 2379，属性重建计数归零；60 秒验收的 `stable160fps`/`motionFrameP95`/`motionFrameP99` 仍未达标且两次运行结果离散（`acceptance-60s-T048.json` 与 `acceptance-60s-T048-rerun.json`），已记录为 Open Issues 待决策会话处理。边界见 `tasks/T048-material-slot-rendering.md`。
+
+T047 已结项（人工负责人 2026-09-23 采纳方案 A）：回访零请求交付通过（`cacheRevisitNoFetch:true`）；GPU 几何池常驻实验后回退；性能类断言移交 T048。边界、证据与结论见 `tasks/T047-interaction-smoothness-hardening.md`。
+
+T046 的标准瓦片系统修复与指标面板仍为 IN_PROGRESS，其 60 秒验收入口为 `http://127.0.0.1:6661/`，实施边界与证据要求见 `tasks/T046-tile-system-full-lifecycle-repair.md`。
 
 T031～T041 状态为 DONE，T043 生产切换和 T045 初始覆盖修复状态为 DONE。
 
@@ -72,4 +78,4 @@ T044 承担发布回归，发布范围由人工负责人确认。
 - 非 DONE 的实施任务缺少 `Task Context Packet` 时不得执行；必须先由决策会话补齐或重新定义。
 - 未经确认，不直接进入地图功能实现。
 - 当前默认下一步以 `docs/project-state.md` 和本文件一致结论为准。
-- T003-T044 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。
+- T003-T048 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。

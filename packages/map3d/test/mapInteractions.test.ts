@@ -272,6 +272,8 @@ describe('Map interactions', () => {
 
     target.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 0, clientY: 0, timeStamp: 0 }));
     target.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 160, clientY: 20, timeStamp: 80 }));
+    // 指针事件在渲染帧合并提交，帧回调时间是速度采样的时间基准。
+    scheduler.step(80);
     expect(motion.at(-1)?.phase).toBe('active');
     expect(Math.hypot(
       motion.at(-1)?.velocity.panX ?? 0,
@@ -285,6 +287,7 @@ describe('Map interactions', () => {
 
     target.dispatch('pointerdown', pointerEvent({ pointerId: 2, clientX: 0, clientY: 0, button: 2, timeStamp: 2_100 }));
     target.dispatch('pointermove', pointerEvent({ pointerId: 2, clientX: 40, clientY: -30, button: 2, timeStamp: 2_180 }));
+    scheduler.step(100);
     expect(Math.abs(motion.at(-1)?.velocity.bearing ?? 0)).toBeGreaterThan(0);
     expect(Math.abs(motion.at(-1)?.velocity.pitch ?? 0)).toBeGreaterThan(0);
   });

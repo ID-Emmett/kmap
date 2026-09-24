@@ -71,6 +71,8 @@ const taskFileById = new Map([
   ['T044', 'tasks/T044-novatileengine-release-verification.md'],
   ['T045', 'tasks/T045-novatileengine-initial-coverage-fix.md'],
   ['T046', 'tasks/T046-tile-system-full-lifecycle-repair.md'],
+  ['T047', 'tasks/T047-interaction-smoothness-hardening.md'],
+  ['T048', 'tasks/T048-material-slot-rendering.md'],
 ]);
 
 const errors = [];
@@ -250,6 +252,8 @@ for (const [id, expected] of [
   ['T044', 'BACKLOG'],
   ['T045', 'DONE'],
   ['T046', statusById.get('T046') ?? 'MISSING'],
+  ['T047', statusById.get('T047') ?? 'MISSING'],
+  ['T048', statusById.get('T048') ?? 'MISSING'],
 ]) {
   if (statusById.get(id) !== expected) {
     errors.push(`当前路线状态错误：${id} 应为 ${expected}，实际为 ${statusById.get(id) ?? '缺失'}`);
@@ -285,6 +289,8 @@ for (const [id, expected] of [
   ['T042', 'BLOCKED'],
   ['T045', 'DONE'],
   ['T046', statusById.get('T046') ?? 'MISSING'],
+  ['T047', 'DONE'],
+  ['T048', 'BACKLOG'],
 ]) {
   const rowPattern = new RegExp(`\\|\\s*${id}\\s*\\|\\s*${expected}\\s*\\|`);
   if (!rowPattern.test(projectState)) {

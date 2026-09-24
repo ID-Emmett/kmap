@@ -56,11 +56,12 @@ describe('运动期间的实际绘制覆盖', () => {
     const view = { center: { lng: 116.39, lat: 39.9 }, zoom: 15.4, pitch: 55, bearing: 20 };
     update(view);
     for (const target of engine.selection.leaves) {
-      if (empty) { const e = engine.entries.get(canonicalKey(target))!; e.state = 'ready'; e.empty = true; }
+      if (empty) { const e = engine.entries.get(canonicalKey(target))!; engine.store.setState(e, 'ready'); e.empty = true; }
       for (const child of childrenOf(target)) {
       const e = engine.store.create(child, 'fallback', 0, 0)!;
       e.surface = surfaces.create({ width: 1, height: 1, close() {} } as ImageBitmap, child);
-      e.state = 'ready'; engine.store.available.add(canonicalKey(child));
+      engine.store.refreshBytes(e);
+      engine.store.setState(e, 'ready'); engine.store.available.add(canonicalKey(child));
       }
     }
     // 资源到达通知触发一次基准提交。

@@ -91,7 +91,23 @@ interface ActivePointer {
   y: number;
   mode: PointerInteractionMode;
   samples: PointerSample[];
+  /** 尚未并入视图的累计像素位移；每个渲染帧合并提交一次。 */
+  pendingX: number;
+  pendingY: number;
+  /** 本帧合并事件中的最新事件时间，作为速度采样的时间基准。 */
+  pendingTimeMs: number;
 }
+
+interface CachedRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  atMs: number;
+}
+
+// 画布布局在一次滚轮连击内保持稳定，缓存读取窗口避免逐事件强制布局。
+const RECT_CACHE_WINDOW_MS = 400;
 
 interface InertiaState {
   velocity: InteractionVelocity;
@@ -110,16 +126,21 @@ export class MapInteractionController {
   readonly #isPageHidden: () => boolean;
   #active: ActivePointer | undefined;
   #inertia: InertiaState | undefined;
+  #pointerFrame: FrameHandle | undefined;
   #wheelFrame: FrameHandle | undefined;
   #pendingWheelZoomDelta = 0;
   #wheelPixel: { x: number; y: number } | undefined;
   #lastWheelFrameTimeMs: number | undefined;
+  #rect: CachedRect | undefined;
+  readonly #motionObserved: boolean;
   #disposed = false;
 
   constructor(options: MapInteractionControllerOptions) {
     this.#options = options;
     this.#scheduler = options.frameScheduler ?? createDefaultFrameScheduler();
+    this.#motionObserved = options.onMotion !== undefined;
     this.#lifecycleTarget = options.lifecycleTarget ?? options.target.ownerDocument;
+    this.#lifecycleTarget?.addEventListener('resize', this.#onLayoutChange);
     this.#isPageHidden =
       options.isPageHidden ??
       (() => this.#lifecycleTarget?.visibilityState === 'hidden');
@@ -141,9 +162,11 @@ export class MapInteractionController {
     const hadMotion =
       this.#inertia !== undefined ||
       this.#wheelFrame !== undefined ||
+      this.#pointerFrame !== undefined ||
       this.#pendingWheelZoomDelta !== 0;
     this.#cancelInertia();
     this.#cancelWheel();
+    this.#cancelPointerFrame();
     if (hadMotion) {
       this.#emitIdleMotion();
     }
@@ -168,6 +191,7 @@ export class MapInteractionController {
       'visibilitychange',
       this.#onPageVisibilityChange,
     );
+    this.#lifecycleTarget?.removeEventListener('resize', this.#onLayoutChange);
     if (this.#active !== undefined) {
       releasePointerCapture(target, this.#active.id);
     }
@@ -191,21 +215,31 @@ export class MapInteractionController {
     this.cancelMotion();
     const timeMs = getEventTime(pointer, this.#scheduler);
     const view = this.#options.getView();
+    this.#rect = undefined;
     this.#active = {
       id: pointer.pointerId,
       x: pointer.clientX,
       y: pointer.clientY,
       mode,
       samples: [createPointerSample(view, timeMs)],
+      pendingX: 0,
+      pendingY: 0,
+      pendingTimeMs: timeMs,
     };
-    this.#emitMotion(
-      createInteractionMotionSnapshot(
-        'active',
-        timeMs,
-        stoppedInteractionVelocity(),
-      ),
-    );
-    this.#options.target.setPointerCapture?.(pointer.pointerId);
+    if (this.#motionObserved) {
+      this.#emitMotion(
+        createInteractionMotionSnapshot(
+          'active',
+          timeMs,
+          stoppedInteractionVelocity(),
+        ),
+      );
+    }
+    try {
+      this.#options.target.setPointerCapture?.(pointer.pointerId);
+    } catch {
+      // 合成事件或已释放的指针可能不存在捕获目标，手势仍按普通拖拽继续。
+    }
   };
 
   readonly #onPointerMove = (event: Event): void => {
@@ -222,32 +256,37 @@ export class MapInteractionController {
 
     const deltaX = pointer.clientX - active.x;
     const deltaY = pointer.clientY - active.y;
-    active.x = pointer.clientX;
-    active.y = pointer.clientY;
 
     if (deltaX === 0 && deltaY === 0) {
       return;
     }
 
     event.preventDefault();
-    const view = this.#options.getView();
-    const next = active.mode === 'pan'
-      ? panViewByPixels(view, this.#options.getViewport(), deltaX, deltaY, this.#options.globe)
-      : rotateViewByPixels(view, deltaX, deltaY);
-    const timeMs = getEventTime(pointer, this.#scheduler);
-    recordPointerSample(
-      active.samples,
-      next,
-      timeMs,
-    );
-    this.#emitMotion(
-      createInteractionMotionSnapshot(
-        'active',
-        timeMs,
-        estimateReleaseVelocity(active.mode, active.samples),
-      ),
-    );
-    this.#setViewFromInteraction(next);
+    active.x = pointer.clientX;
+    active.y = pointer.clientY;
+    active.pendingX += deltaX;
+    active.pendingY += deltaY;
+    active.pendingTimeMs = Math.max(active.pendingTimeMs, getEventTime(pointer, this.#scheduler));
+    // 指针事件密度高于渲染帧：一个渲染帧内只提交一次视图更新，位移总量不变。
+    this.#schedulePointerFrame();
+  };
+
+  readonly #onPointerFrame = (timeMs: number): void => {
+    this.#pointerFrame = undefined;
+    const active = this.#active;
+    if (
+      this.#disposed ||
+      active === undefined ||
+      this.#isPageHidden() ||
+      (active.pendingX === 0 && active.pendingY === 0)
+    ) {
+      return;
+    }
+
+    const lastSample = active.samples.at(-1)?.timeMs ?? active.pendingTimeMs;
+    this.#applyPointerDelta(active, active.pendingX, active.pendingY, Math.max(timeMs, active.pendingTimeMs, lastSample));
+    active.pendingX = 0;
+    active.pendingY = 0;
   };
 
   readonly #onPointerEnd = (event: Event): void => {
@@ -260,11 +299,15 @@ export class MapInteractionController {
 
     releasePointerCapture(this.#options.target, pointer.pointerId);
     this.#active = undefined;
+    const timeMs = getEventTime(pointer, this.#scheduler);
+    // 手势结束前提交尚未并入的位移，释放速度基于最终位置计算。
+    this.#cancelPointerFrame();
+    if (active.pendingX !== 0 || active.pendingY !== 0) {
+      const lastSample = active.samples.at(-1)?.timeMs ?? timeMs;
+      this.#applyPointerDelta(active, active.pendingX, active.pendingY, Math.max(timeMs, active.pendingTimeMs, lastSample));
+    }
     if (event.type === 'pointerup') {
-      const started = this.#startInertia(
-        active,
-        getEventTime(pointer, this.#scheduler),
-      );
+      const started = this.#startInertia(active, timeMs);
       if (!started) {
         this.#emitIdleMotion();
       }
@@ -293,7 +336,7 @@ export class MapInteractionController {
     }
 
     this.#cancelInertia();
-    const rect = this.#options.target.getBoundingClientRect?.(), viewport = this.#options.getViewport();
+    const rect = this.#cachedRect(), viewport = this.#options.getViewport();
     this.#wheelPixel = rect && Number.isFinite(wheel.clientX + wheel.clientY) ? {
       x: (wheel.clientX - rect.left) * viewport.width / rect.width,
       y: (wheel.clientY - rect.top) * viewport.height / rect.height,
@@ -349,13 +392,15 @@ export class MapInteractionController {
       const before = this.#options.getView();
       const step = integrateInertiaStep(inertia.velocity, deltaSeconds);
       const next = applyInertiaDisplacement(before, step.displacement);
-      this.#emitMotion(
-        createInteractionMotionSnapshot(
-          'settling',
-          timeMs,
-          step.velocity,
-        ),
-      );
+      if (this.#motionObserved) {
+        this.#emitMotion(
+          createInteractionMotionSnapshot(
+            'settling',
+            timeMs,
+            step.velocity,
+          ),
+        );
+      }
       this.#setViewFromInteraction(next);
       const after = this.#options.getView();
       inertia.velocity = stopClampedVelocity(
@@ -404,14 +449,16 @@ export class MapInteractionController {
       const view = this.#options.getView();
       const deltaSeconds = Math.max((timeMs - previousTime) / 1_000, 1 / 240);
       this.#lastWheelFrameTimeMs = timeMs;
-      this.#emitMotion(
-        createInteractionMotionSnapshot(
-          'active',
-          timeMs,
-          stoppedInteractionVelocity(),
-          zoomDelta / deltaSeconds,
-        ),
-      );
+      if (this.#motionObserved) {
+        this.#emitMotion(
+          createInteractionMotionSnapshot(
+            'active',
+            timeMs,
+            stoppedInteractionVelocity(),
+            zoomDelta / deltaSeconds,
+          ),
+        );
+      }
       const viewport = this.#options.getViewport();
       this.#setViewFromInteraction(zoomAroundPixel(view, viewport, view.zoom + zoomDelta,
         this.#wheelPixel ?? { x: viewport.width / 2, y: viewport.height / 2 }, this.#options.globe));
@@ -424,6 +471,64 @@ export class MapInteractionController {
       this.#emitIdleMotion(timeMs);
     }
   };
+
+  readonly #onLayoutChange = (): void => {
+    this.#rect = undefined;
+  };
+
+  /** 合并后的指针位移只在渲染帧提交；视觉位移与原始事件位移总量一致。 */
+  #applyPointerDelta(active: ActivePointer, deltaX: number, deltaY: number, timeMs: number): void {
+    const view = this.#options.getView();
+    const next = active.mode === 'pan'
+      ? panViewByPixels(view, this.#options.getViewport(), deltaX, deltaY, this.#options.globe)
+      : rotateViewByPixels(view, deltaX, deltaY);
+    recordPointerSample(active.samples, next, timeMs);
+    if (this.#motionObserved) {
+      this.#emitMotion(
+        createInteractionMotionSnapshot(
+          'active',
+          timeMs,
+          estimateReleaseVelocity(active.mode, active.samples),
+        ),
+      );
+    }
+    this.#setViewFromInteraction(next);
+  }
+
+  #schedulePointerFrame(): void {
+    if (this.#pointerFrame !== undefined) {
+      return;
+    }
+
+    this.#pointerFrame = this.#scheduler.requestFrame(this.#onPointerFrame);
+  }
+
+  #cancelPointerFrame(): void {
+    if (this.#pointerFrame === undefined) {
+      return;
+    }
+
+    this.#scheduler.cancelFrame(this.#pointerFrame);
+    this.#pointerFrame = undefined;
+  }
+
+  /** 画布矩形在一次滚轮连击内缓存，避免逐事件触发布局重算。 */
+  #cachedRect(): CachedRect | undefined {
+    const now = this.#scheduler.now();
+    const cached = this.#rect;
+    if (cached !== undefined && now - cached.atMs < RECT_CACHE_WINDOW_MS) {
+      return cached;
+    }
+
+    const rect = this.#options.target.getBoundingClientRect?.();
+    if (rect === undefined) {
+      return undefined;
+    }
+
+    const next = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, atMs: now };
+    this.#rect = next;
+    return next;
+  }
 
   #setViewFromInteraction(view: Partial<ViewState>): void {
     this.#options.setView(view);
@@ -449,9 +554,11 @@ export class MapInteractionController {
       startedAtMs: timeMs,
       frame: undefined,
     };
-    this.#emitMotion(
-      createInteractionMotionSnapshot('settling', timeMs, velocity),
-    );
+    if (this.#motionObserved) {
+      this.#emitMotion(
+        createInteractionMotionSnapshot('settling', timeMs, velocity),
+      );
+    }
     this.#scheduleInertiaFrame();
     return true;
   }
@@ -489,6 +596,10 @@ export class MapInteractionController {
   }
 
   #emitIdleMotion(timeMs = this.#scheduler.now()): void {
+    if (!this.#motionObserved) {
+      return;
+    }
+
     this.#emitMotion(createIdleMotionSnapshot(timeMs));
   }
 

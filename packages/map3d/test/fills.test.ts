@@ -43,24 +43,30 @@ describe('原生面几何与样式层级', () => {
     expect(fillBytes(data)).toBe(data.positions.byteLength + data.colors.byteLength + data.styles.byteLength + data.indices.byteLength);
     expect(Math.max(...data.indices)).toBeLessThan(data.positions.length / 3);
   });
-  it('建筑的样式可见门槛由每个顶点保留，数据构建包含原始建筑', () => {
+  it('面图层层级门槛在构建时按瓦片层级求值，数据构建包含原始面', () => {
     const tile = decodeVectorTile(readFileSync(new URL('./fixtures/kye-main-z15-26978-12416.mvt', import.meta.url)));
-    const data = buildFills(tile, [{ type: 'fill', id: 'building', sourceLayer: 'building', minZoom: 15, paint: { color: '#e1e3e5' } }]);
+    const layer = { type: 'fill', id: 'building', sourceLayer: 'building', minZoom: 15, paint: { color: '#e1e3e5' } } as const;
+    const data = buildFills(tile, [layer], 15);
     expect(data.features).toBeGreaterThan(0);
-    for (let i = 0; i < data.styles.length; i += 3) expect(Array.from(data.styles.slice(i, i + 3))).toEqual([15, 25, 1]);
+    // 顶点样式只保留透明度，层级门槛已在构建时判定。
+    for (let i = 0; i < data.styles.length; i += 3) expect(Array.from(data.styles.slice(i, i + 3))).toEqual([0, 25, 1]);
     const [a, b, c] = Array.from(data.indices.slice(0, 3)).map(index => index * 3);
     const x = (data.positions[a!]! + data.positions[b!]! + data.positions[c!]!) / 3;
     const y = (data.positions[a! + 2]! + data.positions[b! + 2]! + data.positions[c! + 2]!) / 3;
-    expect(sampleFill(data, x, y, 14.5)).toBeUndefined();
     expect(sampleFill(data, x, y, 15)).toBeDefined();
+    // 瓦片层级低于图层门槛：该图层不参与构建。
+    expect(buildFills(tile, [layer], 14).positions.length).toBe(0);
   });
   it('面图层 maxZoom 使用排他边界', () => {
     const ring = [[0, 0], [16, 0], [16, 16], [0, 16], [0, 0]].map(([x, y]) => ({ x: x!, y: y! }));
     const tile = { layers: { water: { extent: 16, length: 1,
       feature: () => ({ type: 3, properties: {}, loadGeometry: () => [ring] }) } } } as unknown as VectorTile;
-    const data = buildFills(tile, [{ type: 'fill', id: 'water', sourceLayer: 'water', minZoom: 4, maxZoom: 7, paint: { color: '#a9d7e8' } }]);
-    expect(Array.from(data.styles.slice(0, 3))).toEqual([4, 7, 1]);
-    expect(sampleFill(data, 0, 0, 6.999)).toBeDefined();
-    expect(sampleFill(data, 0, 0, 7)).toBeUndefined();
+    const layer = { type: 'fill', id: 'water', sourceLayer: 'water', minZoom: 4, maxZoom: 7, paint: { color: '#a9d7e8' } } as const;
+    // 瓦片层级落在范围内：构建，样式范围写宽松值。
+    const data = buildFills(tile, [layer], 5);
+    expect(Array.from(data.styles.slice(0, 3))).toEqual([0, 25, 1]);
+    // 排他上界：瓦片层级等于 maxZoom 时不构建。
+    expect(buildFills(tile, [layer], 6.999).positions.length).toBeGreaterThan(0);
+    expect(buildFills(tile, [layer], 7).positions.length).toBe(0);
   });
 });

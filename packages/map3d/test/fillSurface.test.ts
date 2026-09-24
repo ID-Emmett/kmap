@@ -30,7 +30,8 @@ describe('原生面批次的裁剪与资源所有权', () => {
     expect(parent.mesh.renderOrder).toBeLessThan(child.mesh.renderOrder);
     expect(child.mesh.material.visible).toBe(true); expect(child.fills!.mesh.material.stencilWrite).toBe(true);
     surfaces.update(origin, 6.84, 7);
-    expect(parent.fills!.tileZoom.value).toBe(7); expect(child.fills!.tileZoom.value).toBe(7);
+    // 样式缩放由渲染组共享：逐瓦片不再持有副本，避免每帧逐对象写入绑定。
+    expect('tileZoom' in parent.fills!).toBe(false); expect('tileZoom' in child.fills!).toBe(false);
     expect(parent.lines!.viewZoom.value).toBe(6.84); expect(parent.lines!.tileZoom.value).toBe(7);
     surfaces.update(origin, 7.09, 7);
     expect(parent.lines!.viewZoom.value).toBe(7.09); expect(parent.lines!.tileZoom.value).toBe(7);
@@ -49,17 +50,25 @@ describe('原生面批次的裁剪与资源所有权', () => {
     const instance = surfaces.instances.get(keyOf(copy))!;
     expect(instance.fills!.mesh.geometry).toBe(resource.fills!.mesh.geometry);
     expect(instance.fills!.mesh.material).not.toBe(resource.fills!.mesh.material);
-    expect(instance.fills!.tileZoom).not.toBe(resource.fills!.tileZoom);
+    expect(instance.fills!.mesh.material).not.toBe(surfaces.update);
     expect(resource.cpuBytes).toBe(4 + fillBytes(content));
     const geometryDisposed = vi.fn(), materialDisposed = vi.fn(), copyDisposed = vi.fn();
     resource.fills!.mesh.geometry.addEventListener('dispose', geometryDisposed);
     resource.fills!.mesh.material.addEventListener('dispose', materialDisposed);
     instance.fills!.mesh.material.addEventListener('dispose', copyDisposed);
-    surfaces.update(origin, 7.09, 7); expect(instance.fills!.tileZoom.value).toBe(7);
+    surfaces.update(origin, 7.09, 7);
+    const copyMaterial = instance.fills!.mesh.material;
     surfaces.commit(resolveRenderCover([address], new Set(resources.keys()), 0).patches, resources, origin);
-    expect(copyDisposed).toHaveBeenCalledOnce(); expect(geometryDisposed).not.toHaveBeenCalled();
+    // 副本退出后材质回到固定槽位而不是销毁，绑定组才能跨瓦片复用。
+    expect(copyDisposed).not.toHaveBeenCalled(); expect(geometryDisposed).not.toHaveBeenCalled();
+    expect(surfaces.fillSlots.idleCount).toBeGreaterThan(0);
+    // 再次出现副本时复用同一 mesh 与材质实例。
+    surfaces.commit(resolveRenderCover([address, copy], new Set(resources.keys()), 0).patches, resources, origin);
+    expect(surfaces.instances.get(keyOf(copy))!.fills!.mesh.material).toBe(copyMaterial);
+    surfaces.commit(resolveRenderCover([address], new Set(resources.keys()), 0).patches, resources, origin);
     surfaces.dispose(); surfaces.release(resource);
     expect(geometryDisposed).toHaveBeenCalledOnce(); expect(materialDisposed).toHaveBeenCalledOnce();
+    expect(copyDisposed).toHaveBeenCalledOnce();
     expect(image.close).toHaveBeenCalledOnce(); expect(surfaces.geometryBytes).toBe(0);
   });
 });

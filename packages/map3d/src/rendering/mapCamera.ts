@@ -123,31 +123,54 @@ export function intersectCameraRayWithGround(
   ndcY: number,
   maxGroundDistance: number,
 ): Vector3 {
+  return intersectCameraRayWithGroundInto(
+    new Vector3(),
+    camera,
+    ndcX,
+    ndcY,
+    maxGroundDistance,
+  );
+}
+
+/** 复用输出向量与模块级临时向量，供逐帧交互路径使用；调用不可重入。 */
+export function intersectCameraRayWithGroundInto(
+  out: Vector3,
+  camera: PerspectiveCamera,
+  ndcX: number,
+  ndcY: number,
+  maxGroundDistance: number,
+): Vector3 {
   if (!Number.isFinite(maxGroundDistance) || maxGroundDistance <= 0) {
     throw new RangeError('maxGroundDistance 必须是正有限数值。');
   }
 
-  const rayPoint = new Vector3(ndcX, ndcY, 0.5).unproject(camera);
-  const direction = rayPoint.sub(camera.position).normalize();
+  const direction = groundDirection
+    .set(ndcX, ndcY, 0.5)
+    .unproject(camera)
+    .sub(camera.position)
+    .normalize();
   const epsilon = 1e-9;
 
   if (direction.y < -epsilon) {
     const distance = -camera.position.y / direction.y;
 
     if (Number.isFinite(distance) && distance <= maxGroundDistance) {
-      return direction.multiplyScalar(distance).add(camera.position);
+      return out.copy(direction).multiplyScalar(distance).add(camera.position);
     }
   }
 
-  const horizontal = new Vector3(direction.x, 0, direction.z);
+  const horizontal = groundHorizontal.set(direction.x, 0, direction.z);
   if (horizontal.lengthSq() < epsilon) {
     camera.getWorldDirection(horizontal);
     horizontal.y = 0;
   }
   horizontal.normalize().multiplyScalar(maxGroundDistance);
-  return new Vector3(
+  return out.set(
     camera.position.x + horizontal.x,
     0,
     camera.position.z + horizontal.z,
   );
 }
+
+const groundDirection = new Vector3();
+const groundHorizontal = new Vector3();

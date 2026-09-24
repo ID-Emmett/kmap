@@ -39,7 +39,7 @@ export class Map3D {
   private origin: MapOrigin; private cameraFrame: MapCameraFrame;
   private initializePromise: Promise<void> | undefined;
   private disposed = false; private initialized = false; private running = false;
-  private frameId = 0; private frameMs = 0; private cpuMs = 0; private engineMs = 0; private renderMs = 0;
+  private frameId = 0; private frameMs = 0; private cpuMs = 0; private engineMs = 0; private renderMs = 0; private labelMs = 0;
   private readonly frameObservers = new Set<() => void>();
   private lastFrame = 0; private changedAt = 0; private lastStats = 0; private wasIdle = false;
   constructor(private readonly options: Map3DOptions) {
@@ -119,21 +119,24 @@ export class Map3D {
     this.frameMs = this.lastFrame ? now - this.lastFrame : 0;
     if (this.lastFrame) this.interval.add(this.frameMs); this.lastFrame = now;
     if (this.changedAt) { this.input.add(start - this.changedAt); this.changedAt = 0; }
-    this.engine?.update(this.camera, this.cameraFrame, this.origin, this.getView(), this.viewport, start);
-    const view = this.getView(), globeActive = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
+    const view = this.viewStore.current();
+    this.engine?.update(this.camera, this.cameraFrame, this.origin, view, this.viewport, start);
+    const afterEngine = performance.now();
+    const globeActive = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
     if (globeActive && !this.globe) { this.globe = new GlobeView(this.options, this.scene); if (this.theme) this.globe.setTheme(this.theme, this.engine?.surfaces.palette); }
     this.globe?.update(this.scene.userData.mapProjection);
     if (this.globe && !globeActive) this.globe.mesh.visible = false;
     if (this.labels && this.engine) this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.engine.tileZoom,
       this.viewport, this.engine.revision, start, this.engine.selection.fogEnd);
-    this.engineMs = performance.now() - start;
+    const afterLabels = performance.now();
+    this.labelMs = afterLabels - afterEngine; this.engineMs = afterEngine - start;
     this.renderer.render(this.scene, this.camera);
-    this.renderMs = performance.now() - start - this.engineMs;
+    this.renderMs = performance.now() - afterLabels;
     this.cpuMs = performance.now() - start; this.cpu.add(this.cpuMs); this.frameId++;
     for (const observer of this.frameObservers) observer();
     if (now - this.lastStats > 250) {
       this.lastStats = now; const stats = this.getStats(); this.events.emit('stats', stats);
-      const idle = this.engine ? ![...this.engine.entries.values()].some(e => Number.isFinite(e.priority) && e.state !== 'ready' && e.state !== 'failed') : false;
+      const idle = this.engine ? this.engine.store.requestedWork === 0 : false;
       if (idle && !this.wasIdle) this.events.emit('idle', { stats }); this.wasIdle = idle;
     }
   }
@@ -156,7 +159,9 @@ export class Map3D {
       workers: this.engine?.workers.getStats(), sceneTiles: this.engine?.shown.size ?? 0,
       labels: this.labels ? { candidates: this.labels.candidates, placed: this.labels.placed, glyphs: this.labels.atlas.glyphs.size, glyphErrors: this.labels.atlas.errors,
         missingGlyphs: this.labels.atlas.missing, layoutMs: this.labels.layoutMs, layouts: this.labels.layouts, quads: this.labels.surface.count,
-        atlasBytes: this.labels.atlas.size ** 2, pendingRanges: this.labels.atlas.pending.size, cachedRanges: this.labels.atlas.pages.size } : undefined,
+        atlasBytes: this.labels.atlas.size ** 2, pendingRanges: this.labels.atlas.pending.size, cachedRanges: this.labels.atlas.pages.size,
+        projectMs: this.labels.projectMs, placeMs: this.labels.placeMs, atlasMs: this.labels.atlasMs,
+        basis: this.labels.basis } : undefined,
       overlayCacheBytes: this.engine?.pipeline.overlays.bytes ?? 0,
       globe: { active: this.options.globe !== false && this.options.source.minZoom === 0 && this.getView().zoom < GLOBE_END,
         ready: !!this.globe && this.engine?.targetMissing === 0, errors: this.engine?.errors ?? 0 },
@@ -166,7 +171,9 @@ export class Map3D {
   observeFrames(observer: () => void): () => void { this.frameObservers.add(observer); return () => { this.frameObservers.delete(observer); }; }
   getFrameState() {
     const e = this.engine;
-    return { id: this.frameId, at: this.lastFrame, ms: this.frameMs, cpuMs: this.cpuMs, engineMs: this.engineMs, renderMs: this.renderMs, view: this.getView(),
+    return { id: this.frameId, at: this.lastFrame, ms: this.frameMs, cpuMs: this.cpuMs, engineMs: this.engineMs, labelMs: this.labelMs, renderMs: this.renderMs,
+      phases: e?.framePhases ?? { plan: 0, demand: 0, commit: 0, surfaces: 0, upload: 0, pump: 0, recycle: 0 },
+      uploadPhases: e?.pipeline.uploadPhases ?? { create: 0, compile: 0 }, view: this.getView(),
       revision: e?.revision ?? 0, uncovered: e?.uncovered ?? 0, missing: e?.targetMissing ?? 0, gap: e?.displayZoomGap ?? 0, pendingDetailGap: e?.pendingDetailGap ?? 0,
       fogStart: e?.selection.fogStart ?? 0, fogEnd: e?.selection.fogEnd ?? 0, cutoff: e?.selection.cutoff ?? 0,
       target: e?.selection.leaves.length ?? 0, sources: e?.shown.size ?? 0, entries: e?.entries.size ?? 0,

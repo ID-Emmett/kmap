@@ -10,9 +10,11 @@ scope.onmessage = ({ data }) => {
   const started = performance.now();
   try {
     const tile = decodeTileSources(data.buffer, data.address, data.overlays);
-    const builtFills = buildFills(tile, data.layers);
+    // 图层可见性一律按该瓦片自身层级求值：回退来源层级低于相机目标层级时，
+    // 低层级数据只有 transportation、高层级才有 road，按目标层级判定会让道路整片消失。
+    const builtFills = buildFills(tile, data.layers, data.address.z);
     const fills = { ...tessellateFills(builtFills, data.spherical ? data.address.z : 24), features: builtFills.features };
-    const lines = buildLines(tile, data.layers, data.spherical ? data.address.z : 24);
+    const lines = buildLines(tile, data.layers, data.spherical ? data.address.z : 24, data.address.z);
     const buildings = buildBuildings(tile, data.layers, data.address);
     const labels = buildLabels(tile, data.layers);
     // 一像素背景纹理使区域面与数据几何拥有统一的资源生命周期。
