@@ -8,7 +8,7 @@
 
 - 当前瓦片采用 canonical 数据身份、GPU 管线准备后发布、父到子完整来源模板和逐采样点所有权；图层显隐使用目标瓦片整数层级，道路宽度使用连续视图缩放曲线，文字采用持久身份与连续显隐。实现规范见 `docs/architecture/maplibre-aligned-streaming.md`，验证入口为 `docs/evidence/maplibre-alignment/README.md`。
 - 主瓦片独占有效内容区域的海陆边界，主响应无内容时启用 KYE 海洋回退；视图缩放独立于海洋内容可见性。资源覆盖与海陆像素正确性分别验证，见 `docs/evidence/maplibre-alignment/coast-authority.md`。
-- 城市平面地图在 z4.5～5.5 连续过渡到地球；Inspector 支持三主题、地图元素和文字样式编辑。默认背景/雾为 #dbdeff，陆地为 #e6f4f3。近景精度、地名层级和瓦片加载验证见 `docs/evidence/map-inspector/README.md`。
+- 地图始终为单个 Web Mercator 世界平面：无地球过渡、无横向世界副本，经度限制在 [-180, 180]，平移在东西边界停止。Inspector 支持三主题、地图元素和文字样式编辑。默认背景/雾为 #dbdeff，陆地为 #e6f4f3。近景精度、地名层级和瓦片加载验证见 `docs/evidence/map-inspector/README.md`。
 
 - Kmap 采用 Human-Governed、Spec-Driven、Task-Driven 和 Evidence-Driven 工作方式。
 - 当前生产瓦片运行时为 `StreamingEngine`，位于 `packages/map3d/src/streaming/`，负责 XYZ 覆盖、Worker 矢量面、中心线实例与挤出建筑、多单位线宽、加载、缓存、帧提交和资源回收。
@@ -55,6 +55,7 @@
 | T046 | IN_PROGRESS | 标准瓦片系统与性能面板验收 |
 | T047 | DONE | 回访零请求已交付；池常驻实验后回退；性能断言移交 T048 |
 | T048 | BACKLOG | 固定绘制槽位与档位容量几何已实施；60 秒验收性能断言未达标，待决策会话 |
+| T049 | DONE | 已删除地球视图与世界副本；人工验收通过（2026-09-28） |
 
 ## 默认读取策略
 
@@ -70,6 +71,7 @@
 - NTE 实施任务使用独立命名空间和专属 Context Packet。
 - T045 已完成 NTE 初始覆盖与细化规划修复；T046 负责全量生命周期、回收、调度和倾斜覆盖修复；T042 负责修复后的生产人工验收；T044 负责删除后回归和发布验证。
 - T047 已结项并交付回访零请求修复；性能项（160fps、P95/P99）移交 T048——先核验 WebGPU 动态模板值与绑定组复用，再实施固定绘制槽位与唯一材质。
+- T049 已按 D034 删除地球视图与横向世界副本；人工负责人 2026-09-28 验收通过，含平移瞬移与城市飞行越界两项修复。
 
 ## 关键索引
 

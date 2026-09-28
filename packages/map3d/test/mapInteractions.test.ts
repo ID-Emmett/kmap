@@ -11,7 +11,6 @@ import {
   INERTIA_DECAY_PER_SECOND,
   INERTIA_MAX_DURATION_MS,
   MIN_RELEASE_WINDOW_MS,
-  POINTER_SAMPLE_WINDOW_MS,
   integrateInertiaStep,
   isInertiaStopped,
 } from '../src/interaction/inertia.js';
@@ -45,6 +44,16 @@ describe('Map interactions', () => {
     expect(rotated.bearing).toBe(100);
     expect(rotated.pitch).toBe(75);
     expect(zoomed.zoom).toBe(5.5);
+  });
+
+  it('最低缩放边界视角的水平平移按像素尺度移动，不产生瞬移', () => {
+    // 相机距离在低缩放或大视口下超过世界宽度的数倍，平移射线必须仍按真实地面求交。
+    const viewport = { width: 1707, height: 932 };
+    const view = normalizeViewState({ center: { lng: 180, lat: -85.051129 }, zoom: 0, bearing: 0, pitch: 0 });
+    const moved = panViewByPixels(view, viewport, 100, 0);
+
+    expect(moved.center.lng).toBeCloseTo(180 - (100 * 360) / 256, 6);
+    expect(moved.center.lat).toBeCloseTo(view.center.lat, 6);
   });
 
   it('绑定 pointer/wheel/contextmenu 并在 dispose 后完全解除', () => {

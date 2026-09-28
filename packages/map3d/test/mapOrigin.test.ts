@@ -12,12 +12,13 @@ import {
 import { WEB_MERCATOR_WORLD_SIZE } from '../src/spatial/mercator.js';
 
 describe('MapOrigin', () => {
-  it('选择当前数据 Tile 中心并支持 world wrap', () => {
+  it('选择当前数据 Tile 中心并限制在单世界范围内', () => {
     const origin = selectMapOrigin({ lng: 190, lat: 0 }, 2);
 
-    expect(origin.tileX).toBe(4);
+    expect(origin.tileX).toBe(3);
     expect(origin.tileY).toBe(2);
     expect(origin.z).toBe(2);
+    expect(selectMapOrigin({ lng: -180, lat: 0 }, 2).tileX).toBe(0);
   });
 
   it('重定位只改变 Tile 锚点相对位置，不改变局部顶点', () => {

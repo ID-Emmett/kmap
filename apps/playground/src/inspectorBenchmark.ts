@@ -1,7 +1,7 @@
 import type { Map3D, ViewState } from '@kmap/map3d';
 import { THEMES, type ThemeId } from './themes.js';
 
-/** 实际提交帧的冷加载回读、地球过渡与独立性能计时。 */
+/** 实际提交帧的冷加载回读、跨缩放回读与独立性能计时。 */
 export async function runInspectorBenchmark(map: Map3D): Promise<void> {
   const base: ViewState = { center: { lng: 116.3946533203125, lat: 39.90552253972854 }, zoom: 15, pitch: 0, bearing: 0 };
   const canvas = document.querySelector<HTMLCanvasElement>('#map-canvas')!;
@@ -40,8 +40,8 @@ export async function runInspectorBenchmark(map: Map3D): Promise<void> {
       const settled = await settle(); capture(name); const d = map.getDiagnostics();
       results.push({ name, settled, missing: d.tiles?.targetMissing, uncovered: d.tiles?.uncoveredCells, labels: d.labels, drawCalls: d.render.drawCalls });
     }
-    for (const lng of [179.9, 180.1, 476.394653]) {
-      const name = `dateline-${lng}`; status(name); map.setView({ ...base, center: { lng, lat: 40 }, zoom: 5 });
+    for (const lng of [-180, -179.9, 179.9, 180]) {
+      const name = `longitude-edge-${lng}`; status(name); map.setView({ ...base, center: { lng, lat: 40 }, zoom: 5 });
       const settled = await settle(); capture(name); results.push({ name, settled });
     }
     for (const theme of ['default', 'dark', 'vivid'] as ThemeId[]) {

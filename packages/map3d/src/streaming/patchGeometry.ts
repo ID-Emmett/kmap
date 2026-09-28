@@ -9,13 +9,8 @@ export const PATCH_RECTANGLE_BYTES = 4 * 8 * Float32Array.BYTES_PER_ELEMENT + 6 
 export class PatchGeometry extends BufferGeometry {
   private signature = ''; private capacity = 0;
   private cells: readonly Address[] = [];
-  constructor(readonly curved = false) { super(); }
   get bytes(): number { return this.capacity * PATCH_RECTANGLE_BYTES; }
   update(source: Address, cells: readonly Address[]): void {
-    if (this.curved && source.z < 6) cells = cells.flatMap(cell => {
-      const divisions = 2 ** Math.max(0, 6 - cell.z), scale = divisions;
-      return Array.from({ length: divisions ** 2 }, (_, i) => ({ z: cell.z + Math.log2(scale), x: cell.x * scale + i % scale, y: cell.y * scale + Math.floor(i / scale) }));
-    });
     const signature = cells.map(keyOf).join('|'); if (signature === this.signature) return;
     this.signature = signature;
     this.cells = cells;

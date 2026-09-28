@@ -1,5 +1,4 @@
 import { paletteColor, paletteOpacity, paletteStyle } from '../style/palette.js';
-import { mapVertex, mapFacing } from '../globe/projection.js';
 import { type ArrayNode, BufferGeometry, DoubleSide, EqualStencilFunc, InstancedBufferGeometry, KeepStencilOp, Mesh, MeshBasicNodeMaterial, PlaneGeometry } from 'three/webgpu';
 import { Fn, If, attribute, buffer, element, float, fwidth, max, min, mix, renderGroup, uint, smoothstep, uniform, uv, varying, vec3, vec4 } from 'three/tsl';
 import type { LineData } from './lines.js';
@@ -21,7 +20,7 @@ const sharedTileZoom = uniform(15).setGroup(renderGroup);
 export function setLineTileZoom(value: number): void { sharedTileZoom.value = value; }
 
 /** 连续中心线带采用共享折点挤出，端点为 butt，横向距离提供解析抗锯齿。 */
-export function createLineSurface(data: LineData, curved = false, themed = false, pool?: GeometryPool, slots?: DrawSlotPool<LineUnit>) {
+export function createLineSurface(data: LineData, themed = false, pool?: GeometryPool, slots?: DrawSlotPool<LineUnit>) {
   const instances = data.segments.length / 4;
   const tier = capacityTier(instances);
   let geometry = pool?.acquire(LINE_GEOMETRY_KEY, tier) as InstancedBufferGeometry | undefined;
@@ -44,9 +43,9 @@ export function createLineSurface(data: LineData, curved = false, themed = false
   writeAttribute(geometry, 'lineCaps', data.caps ?? new Uint8Array(instances * 2).fill(1), 2, true, tier * 2);
   writeAttribute(geometry, 'lineDistance', data.distances, 1, true, tier);
   const count = lineStyleCapacity(data.paints.length);
-  const key = `${count}:${curved}:${themed}`;
+  const key = `${count}:${themed}`;
   // 槽位复用：同一 mesh 与材质实例再次承接新瓦片，绑定组与样式缓冲不再重新分配。
-  const unit = slots?.acquire(key, () => createLineUnit(count, curved, themed)) ?? createLineUnit(count, curved, themed);
+  const unit = slots?.acquire(key, () => createLineUnit(count, themed)) ?? createLineUnit(count, themed);
   fillLineState(unit.state, data);
   unit.mesh.geometry = geometry; unit.mesh.visible = true;
   return { mesh: unit.mesh, unit, ...unit.state, vertices: instances * 4, indices: instances * 6 };
@@ -62,19 +61,19 @@ export function releaseLineSurface(surface: LineSurface, pool: GeometryPool, slo
 }
 
 /** 新建一个线绘制槽位：材质从模板克隆，模板与节点图在所有槽位间共享。 */
-function createLineUnit(count: number, curved: boolean, themed: boolean): LineUnit {
-  const key = `${count}:${curved}:${themed}`;
+function createLineUnit(count: number, themed: boolean): LineUnit {
+  const key = `${count}:${themed}`;
   let template = lineMaterials.get(key);
-  if (!template) { template = createLineMaterial(count, curved, themed); lineMaterials.set(key, template); }
+  if (!template) { template = createLineMaterial(count, themed); lineMaterials.set(key, template); }
   const material = template.clone();
   const mesh = new Mesh(undefined, material); mesh.frustumCulled = false;
   const state = createLineSlot(count);
   mesh.userData.lineState = state;
-  return { mesh, material, state, key, spawn: () => createLineUnit(count, curved, themed) };
+  return { mesh, material, state, key, spawn: () => createLineUnit(count, themed) };
 }
 
 /** 节点图由所有瓦片共享，对象组在绘制时读取各瓦片的宽度比例。 */
-function createLineMaterial(count: number, curved: boolean, themed: boolean) {
+function createLineMaterial(count: number, themed: boolean) {
   const pixelScale = uniform(1 / 256).onObjectUpdate(({ object }) => object!.userData.lineState.pixelScale.value);
   const tileZoom = sharedTileZoom;
   const segment = attribute<'vec4'>('lineSegment', 'vec4');
@@ -101,7 +100,6 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
     return vec3(point.x, 0, point.y);
   })();
   material.positionNode = linePosition;
-  if (curved) material.vertexNode = mapVertex(linePosition);
   material.colorNode = Fn(() => {
     const distance = across.abs().sub(radius);
     const aa = max(fwidth(distance), 1e-10).toVar();
@@ -120,8 +118,6 @@ function createLineMaterial(count: number, curved: boolean, themed: boolean) {
       dashAlpha.assign(mix(resolved, duty, smoothstep(.25, .75, dashAA.div(period))));
     });
     const alpha = float(1).sub(smoothstep(aa.negate(), aa, distance)).mul(style.y).mul(dashAlpha).mul(themed ? paletteOpacity(sourceColor) : 1);
-    // 导数在分支裁剪之前求值，保留片元四元组的完整采样。
-    if (curved) mapFacing.lessThan(0).discard();
     tileZoom.lessThan(style.z).or(tileZoom.greaterThanEqual(style.w)).discard();
     alpha.lessThanEqual(.001).discard();
     return vec4(paletteColor(attribute<'vec3'>('lineColor', 'vec3'), themed), alpha);

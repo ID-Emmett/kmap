@@ -72,8 +72,6 @@ export interface InteractionFrameScheduler {
 }
 
 export interface MapInteractionControllerOptions {
-  /** 低缩放拖拽围绕地球中心旋转。 */
-  globe?: boolean;
   target: InteractionTarget;
   getView: () => ViewState;
   setView: (view: Partial<ViewState>) => void;
@@ -461,7 +459,7 @@ export class MapInteractionController {
       }
       const viewport = this.#options.getViewport();
       this.#setViewFromInteraction(zoomAroundPixel(view, viewport, view.zoom + zoomDelta,
-        this.#wheelPixel ?? { x: viewport.width / 2, y: viewport.height / 2 }, this.#options.globe));
+        this.#wheelPixel ?? { x: viewport.width / 2, y: viewport.height / 2 }));
     }
 
     if (this.#pendingWheelZoomDelta !== 0) {
@@ -480,7 +478,7 @@ export class MapInteractionController {
   #applyPointerDelta(active: ActivePointer, deltaX: number, deltaY: number, timeMs: number): void {
     const view = this.#options.getView();
     const next = active.mode === 'pan'
-      ? panViewByPixels(view, this.#options.getViewport(), deltaX, deltaY, this.#options.globe)
+      ? panViewByPixels(view, this.#options.getViewport(), deltaX, deltaY)
       : rotateViewByPixels(view, deltaX, deltaY);
     recordPointerSample(active.samples, next, timeMs);
     if (this.#motionObserved) {

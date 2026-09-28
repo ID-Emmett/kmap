@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Color, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
+import { Color, PerspectiveCamera, Scene } from 'three/webgpu';
 import { OverlayCache } from '../src/streaming/overlayCache.js';
 import { decodeTileSources, packTileSources } from '../src/streaming/tileSources.js';
 import { buildFills } from '../src/streaming/fills.js';
@@ -11,7 +11,6 @@ import { GlyphAtlas } from '../src/labels/glyphAtlas.js';
 import { CollisionGrid, overlaps } from '../src/labels/collision.js';
 import { LabelSystem, ownsAnchor } from '../src/labels/labelSystem.js';
 import { decodeVectorTile } from '../src/streaming/paint.js';
-import { globeBlend, GLOBE_END, GLOBE_START, updateGlobeCamera } from '../src/globe/globeCamera.js';
 import type { MapLayerOptions } from '../src/types.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
 import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
@@ -21,7 +20,7 @@ import type { LabelCandidate } from '../src/labels/candidates.js';
 const fixture = (name: string) => new Uint8Array(readFileSync(new URL(`./fixtures/${name}`, import.meta.url)));
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-describe('海洋补充、文字与地球数据契约', () => {
+describe('海洋补充、文字与渲染数据契约', () => {
   it('截图 z7/108/54 的海面和岛屿孔洞在 1024 个采样点符合真实专用源', () => {
     const source = { tiles: [], minZoom: 7, maxZoom: 7, sourceLayer: 'water', targetLayer: 'ocean' };
     const packed = packTileSources([new ArrayBuffer(0), fixture('kye-ocean-z7-108-54.mvt').buffer]);
@@ -124,18 +123,5 @@ describe('海洋补充、文字与地球数据契约', () => {
     expect(system.layouts).toBe(layouts); expect(system.surface.origin.value.x).toBe(100);
     const disposed = vi.fn(); system.surface.mesh.geometry.addEventListener('dispose', disposed);
     system.dispose(); surfaces.dispose(); surfaces.release(resource); expect(disposed).toHaveBeenCalledOnce(); expect(scene.children).toHaveLength(0);
-  });
-  it.each([[1280, 720], [720, 1280], [2560, 1305]])('最低缩放完整球面适配 %s×%s，任意中心保持朝向', (width, height) => {
-    const camera = new PerspectiveCamera(), viewport = { width, height };
-    for (const center of [{ lng: 116, lat: 40 }, { lng: -170, lat: -45 }, { lng: 0, lat: 85 }]) {
-      const view = { center, zoom: 0, bearing: 38, pitch: 75 }; updateGlobeCamera(camera, view, viewport);
-      for (let j = 0; j < 60; j++) for (let k = 0; k < 30; k++) {
-        const lng = j / 60 * Math.PI * 2, lat = (k / 29 - .5) * Math.PI;
-        const p = new Vector3(Math.cos(lat) * Math.sin(lng), Math.sin(lat), Math.cos(lat) * Math.cos(lng)).project(camera);
-        expect(Math.abs(p.x)).toBeLessThan(.85); expect(Math.abs(p.y)).toBeLessThan(.85);
-      }
-    }
-    expect(globeBlend(0)).toBe(0); expect(globeBlend(GLOBE_START)).toBe(0); expect(globeBlend(GLOBE_END)).toBe(1);
-    expect(globeBlend((GLOBE_START + GLOBE_END) / 2)).toBeCloseTo(.5);
   });
 });

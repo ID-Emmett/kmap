@@ -8,7 +8,7 @@ import {
 } from '../src/spatial/viewState.js';
 
 describe('ViewState', () => {
-  it('归一化 zoom、bearing、pitch 和中心纬度', () => {
+  it('归一化 zoom、bearing、pitch 和中心经纬度', () => {
     expect(
       normalizeViewState({
         center: { lng: 540, lat: 90 },
@@ -17,11 +17,12 @@ describe('ViewState', () => {
         pitch: 80,
       }),
     ).toEqual({
-      center: { lng: 540, lat: WEB_MERCATOR_MAX_LATITUDE },
+      center: { lng: 180, lat: WEB_MERCATOR_MAX_LATITUDE },
       zoom: 0,
       bearing: 270,
       pitch: 75,
     });
+    expect(normalizeViewState({ center: { lng: -540, lat: 0 } }).center.lng).toBe(-180);
   });
 
   it('使用已有状态补全局部更新且不共享可变 center', () => {

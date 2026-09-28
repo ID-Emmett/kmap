@@ -56,8 +56,11 @@
 | T046 | Tile System Full Lifecycle and Streaming Repair | IN_PROGRESS | 实施会话 | T043, T045 |
 | T047 | Interaction Smoothness Hardening | DONE | 实施会话 | T046 |
 | T048 | Material Slot Rendering | IN_PROGRESS | 实施会话 | T046, T047 |
+| T049 | Flat Map Only: Remove Globe and World Copies | DONE | 实施会话 | T046 |
 
 ## 当前任务
+
+T049 已完成并结项（人工负责人 2026-09-28 验收通过）：删除地球视图与横向世界副本，地图始终为单个 Web Mercator 世界平面，经度限制在 [-180, 180]；边界视角平移瞬移与城市飞行路径越界两轮缺陷已修复并有回归测试。结论与清理记录见 `tasks/T049-flat-map-only.md`，决策见 `docs/decisions/D034-flat-map-only-remove-globe.md`。
 
 T048 承担材质槽位化渲染，状态为 IN_PROGRESS：Three WebGPU 动态模板值核验已通过（模板编号为动态状态，不入管线缓存键）；已实施固定绘制槽位（mesh 与材质按布局键复用）与按档位容量预分配的几何。真实输入探针 bufferDelta 合计由 2865 降至 2379，属性重建计数归零；60 秒验收的 `stable160fps`/`motionFrameP95`/`motionFrameP99` 仍未达标且两次运行结果离散（`acceptance-60s-T048.json` 与 `acceptance-60s-T048-rerun.json`），已记录为 Open Issues 待决策会话处理。边界见 `tasks/T048-material-slot-rendering.md`。
 
@@ -78,4 +81,4 @@ T044 承担发布回归，发布范围由人工负责人确认。
 - 非 DONE 的实施任务缺少 `Task Context Packet` 时不得执行；必须先由决策会话补齐或重新定义。
 - 未经确认，不直接进入地图功能实现。
 - 当前默认下一步以 `docs/project-state.md` 和本文件一致结论为准。
-- T003-T048 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。
+- T003-T049 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。

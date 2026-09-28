@@ -39,7 +39,7 @@ describe('Web Mercator', () => {
     );
   });
 
-  it('保留日期线两侧的连续 world wrap Tile 坐标', () => {
+  it('日期线两侧的连续 Tile 坐标', () => {
     expect(lngLatToTilePosition({ lng: -180, lat: 0 }, 2)).toEqual({
       z: 2,
       x: 0,

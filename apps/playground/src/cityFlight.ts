@@ -12,7 +12,8 @@ const mercatorY = (lat: number) => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI
 export function flightView(from: ViewState, to: ViewState, progress: number, viewportWidth = 1280): ViewState {
   if (progress <= 0) return { ...from, center: { ...from.center } };
   if (progress >= 1) return { ...to, center: { ...to.center } };
-  const deltaLng = ((to.center.lng - from.center.lng + 540) % 360) - 180;
+  // 地图为单个世界，经度不环绕：直接使用目标差值，路径必然落在两端之间且不会越出 [-180, 180]。
+  const deltaLng = to.center.lng - from.center.lng;
   const dy = (mercatorY(to.center.lat) - mercatorY(from.center.lat)) / (2 * Math.PI);
   const distance = Math.hypot(deltaLng / 360, dy) * 256 * 2 ** from.zoom;
   const w0 = viewportWidth; const w1 = w0 / 2 ** (to.zoom - from.zoom); const rho = 1.42; const rho2 = rho * rho;

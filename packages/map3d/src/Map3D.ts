@@ -15,9 +15,6 @@ import { auditPixels } from './streaming/pixelAudit.js';
 import { tileDiagnostics } from './streaming/diagnostics.js';
 import { selectTiles } from './streaming/selection.js';
 import { LabelSystem } from './labels/labelSystem.js';
-import { GLOBE_END } from './globe/globeCamera.js';
-import { GlobeView } from './globe/globeView.js';
-import { updateProjection } from './globe/projection.js';
 import type { MapTheme, LabelAppearance, Map3DOptions, MapEventMap, MapRuntimeStats, RenderBackend, ViewportSize, ViewState } from './types.js';
 
 /** Three.js 地图容器：相机交互、WebGPU 帧循环与瓦片流式合成。 */
@@ -34,7 +31,6 @@ export class Map3D {
   private labelAppearance: LabelAppearance = {};
   private engine: StreamingEngine | undefined;
   private labels: LabelSystem | undefined;
-  private globe: GlobeView | undefined;
   private viewport = normalizeViewport({ width: 1, height: 1 });
   private origin: MapOrigin; private cameraFrame: MapCameraFrame;
   private initializePromise: Promise<void> | undefined;
@@ -50,9 +46,9 @@ export class Map3D {
     this.renderer = new WebGPURenderer({ canvas: options.canvas, stencil: true, antialias: options.renderer?.antialias ?? options.renderer?.forceWebGL !== true, forceWebGL: options.renderer?.forceWebGL ?? false });
     this.viewStore = new ViewStateStore(options.view);
     const view = this.getView(); this.origin = selectMapOrigin(view.center, Math.max(0, Math.floor(view.zoom)));
-    this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin, this.options.globe !== false && this.options.source.minZoom === 0);
+    this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin);
     this.viewStore.onChange(v => { this.changedAt = performance.now(); this.applyView(v); this.events.emit('viewchange', { view: v }); });
-    this.interactions = new MapInteractionController({ target: options.canvas, globe: options.globe !== false && options.source.minZoom === 0,
+    this.interactions = new MapInteractionController({ target: options.canvas,
       getView: () => this.getView(), setView: v => this.viewStore.set(v), getViewport: () => this.viewport });
   }
   initialize(): Promise<void> {
@@ -62,7 +58,7 @@ export class Map3D {
   private async initializeOnce(): Promise<void> {
     await this.renderer.init();
     if (this.disposed) throw createMapDisposedError();
-    const surfaces = new TileSurfaces(this.scene, this.background, this.options.globe !== false && this.options.source.minZoom === 0);
+    const surfaces = new TileSurfaces(this.scene, this.background);
     this.engine = new StreamingEngine(this.options, surfaces, this.renderer, `#${this.background.getHexString()}`, error => this.events.emit('error', error));
     if (this.options.labels && this.options.layers.some(layer => layer.type === 'symbol')) this.labels = new LabelSystem(this.options.labels, this.scene);
     if (this.theme) this.setTheme(this.theme); this.labels?.setStyle(this.labelAppearance);
@@ -74,7 +70,7 @@ export class Map3D {
     this.assertLive(); this.theme = theme; this.background.set(theme.backgroundColor);
     this.engine?.surfaces.palette.set(theme);
     this.engine?.surfaces.fogColor.value.set(theme.fogColor ?? theme.backgroundColor);
-    this.engine?.surfaces.landColor.value.set(theme.landColor ?? theme.backgroundColor); this.globe?.setTheme(theme, this.engine?.surfaces.palette);
+    this.engine?.surfaces.landColor.value.set(theme.landColor ?? theme.backgroundColor);
     this.labels?.invalidate();
   }
   /** 文字外观在下一次屏幕布局中生效，字形缓存继续复用。 */
@@ -105,8 +101,7 @@ export class Map3D {
   }
   private applyView(view: ViewState): void {
     this.origin = selectMapOrigin(view.center, Math.max(0, Math.floor(view.zoom)));
-    this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin, this.options.globe !== false && this.options.source.minZoom === 0);
-    updateProjection(this.scene, view, this.origin, this.options.globe !== false && this.options.source.minZoom === 0); this.engine?.invalidate();
+    this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin); this.engine?.invalidate();
   }
   start(): void {
     this.assertLive(); if (!this.initialized || this.running) return;
@@ -122,10 +117,6 @@ export class Map3D {
     const view = this.viewStore.current();
     this.engine?.update(this.camera, this.cameraFrame, this.origin, view, this.viewport, start);
     const afterEngine = performance.now();
-    const globeActive = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
-    if (globeActive && !this.globe) { this.globe = new GlobeView(this.options, this.scene); if (this.theme) this.globe.setTheme(this.theme, this.engine?.surfaces.palette); }
-    this.globe?.update(this.scene.userData.mapProjection);
-    if (this.globe && !globeActive) this.globe.mesh.visible = false;
     if (this.labels && this.engine) this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.engine.tileZoom,
       this.viewport, this.engine.revision, start, this.engine.selection.fogEnd);
     const afterLabels = performance.now();
@@ -163,8 +154,6 @@ export class Map3D {
         projectMs: this.labels.projectMs, placeMs: this.labels.placeMs, atlasMs: this.labels.atlasMs,
         basis: this.labels.basis } : undefined,
       overlayCacheBytes: this.engine?.pipeline.overlays.bytes ?? 0,
-      globe: { active: this.options.globe !== false && this.options.source.minZoom === 0 && this.getView().zoom < GLOBE_END,
-        ready: !!this.globe && this.engine?.targetMissing === 0, errors: this.engine?.errors ?? 0 },
       tiles: this.engine ? tileDiagnostics(this.engine) : undefined };
   }
   /** 观察已完成提交的实际渲染帧，调用者负责采样和存储。 */
@@ -191,7 +180,7 @@ export class Map3D {
   }
   dispose(): void {
     if (this.disposed) return; this.disposed = true; this.stop(); this.interactions.dispose(); this.viewStore.dispose();
-    this.globe?.dispose(); this.labels?.dispose(); this.engine?.dispose(); this.engine = undefined; this.renderer.dispose(); this.events.clear(); this.frameObservers.clear(); this.initialized = false;
+    this.labels?.dispose(); this.engine?.dispose(); this.engine = undefined; this.renderer.dispose(); this.events.clear(); this.frameObservers.clear(); this.initialized = false;
   }
   private assertLive(): void { if (this.disposed) throw createMapDisposedError(); }
 }

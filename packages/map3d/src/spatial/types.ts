@@ -1,5 +1,3 @@
-import type { CanonicalTileKey } from '../types.js';
-
 /** CPU 侧 Web Mercator 米坐标，X 向东、Y 向北。 */
 export interface MercatorPoint {
   x: number;
@@ -23,12 +21,6 @@ export interface MvtPoint {
 export interface TileLocalPoint {
   x: number;
   y: number;
-}
-
-/** 同一 canonical Tile 在横向世界副本中的渲染标识。 */
-export interface RenderTileKey {
-  canonical: CanonicalTileKey;
-  wrap: number;
 }
 
 /** 浮动原点，固定在当前数据 Tile 的中心。 */

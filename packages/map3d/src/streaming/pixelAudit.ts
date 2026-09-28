@@ -23,6 +23,8 @@ export function auditPixels(canvas: HTMLCanvasElement, camera: PerspectiveCamera
     const world = 40075016.68557849;
     const position = { z: 23, x: Math.floor((point.x + origin.meters.x + world / 2) / world * 2 ** 23),
       y: Math.floor((world / 2 - origin.meters.y + point.z) / world * 2 ** 23) };
+    // 单世界之外没有数据来源，越界采样不参与对照。
+    if (position.x < 0 || position.x >= 2 ** 23 || position.y < 0 || position.y >= 2 ** 23) continue;
     const patch = engine.patches.find(p => contains(p.cell, position));
     if (!patch) continue;
     const entry = engine.entries.get(patch.key); const surface = entry?.surface;

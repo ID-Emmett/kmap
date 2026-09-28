@@ -1,4 +1,3 @@
-import { globeBlend } from '../globe/globeCamera.js';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 
 import {
@@ -19,9 +18,6 @@ import type { ViewportSize, ViewState } from '../types.js';
 import type { InteractionDisplacement } from './inertia.js';
 
 const scratchCamera = new PerspectiveCamera();
-const scratchRay = new Vector3();
-const scratchFrom = new Vector3();
-const scratchOrigin = new Vector3();
 const scratchCenterGround = new Vector3();
 const scratchMovedGround = new Vector3();
 
@@ -31,7 +27,6 @@ export function panViewByPixels(
   viewport: ViewportSize,
   deltaX: number,
   deltaY: number,
-  globe = false,
 ): ViewState {
   const normalizedView = normalizeViewState(view);
   const normalizedViewport = normalizeViewport(viewport);
@@ -42,24 +37,10 @@ export function panViewByPixels(
   const origin = selectMapOrigin(normalizedView.center, originZoom);
   // 交互期间每帧调用一次，复用相机与射线向量，避免逐事件构造 Three 对象。
   const camera = scratchCamera;
-  updateMapCamera(camera, normalizedView, normalizedViewport, origin, globe);
-  const weight = globe ? 1 - globeBlend(normalizedView.zoom) : 0;
-  let spherical: ViewState | undefined;
-  if (weight > 0) {
-    const radius = WEB_MERCATOR_WORLD_SIZE / (2 * Math.PI * Math.cos(normalizedView.center.lat * Math.PI / 180));
-    const c = projectLngLat(normalizedView.center), cx = c.x - origin.meters.x, cz = origin.meters.y - c.y;
-    const ray = scratchRay.set(deltaX / normalizedViewport.width * 2, -deltaY / normalizedViewport.height * 2, .5).unproject(camera).sub(camera.position).normalize();
-    const from = scratchFrom.copy(camera.position).sub(scratchOrigin.set(cx, -radius, cz));
-    const dot = from.dot(ray), discriminant = dot * dot - (from.lengthSq() - radius * radius);
-    const hit = from.addScaledVector(ray, -dot - Math.sqrt(Math.max(0, discriminant))).normalize();
-    const lat = normalizedView.center.lat * Math.PI / 180, s = Math.sin(lat), c0 = Math.cos(lat);
-    const deltaLng = Math.atan2(hit.x, hit.y * c0 + hit.z * s) * 180 / Math.PI;
-    const hitLat = Math.asin(Math.max(-1, Math.min(1, hit.y * s - hit.z * c0))) * 180 / Math.PI;
-    spherical = normalizeViewState({ center: { lng: normalizedView.center.lng - deltaLng,
-      lat: normalizedView.center.lat * 2 - hitLat } }, normalizedView);
-    if (weight === 1) return spherical;
-  }
-  const maxGroundDistance = WEB_MERCATOR_WORLD_SIZE * 4;
+  const frame = updateMapCamera(camera, normalizedView, normalizedViewport, origin);
+  // 截断距离至少覆盖相机到目标的距离：低缩放或大视口下相机距离可超过世界宽度的数倍，
+  // 固定世界倍数会把正常向下射线误判为近地平线并退化成水平截断，平移随即跳变。
+  const maxGroundDistance = Math.max(WEB_MERCATOR_WORLD_SIZE * 4, frame.distance * 4);
   const centerGround = intersectCameraRayWithGroundInto(
     scratchCenterGround,
     camera,
@@ -93,7 +74,7 @@ export function panViewByPixels(
     },
     normalizedView,
   );
-  return spherical ? normalizeViewState({ center: { lng: planar.center.lng + (spherical.center.lng - planar.center.lng) * weight, lat: planar.center.lat + (spherical.center.lat - planar.center.lat) * weight } }, normalizedView) : planar;
+  return planar;
 }
 
 /** 水平拖拽改变 bearing，垂直向上拖拽增加 pitch。 */

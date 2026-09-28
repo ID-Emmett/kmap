@@ -1,7 +1,6 @@
 import { Box3, Frustum, Matrix4, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import type { MapCameraFrame } from '../rendering/mapCamera.js';
 import type { MapOrigin } from '../spatial/types.js';
-import { WEB_MERCATOR_WORLD_SIZE as WORLD } from '../spatial/mercator.js';
 import type { ViewportSize, ViewState } from '../types.js';
 import { childrenOf, keyOf, tileBounds, type Address } from './address.js';
 import { distanceToGroundBox, fogDistances } from './fog.js';
@@ -31,8 +30,8 @@ export function selectTiles(camera: PerspectiveCamera, frame: MapCameraFrame, or
     return frustum.intersectsBox(box) && exactVisible(x, z, b.span);
   };
   const center = new Vector3();
-  const copy = Math.floor((origin.meters.x + WORLD / 2) / WORLD);
-  const stack: Address[] = [-1, 0, 1].map(offset => ({ z: 0, x: copy + offset, y: 0 }));
+  // 单一世界根瓦片：横向不复制世界，视野外区域保持背景色。
+  const stack: Address[] = [{ z: 0, x: 0, y: 0 }];
   const desired = Math.min(maxZoom, Math.max(minZoom, targetZoom));
   while (stack.length) {
     const a = stack.pop()!; result.visited++;

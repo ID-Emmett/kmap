@@ -18,7 +18,7 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 
 ## 当前事实基线
 
-- 城市平面与低缩放地球过渡、分类文字/图标、Inspector 元素样式编辑及晴昼/深海/晴彩主题已实现。当前验证见 `docs/evidence/map-inspector/README.md`。
+- 单世界平面地图、分类文字/图标、Inspector 元素样式编辑及晴昼/深海/晴彩主题已实现。当前验证见 `docs/evidence/map-inspector/README.md`。
 
 - TypeScript 7.0.2，strict，ESM。
 - pnpm workspace 负责 Monorepo 依赖和命令编排。
@@ -56,7 +56,7 @@ KYE Tile
 - Camera 平移、连续 Zoom、Bearing、Pitch 和可见 Tile Coverage。
 - XYZ 世界副本、请求去重、队列取消、204 祖先覆盖、有限重试和按字节约束的 LRU。
 - Polygon/Line/建筑挤出、属性过滤、kind 分类色、米制连续缩放线宽和虚线；建筑从 zoom 15.74 开始显示。
-- Symbol 点/道路文字、KYE SDF 字形、优先级/碰撞/跨瓦片去重，以及同场景球面投影的矢量瓦片地球。
+- Symbol 点/道路文字、KYE SDF 字形、优先级/碰撞/跨瓦片去重；地图始终为单个 Web Mercator 世界平面，经度限制在 [-180, 180]。
 - Worker 协议、transferable buffer/ImageBitmap 和 GPU 资源所有权。
 - typed events/errors/stats、WebGPU/WebGL2、真实浏览器和性能验证。
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。

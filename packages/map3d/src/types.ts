@@ -6,7 +6,7 @@ export type LayerPropertyValue = string | number | boolean | null;
 
 /** WGS84 经纬度，角度单位为 degree。 */
 export interface LngLat {
-  /** 经度；允许超出标准世界范围以表达横向 world wrap。 */
+  /** 经度；限制在 [-180, 180] 的标准世界范围内。 */
   lng: number;
   /** 纬度；进入 Web Mercator 投影时限制到有效范围。 */
   lat: number;
@@ -30,7 +30,7 @@ export interface CanonicalTileKey {
   sourceId: string;
   /** 整数数据层级。 */
   z: number;
-  /** 已归一化到当前层级范围内的 X。 */
+  /** 当前层级范围内的 X。 */
   x: number;
   /** 当前层级范围内的 Y。 */
   y: number;
@@ -256,8 +256,6 @@ export interface Map3DOptions {
   layers: readonly MapLayerOptions[];
   /** 标准 SDF glyph PBF 资源；按需加载 256 字符的 range。 */
   labels?: { glyphs: string; fontStack: string; maxLabels?: number };
-  /** minZoom=0 的源在 z4.5～5.5 连续过渡到地球；城市近景采用平面投影，默认启用。 */
-  globe?: boolean;
   renderer?: {
     /** 是否强制使用 WebGL2 后端。 */
     forceWebGL?: boolean;

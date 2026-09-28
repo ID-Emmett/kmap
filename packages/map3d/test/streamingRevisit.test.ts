@@ -44,8 +44,6 @@ describe('回访缓存与已解析空登记', () => {
     expect(store.entries.size).toBe(0);
     expect(store.isEmpty({ z: 5, x: 1, y: 1 })).toBe(true);
     expect(store.isEmpty({ z: 5, x: 1, y: 2 })).toBe(false);
-    // 归一化副本与规范键指向同一登记。
-    expect(store.isEmpty({ z: 5, x: 1 + 2 ** 5, y: 1 })).toBe(true);
     store.dispose();
     expect(store.isEmpty({ z: 5, x: 1, y: 1 })).toBe(false);
     surfaces.dispose();

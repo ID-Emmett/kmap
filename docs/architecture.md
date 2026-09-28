@@ -7,7 +7,7 @@
 ## 证据边界
 
 - 已验证输入：KYE 主瓦片为标准 Web Mercator XYZ、gzip HTTP 响应中的 MVT v2、extent 4096；部分专用空瓦片返回 HTTP 204。
-- 代码现状：`@kmap/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、world-wrap render instance、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024/T025 已补齐 V2 rAF Render transaction 和运动调度补丁，但人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链；T028 已完成重置输出；T029 将实施 `TileStreamingEngine`。
+- 代码现状：`@kmap/map3d` 已实现渲染后端骨架、核心空间契约、KYE MVT Fetch/Decode、Worker Polygon/Line batch pipeline、Polygon/Line GPU resource/material registry/WebGPU-WebGL2 纵向链路、ViewState 驱动的 Camera/交互/Coverage、TileEngineV2 动态多 Tile Runtime/Cache、渐进式 Tile 替换、交互阻尼和 TSL 远景渐隐；T011-T015 已获人工体验接受。D026/T016 已完成同 Tile 重复 Line 样式 pass 的 geometry/topology 共享及双后端回归，T010 已完成当前 Windows 目标工作站的 MVP 浏览器与性能基线，发布判断为 `PASS_WITH_NON_BLOCKING_LONG_TASK_RISK`。T021 的旧 Runtime 空间 replacement 代码和浏览器脚本通过，但人工 pan/zoom 加载观感未通过；T023 已切换 `Map3D` 到唯一的 TileEngineV2 生产 authority，但人工验收失败；T024/T025 已补齐 V2 rAF Render transaction 和运动调度补丁，但人工负责人仍报告加载滞后、停止后请求波次、中心向外逐块加载、白闪、低帧率和 pan 卡顿。D031 已冻结 T026/T027 补丁链；T028 已完成重置输出；T029 将实施 `TileStreamingEngine`。
 - 架构决策：本文件中的坐标、Tile、Worker、Batch、公共 API 和性能目标属于 T002 设计结论，不写入 `KNOWLEDGE.md`，直到实现和真实环境验证形成证据。
 - 未验证项继续保持未验证：服务节点正式负载均衡规则、完整字段 schema、跨地域建筑数据、Raster DPR 语义、Glyph/Sprite 许可与目标设备性能。
 
@@ -91,7 +91,7 @@ NTE 任务链为 T031-T044。T043 负责生产切换与运行时删除，T044 �
 ### 公共坐标
 
 - 公共位置统一为 WGS84 经纬度 `{ lng, lat }`，角度单位为 degree。
-- 纬度在投影入口限制到 Web Mercator 有效范围 `±85.0511287798°`。
+- 纬度在投影入口限制到 Web Mercator 有效范围 `±85.0511287798°`；经度限制在 `[-180, 180]`，地图为单个 Web Mercator 世界，不产生横向世界副本。
 - 公共 `ViewState` 为 `{ center, zoom, bearing, pitch }`。
 - `bearing` 从正北开始顺时针，归一化到 `[0, 360)`；`pitch` 为从垂直俯视向地平线倾斜的角度，MVP 限制到 `[0, 60]`。
 - `zoom` 连续变化；Tile 数据层级使用 `clamp(floor(zoom), source.minZoom, source.maxZoom)`，超过 source maxZoom 时只做 overzoom，不请求不存在的更高层级。
@@ -135,17 +135,11 @@ interface CanonicalTileKey {
   x: number;
   y: number;
 }
-
-interface RenderTileKey {
-  canonical: CanonicalTileKey;
-  wrap: number;
-}
 ```
 
-- `CanonicalTileKey` 用于网络、解码和缓存；X 归一化到 `[0, 2^z - 1]`，Y 越界直接忽略。
-- `RenderTileKey` 额外记录横向 world wrap，用于同一 canonical 数据在多个世界副本中的放置。
-- 缓存和并发去重只使用 canonical key；不同 wrap 可以共享 CPU/GPU 数据，但拥有独立的 Tile 实例变换。
-- key 的稳定字符串形式为 `sourceId/z/x/y`；wrap 只出现在渲染实例 key 中。
+- `CanonicalTileKey` 用于网络、解码和缓存；X 位于 `[0, 2^z - 1]`，Y 越界直接忽略。
+- 地图为单个 Web Mercator 世界，不产生横向世界副本；`ViewState.center.lng` 限制在 `[-180, 180]`。
+- key 的稳定字符串形式为 `z/x/y`。
 
 ### Tile 状态机
 
@@ -192,7 +186,7 @@ queued/fetching/decoding/building/ready/empty/failed → disposed
 - visible 集本身超过预算时不强制销毁可见资源；Runtime 关闭 prefetch、触发 `memory-pressure` 统计并记录超限。
 - `empty` 在当前 source 版本和当前 Map3D 实例生命周期内可缓存；失败项在 cooldown 后才允许重新排队。
 - Cache 必须使用实际 TypedArray byteLength 加结构估算；禁止只按 Tile 个数声称满足内存预算。
-- 当前 T008 Runtime 由 Source/Worker/Render adapter 隔离具体实现，保持内部模块；T009 负责将 render wrap 实例、Three.js GPU resource 和批准的 Map3D stats/events 接入，不扩大根入口公共类型。
+- 当前 T008 Runtime 由 Source/Worker/Render adapter 隔离具体实现，保持内部模块；T009 负责将 render 实例、Three.js GPU resource 和批准的 Map3D stats/events 接入，不扩大根入口公共类型。
 
 ### Target 与 Display Coverage
 

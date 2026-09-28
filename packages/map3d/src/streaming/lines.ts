@@ -28,7 +28,7 @@ export function simplifyLine<T extends { x: number; y: number }>(points: T[], to
   return points.filter((_, i) => keep[i]);
 }
 
-export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[], zoom = 24, sourceZoom = zoom): LineData & { features: number } {
+export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[], sourceZoom = 24): LineData & { features: number } {
   type Point = { x: number; y: number };
   type Feature = { properties: Record<string, unknown>; rings: Point[][] };
   const cache = new Map<string, Feature[]>();
@@ -49,7 +49,7 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
       features = [];
       for (let i = 0; i < source.length; i++) {
         const feature = source.feature(i); if (feature.type !== 2) continue;
-        features.push({ properties: feature.properties, rings: feature.loadGeometry().map(ring => zoom >= 14 ? ring : simplifyLine(ring, source.extent / 1024)) });
+        features.push({ properties: feature.properties, rings: feature.loadGeometry() });
       }
       cache.set(layer.sourceLayer, features);
     }
@@ -58,18 +58,11 @@ export function buildLines(tile: VectorTile, layers: readonly MapLayerOptions[],
       if (!matches(feature.properties, layer.filters)) continue;
       featureCount++;
       for (const ring of feature.rings) {
-        const curved = zoom < 6 ? ring.flatMap((a, i) => {
-          const b = ring[i + 1]; if (!b) return [a];
-          const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / source.extent * 128 / 2 ** zoom));
-          return Array.from({ length: steps }, (_, n) => ({ x: a.x + (b.x - a.x) * n / steps, y: a.y + (b.y - a.y) * n / steps }));
-        }) : ring;
-        rings.push(curved.filter((p, i) => !i || p.x !== curved[i - 1]!.x || p.y !== curved[i - 1]!.y));
-        for (let j = 1; j < curved.length; j++) if (curved[j - 1]!.x !== curved[j]!.x || curved[j - 1]!.y !== curved[j]!.y) count++;
+        rings.push(ring.filter((p, i) => !i || p.x !== ring[i - 1]!.x || p.y !== ring[i - 1]!.y));
       }
     }
-    const combined = layer.paint.dashArray ? rings : joinLineChains(rings).map(ring => zoom < 6 || zoom >= 14 ? ring : simplifyLine(ring, source.extent / 512));
-    for (const ring of rings) count -= Math.max(0, ring.length - 1);
-    for (const ring of combined) count += Math.max(0, ring.length - 1);
+    const combined = layer.paint.dashArray ? rings : joinLineChains(rings);
+    count += combined.reduce((n, ring) => n + Math.max(0, ring.length - 1), 0);
     batches.push({ layer, color: new Color(layer.paint.color), extent: source.extent, rings: combined });
   }
   // 已知容量的 TypedArray 直接写入，描边和填色共享解码后的中心线。

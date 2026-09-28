@@ -30,7 +30,7 @@
 - 台湾主源 `7/107/55` 返回 HTTP 204，`6/53/27` 提供有效祖先数据；省名来自 `place/class=state`。数据与渲染验证见 `docs/evidence/map-continuity/README.md`。
 
 - Three r185 WebGPU 模板编号缓存、运动中的子区域覆盖和整数层级滞回已通过定点与逐帧验证，见 `docs/evidence/streaming-motion/README.md`。
-- 平面与地球过渡、近景精度、调色板编译时序、地名层级和 Inspector 的双后端验证见 `docs/evidence/map-inspector/README.md`。
+- 单世界平面覆盖、近景精度、调色板编译时序、地名层级和 Inspector 的双后端验证见 `docs/evidence/map-inspector/README.md`。
 
 - KYE 主源部分海面瓦片返回 204；专用海洋来源、中文 glyph PBF 和字段样本已验证。当前实现与浏览器验收边界见 `docs/evidence/map-stability/README.md`，文字方案见 `docs/research/map-label-system-2026-09-16.md`。
 

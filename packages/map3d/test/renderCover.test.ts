@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Scene, Color } from 'three/webgpu';
-import { canonicalKey, childrenOf, contains, keyOf, type Address } from '../src/streaming/address.js';
+import { childrenOf, contains, keyOf, type Address } from '../src/streaming/address.js';
 import { resolveRenderCover, coverSources } from '../src/streaming/renderCover.js';
 import { TileAvailability } from '../src/streaming/availability.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
@@ -10,7 +10,7 @@ import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
 
 const parent = { z: 13, x: 6744, y: 3104 };
 const children = childrenOf(parent);
-const ready = (...addresses: Address[]) => new Set(addresses.map(canonicalKey));
+const ready = (...addresses: Address[]) => new Set(addresses.map(keyOf));
 const disjoint = (patches: ReturnType<typeof resolveRenderCover>['patches']) => {
   for (const a of patches) for (const b of patches) if (a !== b) expect(contains(a.cell, b.cell)).toBe(false);
 };
@@ -21,7 +21,7 @@ describe('实际显示区域归属', () => {
     const intermediate = resolveRenderCover([target], ready(parent, children[0]!), 0);
     expect(initial.patches[0]!.source).toEqual(parent); expect(intermediate.patches[0]!.source).toEqual(children[0]);
     const final = resolveRenderCover([target], ready(parent, children[0]!, target), 0);
-    expect(final.patches).toEqual([{ cell: target, source: target, key: canonicalKey(target) }]);
+    expect(final.patches).toEqual([{ cell: target, source: target, key: keyOf(target) }]);
     expect(final.uncovered).toBe(0); disjoint(final.patches);
   });
   it('区域网格具有正确朝向、纹理坐标与稳定的几何所有权', () => {
@@ -39,11 +39,11 @@ describe('实际显示区域归属', () => {
     expect(geometry.drawRange.count).toBe(6); expect(geometry.bytes).toBe(280); geometry.dispose();
   });
   it('增量祖先计数保留兄弟依赖，最后一个资源释放后树索引归零', () => {
-    const available = new TileAvailability(); children.forEach(a => available.add(canonicalKey(a)));
-    available.add(canonicalKey(children[0]!));
-    expect(available.ancestors.get(canonicalKey(parent))).toBe(4);
-    available.delete(canonicalKey(children[0]!));
-    expect(available.ancestors.get(canonicalKey(parent))).toBe(3);
+    const available = new TileAvailability(); children.forEach(a => available.add(keyOf(a)));
+    available.add(keyOf(children[0]!));
+    expect(available.ancestors.get(keyOf(parent))).toBe(4);
+    available.delete(keyOf(children[0]!));
+    expect(available.ancestors.get(keyOf(parent))).toBe(3);
     const indexed = resolveRenderCover([parent], available, 0);
     const plain = resolveRenderCover([parent], new Set(available), 0);
     expect(indexed).toEqual(plain);
@@ -62,15 +62,15 @@ describe('实际显示区域归属', () => {
     const detailed = resolveRenderCover([parent], ready(...children), 0);
     expect(detailed.uncovered).toBe(0); expect(detailed.patches).toHaveLength(4); disjoint(detailed.patches);
     const overview = resolveRenderCover([parent], ready(parent, ...children), 0);
-    expect(overview.patches).toEqual([{ cell: parent, source: parent, key: canonicalKey(parent) }]);
+    expect(overview.patches).toEqual([{ cell: parent, source: parent, key: keyOf(parent) }]);
   });
   it('连续缩小四级仍保留已加载区域，遍历只进入驻留资源的祖先路径', () => {
     let detailed = parent;
     for (let i = 0; i < 4; i++) detailed = childrenOf(detailed)[0]!;
-    const available = new TileAvailability(); available.add(canonicalKey(detailed));
+    const available = new TileAvailability(); available.add(keyOf(detailed));
     let visited = 0;
     const cover = resolveRenderCover([parent], available, 0, () => { visited++; return true; });
-    expect(cover.patches).toEqual([{ cell: detailed, source: detailed, key: canonicalKey(detailed) }]);
+    expect(cover.patches).toEqual([{ cell: detailed, source: detailed, key: keyOf(detailed) }]);
     expect(visited).toBe(17); expect(cover.uncovered).toBe(12);
     disjoint(cover.patches);
   });
@@ -79,18 +79,12 @@ describe('实际显示区域归属', () => {
     expect(one.uncovered).toBe(0); expect(one.patches).toHaveLength(1);
     expect(resolveRenderCover([parent], ready(children[0]!), 0).uncovered).toBe(3);
   });
-  it('世界副本复用同一 canonical 资源且显示地址独立', () => {
-    const copy = { ...parent, x: parent.x + 2 ** parent.z };
-    const result = resolveRenderCover([parent, copy], ready(parent), 0);
-    expect(result.uncovered).toBe(0); expect(new Set(result.patches.map(p => p.key)).size).toBe(1);
-    expect(coverSources(result.patches)).toHaveLength(2); disjoint(result.patches);
-  });
   it('WebGPU 表面以固定透明度提交，部分区域开启裁剪且完整目标保持模板裁剪', () => {
     const scene = new Scene(); const surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const bitmap = () => ({ width: 256, height: 256, close() {} }) as ImageBitmap;
     const p = surfaces.create(bitmap(), parent, { segments: new Float32Array([-.5, 0, .5, 0]), styles: new Float32Array([0, 1, 0, 17]), distances: new Float32Array([0]), paints: [{ color: '#ffffff', width: 7 }], colors: new Float32Array([1, 1, 1]) });
     const c = surfaces.create(bitmap(), children[0]!); const geometry = p.mesh.geometry;
-    const resources = new Map([[canonicalKey(parent), { surface: p }], [canonicalKey(children[0]!), { surface: c }]]);
+    const resources = new Map([[keyOf(parent), { surface: p }], [keyOf(children[0]!), { surface: c }]]);
     const origin = selectMapOrigin({ lng: 116.39, lat: 39.9 }, 15);
     surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);
     expect(p.mesh.material.stencilWrite).toBe(true); expect(c.mesh.material.stencilWrite).toBe(true);

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Color, EqualStencilFunc, Scene } from 'three/webgpu';
-import { canonicalKey, childrenOf, keyOf } from '../src/streaming/address.js';
+import { childrenOf, keyOf } from '../src/streaming/address.js';
 import { resolveRenderCover } from '../src/streaming/renderCover.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
 import { fillBytes, type FillData } from '../src/streaming/fills.js';
@@ -19,7 +19,7 @@ describe('原生面批次的裁剪与资源所有权', () => {
     const parent = surfaces.create(bitmap(), address, { segments: new Float32Array([-.5, 0, .5, 0]),
       styles: new Float32Array([0, 1, 0, 24]), distances: new Float32Array([0]), paints: [{ color: '#ffffff', width: 7 }], colors: new Float32Array([1, 1, 1]) }, data());
     const child = surfaces.create(bitmap(), children[0]!, undefined, data());
-    const resources = new Map([[canonicalKey(address), { surface: parent }], [canonicalKey(children[0]!), { surface: child }]]);
+    const resources = new Map([[keyOf(address), { surface: parent }], [keyOf(children[0]!), { surface: child }]]);
     surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);
     expect(parent.mesh.material.visible).toBe(true);
     for (const material of [parent.fills!.mesh.material, parent.lines!.mesh.material]) {
@@ -41,34 +41,20 @@ describe('原生面批次的裁剪与资源所有权', () => {
     surfaces.dispose(); surfaces.release(parent); surfaces.release(child);
     expect(surfaces.geometryBytes).toBe(0); expect(scene.children).toHaveLength(0);
   });
-  it('世界副本共享面缓冲，材质与视图状态独立，副本退出只释放其所有资源', () => {
+  it('父来源覆盖多个子区域时使用父资源面缓冲并记录全部子区域', () => {
     const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const content = data(), image = bitmap(), resource = surfaces.create(image, address, undefined, content);
-    const resources = new Map([[canonicalKey(address), { surface: resource }]]);
-    const copy = { ...address, x: address.x + 2 ** address.z };
-    surfaces.commit(resolveRenderCover([address, copy], new Set(resources.keys()), 0).patches, resources, origin);
-    const instance = surfaces.instances.get(keyOf(copy))!;
-    expect(instance.fills!.mesh.geometry).toBe(resource.fills!.mesh.geometry);
-    expect(instance.fills!.mesh.material).not.toBe(resource.fills!.mesh.material);
-    expect(instance.fills!.mesh.material).not.toBe(surfaces.update);
+    const children = childrenOf(address);
+    const resources = new Map([[keyOf(address), { surface: resource }]]);
+    surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);
+    const instance = surfaces.instances.get(keyOf(address))!;
+    expect(instance.cells).toHaveLength(4);
+    expect(instance.fills!.mesh).toBe(resource.fills!.mesh);
     expect(resource.cpuBytes).toBe(4 + fillBytes(content));
-    const geometryDisposed = vi.fn(), materialDisposed = vi.fn(), copyDisposed = vi.fn();
-    resource.fills!.mesh.geometry.addEventListener('dispose', geometryDisposed);
-    resource.fills!.mesh.material.addEventListener('dispose', materialDisposed);
-    instance.fills!.mesh.material.addEventListener('dispose', copyDisposed);
     surfaces.update(origin, 7.09, 7);
-    const copyMaterial = instance.fills!.mesh.material;
-    surfaces.commit(resolveRenderCover([address], new Set(resources.keys()), 0).patches, resources, origin);
-    // 副本退出后材质回到固定槽位而不是销毁，绑定组才能跨瓦片复用。
-    expect(copyDisposed).not.toHaveBeenCalled(); expect(geometryDisposed).not.toHaveBeenCalled();
-    expect(surfaces.fillSlots.idleCount).toBeGreaterThan(0);
-    // 再次出现副本时复用同一 mesh 与材质实例。
-    surfaces.commit(resolveRenderCover([address, copy], new Set(resources.keys()), 0).patches, resources, origin);
-    expect(surfaces.instances.get(keyOf(copy))!.fills!.mesh.material).toBe(copyMaterial);
-    surfaces.commit(resolveRenderCover([address], new Set(resources.keys()), 0).patches, resources, origin);
+    surfaces.commit(resolveRenderCover([children[0]!], new Set(resources.keys()), 0).patches, resources, origin);
+    expect(surfaces.instances.get(keyOf(address))!.cells).toHaveLength(1);
     surfaces.dispose(); surfaces.release(resource);
-    expect(geometryDisposed).toHaveBeenCalledOnce(); expect(materialDisposed).toHaveBeenCalledOnce();
-    expect(copyDisposed).toHaveBeenCalledOnce();
     expect(image.close).toHaveBeenCalledOnce(); expect(surfaces.geometryBytes).toBe(0);
   });
 });

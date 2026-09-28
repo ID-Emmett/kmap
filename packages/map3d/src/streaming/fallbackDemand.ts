@@ -1,4 +1,4 @@
-import { canonicalKey, contains, keyOf, parentOf, type Address } from './address.js';
+import { contains, keyOf, parentOf, type Address } from './address.js';
 import { coveredFraction } from './coverage.js';
 import type { CoverPatch } from './renderCover.js';
 
@@ -23,7 +23,7 @@ export function fallbackRequests(targets: readonly Address[], patches: readonly 
     }
     while (empty(address) && address.z > minZoom) address = parentOf(address);
     if (keyOf(address) === keyOf(target) || empty(address)) continue;
-    const key = canonicalKey(address), previous = candidates.get(key);
+    const key = keyOf(address), previous = candidates.get(key);
     if (!previous || (missing && !previous.missing)) candidates.set(key, { address, missing, order });
   }
   return [...candidates.values()].sort((a, b) => Number(b.missing) - Number(a.missing) || a.order - b.order)

@@ -1,5 +1,4 @@
 import { paletteColor, paletteOpacity, paletteStyle } from '../style/palette.js';
-import { mapVertex } from '../globe/projection.js';
 import { type ArrayNode, BufferGeometry, DoubleSide, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
 import { GeometryPool, registerGeometry, releaseGeometry, writeAttribute, writeIndex } from './geometryPool.js';
 import { Fn, Loop, attribute, buffer, element, float, max, normalWorld, positionLocal, renderGroup, uniform, varying, vec3, vec4 } from 'three/tsl';
@@ -26,7 +25,7 @@ export type BuildingSurface = ReturnType<typeof createBuildingSurface>;
 export interface BuildingUnit { mesh: Mesh<BufferGeometry, MeshBasicNodeMaterial>; material: MeshBasicNodeMaterial; state: ReturnType<typeof createBuildingState>; key: string; spawn: () => BuildingUnit }
 
 /** 深度缓冲处理建筑互相遮挡；固定太阳方向与墙脚梯度在单次绘制中计算。 */
-export function createBuildingSurface(data: BuildingData, curved = false, themed = false, pool?: GeometryPool, slots?: DrawSlotPool<BuildingUnit>) {
+export function createBuildingSurface(data: BuildingData, themed = false, pool?: GeometryPool, slots?: DrawSlotPool<BuildingUnit>) {
   const vertices = data.positions.length / 3;
   const tier = capacityTier(Math.max(vertices, data.indices.length));
   let geometry = pool?.acquire(BUILDING_GEOMETRY_KEY, tier);
@@ -34,8 +33,8 @@ export function createBuildingSurface(data: BuildingData, curved = false, themed
   for (const [name, values] of Object.entries({ position: data.positions, normal: data.normals, buildingColor: data.colors, buildingStyle: data.styles }))
     writeAttribute(geometry, name, values, 3, false, tier * 3);
   writeIndex(geometry, data.indices, tier);
-  const key = `${curved}:${themed}`;
-  const unit = slots?.acquire(key, () => createBuildingUnit(curved, themed)) ?? createBuildingUnit(curved, themed);
+  const key = `${themed}`;
+  const unit = slots?.acquire(key, () => createBuildingUnit(themed)) ?? createBuildingUnit(themed);
   // 槽位复用：裁剪表就地清零，数组对象保持不变以复用已分配的 GPUBuffer。
   unit.state.clipCount = 0;
   const mesh = unit.mesh; mesh.geometry = geometry; mesh.visible = true;
@@ -53,12 +52,12 @@ export function releaseBuildingSurface(surface: BuildingSurface, pool: GeometryP
   else surface.mesh.material.dispose();
 }
 
-function createBuildingUnit(curved: boolean, themed: boolean): BuildingUnit {
-  const key = `${curved}:${themed}`;
-  const material = materials[Number(curved) + Number(themed) * 2]!.clone();
+function createBuildingUnit(themed: boolean): BuildingUnit {
+  const key = `${themed}`;
+  const material = materials[Number(themed)]!.clone();
   const mesh = new Mesh(undefined, material); mesh.frustumCulled = false; mesh.renderOrder = 3;
   const state = createBuildingState(); mesh.userData.buildingState = state;
-  return { mesh, material, state, key, spawn: () => createBuildingUnit(curved, themed) };
+  return { mesh, material, state, key, spawn: () => createBuildingUnit(themed) };
 }
 
 /** 渲染组共享的视图缩放：所有瓦片同帧同值，每帧只写一次。 */
@@ -71,13 +70,12 @@ const zoomRange = varying(style.xy).setInterpolation('flat');
 const clips = buffer(new Float32Array(256 * 4), 'vec4', 256).onObjectUpdate(frame => frame.object!.userData.buildingState.clips) as unknown as ArrayNode<'vec4'>;
 const clipCount = uniform(0, 'int').onObjectUpdate(({ object }) => object!.userData.buildingState.clipCount);
 // 底图透明队列先绘制；建筑在同一队列末尾以不透明 alpha 和深度写入合成。
-function createMaterial(curved: boolean, themed: boolean) {
+function createMaterial(themed: boolean) {
 const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: true, depthWrite: true, side: DoubleSide });
 material.forceSinglePass = true;
 const sourceColor = attribute<'vec3'>('buildingColor', 'vec3');
 const position = vec3(positionLocal.x, positionLocal.y.mul(themed ? paletteStyle(sourceColor).y : 1), positionLocal.z);
 material.positionNode = position;
-if (curved) material.vertexNode = mapVertex(position);
 material.colorNode = Fn(() => {
   max(positionLocal.x.abs(), positionLocal.z.abs()).greaterThan(.500001).discard();
   viewZoom.lessThan(zoomRange.x).or(viewZoom.greaterThanEqual(zoomRange.y)).discard();
@@ -95,4 +93,4 @@ material.colorNode = Fn(() => {
 
 return material;
 }
-const materials = [createMaterial(false, false), createMaterial(true, false), createMaterial(false, true), createMaterial(true, true)];
+const materials = [createMaterial(false), createMaterial(true)];

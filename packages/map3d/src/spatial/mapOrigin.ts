@@ -16,7 +16,7 @@ export function selectMapOrigin(center: LngLat, zoom: number): MapOrigin {
   const z = requireTileZoom(zoom);
   const scale = 2 ** z;
   const tilePosition = lngLatToTilePosition(center, z);
-  const tileX = Math.floor(tilePosition.x);
+  const tileX = Math.min(scale - 1, Math.max(0, Math.floor(tilePosition.x)));
   const tileY = Math.min(scale - 1, Math.max(0, Math.floor(tilePosition.y)));
   const anchor = getTileAnchorMeters(tileX, tileY, z);
   const halfSpan = getTileSpanMeters(z) / 2;

@@ -125,7 +125,7 @@ export class TilePipeline {
     entry.reservedBytes = reservation; this.store.refreshBytes(entry);
     const buffer = entry.buffer!; delete entry.buffer; this.store.setState(entry, 'painting');
     try {
-      const result = await this.workers.run({ address: entry.address, buffer, spherical: this.store.surfaces.spherical, layers: this.options.layers, background: this.background, overlays: this.options.source.overlays ?? [] });
+      const result = await this.workers.run({ address: entry.address, buffer, layers: this.options.layers, background: this.background, overlays: this.options.source.overlays ?? [] });
       if (!this.alive(entry)) { result.bitmap?.close(); return; }
       if (!Number.isFinite(entry.priority)) {
         this.discardedBytes += resultBytes(result); result.bitmap?.close(); this.store.release(entry); this.log('discard-build', entry.key); return;
@@ -147,7 +147,7 @@ export class TilePipeline {
     if (preferred > 0) queue.unshift(queue.splice(preferred, 1)[0]!);
     for (const entry of queue) {
       const result = entry.result; if (!result?.bitmap) continue;
-      const patchBytes = this.store.surfaces.patchBytes(entry.address);
+      const patchBytes = this.store.surfaces.patchBytes();
       const stateBytes = surfaceStateBytes(result.lines, result.buildings);
       // 位图不进入 GPU；预算只登记几何、区域缓冲与状态缓冲。
       const gpu = lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + patchBytes + stateBytes;

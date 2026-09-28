@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Color, Scene } from 'three/webgpu';
-import { canonicalKey, childrenOf } from '../src/streaming/address.js';
+import { childrenOf, keyOf } from '../src/streaming/address.js';
 import { resolveRenderCover } from '../src/streaming/renderCover.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
 import { createLineSurface, releaseLineSurface } from '../src/streaming/lineSurface.js';
@@ -9,7 +9,6 @@ import { createFillSurface } from '../src/streaming/fillSurface.js';
 import { GeometryPool, capacityTier } from '../src/streaming/geometryPool.js';
 import { DrawSlotPool } from '../src/streaming/drawSlots.js';
 import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
-import type { Address } from '../src/streaming/address.js';
 import type { FillData } from '../src/streaming/fills.js';
 import type { LineData } from '../src/streaming/lines.js';
 import type { BuildingData } from '../src/streaming/buildings.js';
@@ -58,8 +57,8 @@ describe('固定绘制槽位', () => {
     const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const parent = surfaces.create(bitmap(), address, lines(4), fills(3), buildings(3));
     const children = childrenOf(address);
-    const resources = new Map([[canonicalKey(address), { surface: parent }]]);
-    for (const child of children) resources.set(canonicalKey(child), { surface: surfaces.create(bitmap(), child, lines(4), fills(3), buildings(3)) });
+    const resources = new Map([[keyOf(address), { surface: parent }]]);
+    for (const child of children) resources.set(keyOf(child), { surface: surfaces.create(bitmap(), child, lines(4), fills(3), buildings(3)) });
     surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);
     const stencils = [...surfaces.instances.values()].map(i => i.lines!.mesh.material.stencilRef);
     expect(new Set(stencils).size).toBe(stencils.length);
@@ -70,11 +69,11 @@ describe('固定绘制槽位', () => {
   });
   it('几何按容量档位复用，写入不重建属性数组', () => {
     const pool = new GeometryPool(), slots = new DrawSlotPool<ReturnType<typeof createLineSurface>['unit']>(8, () => {});
-    const first = createLineSurface(lines(4), false, true, pool, slots);
+    const first = createLineSurface(lines(4), true, pool, slots);
     const attribute = first.mesh.geometry.getAttribute('lineSegment').array;
     releaseLineSurface(first, pool, slots);
     expect(pool.size).toBe(1);
-    const second = createLineSurface(lines(4), false, true, pool, slots);
+    const second = createLineSurface(lines(4), true, pool, slots);
     expect(second.mesh.geometry.getAttribute('lineSegment').array).toBe(attribute);
     // 几何来自分档池而不是新建，因此取用后池已清空。
     expect(pool.size).toBe(0);
@@ -93,9 +92,8 @@ describe('固定绘制槽位', () => {
     // 面与建筑的槽位键同形但分属不同槽位池，互不干扰。
     expect(flat.fills!.unit.key).toBe(flat.buildings!.unit.key);
     expect(surfaces.fillSlots).not.toBe(surfaces.buildingSlots);
-    expect(flat.lines!.unit.key).not.toBe(createLineSurface(lines(4), true, true).unit.key);
-    expect(createFillSurface(fills(3), false, false).unit.key).not.toBe(flat.fills!.unit.key);
-    expect(createBuildingSurface(buildings(3), false, false).unit.key).not.toBe(flat.buildings!.unit.key);
+    expect(createFillSurface(fills(3), false).unit.key).not.toBe(flat.fills!.unit.key);
+    expect(createBuildingSurface(buildings(3), false).unit.key).not.toBe(flat.buildings!.unit.key);
     surfaces.release(flat); surfaces.dispose();
   });
   it('槽位空闲数量受上限约束，超出后不再堆积', () => {
@@ -109,21 +107,21 @@ describe('固定绘制槽位', () => {
   });
   it('未传入槽位池时保持逐瓦片独占材质', () => {
     const pool = new GeometryPool();
-    const a = createLineSurface(lines(4), false, true, pool), b = createLineSurface(lines(4), false, true, pool);
+    const a = createLineSurface(lines(4), true, pool), b = createLineSurface(lines(4), true, pool);
     expect(a.mesh.material).not.toBe(b.mesh.material);
     expect(a.widths).not.toBe(b.widths);
     releaseLineSurface(a, pool); releaseLineSurface(b, pool);
   });
-  it('父来源内容按完整地址绘制时沿用同一槽位与几何', () => {
+  it('父来源覆盖多个子区域时沿用父资源几何并记录全部子区域', () => {
     const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const parent = surfaces.create(bitmap(), address, lines(4), fills(3), buildings(3));
-    const key = canonicalKey(address), copy: Address = { ...address, x: address.x + 2 ** address.z };
-    const resources = new Map([[key, { surface: parent }]]);
-    surfaces.commit(resolveRenderCover([address, copy], new Set(resources.keys()), 0).patches, resources, origin);
-    const instance = surfaces.instances.get(`${copy.z}/${copy.x}/${copy.y}`)!;
-    expect(instance.lines!.mesh.geometry).toBe(parent.lines!.mesh.geometry);
-    expect(instance.lines!.mesh).not.toBe(parent.lines!.mesh);
-    expect(instance.lines!.widths).not.toBe(parent.lines!.widths);
+    const children = childrenOf(address);
+    const resources = new Map([[keyOf(address), { surface: parent }]]);
+    surfaces.commit(resolveRenderCover(children, new Set(resources.keys()), 0).patches, resources, origin);
+    const instance = surfaces.instances.get(keyOf(address))!;
+    expect(instance.cells).toHaveLength(4);
+    expect(instance.lines!.mesh).toBe(parent.lines!.mesh);
+    expect(instance.lines!.widths).toBe(parent.lines!.widths);
     surfaces.dispose(); surfaces.release(parent);
   });
 });

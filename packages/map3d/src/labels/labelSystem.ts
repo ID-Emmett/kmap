@@ -1,7 +1,6 @@
 import { iconCode, iconGlyphs } from './icons.js';
 import { measureGlyphRun } from './glyphRun.js';
 import type { MapPalette } from '../style/palette.js';
-import { facesCamera, projectMapPoint, type ProjectionState } from '../globe/projection.js';
 import { Vector3, type PerspectiveCamera, type Scene } from 'three/webgpu';
 import type { LabelAppearance, Map3DOptions, ViewportSize, ViewState } from '../types.js';
 import type { MapOrigin } from '../spatial/types.js';
@@ -204,7 +203,6 @@ export class LabelSystem {
   /** 单个瓦片的候选投影：逐瓦片推进使每帧投影量受预算约束。 */
   private projectTile(tile: LayoutTile, camera: PerspectiveCamera, origin: MapOrigin, viewport: ViewportSize, fogEnd: number, tileZoom: number): void {
     const address = tile.address, bounds = tileBounds(address);
-    const projection = this.scene.userData.mapProjection as ProjectionState | undefined;
     const point = this.point, end = this.end, perTile = this.layoutPerTile;
     let pointCount = 0, lineCount = 0;
     for (const raw of tile.labels) {
@@ -218,14 +216,12 @@ export class LabelSystem {
         const endWorldX = bounds.west + label.endX * bounds.span, endWorldY = bounds.north - label.endY * bounds.span;
         if (previous && !label.line && Math.hypot(previous.x - x, previous.y - y) < bounds.span / 32) { x = previous.x; y = previous.y; }
         point.set(x - origin.meters.x, 0, origin.meters.y - y);
-        if (projection) { if (!facesCamera(point, camera.position, projection)) continue; projectMapPoint(point, projection); }
         if (point.distanceTo(camera.position) > fogEnd * .9) continue;
         point.project(camera); if (point.z < -1 || point.z > 1 || Math.abs(point.x) > 1.1 || Math.abs(point.y) > 1.1) continue;
         const screenX = (point.x + 1) * viewport.width / 2, screenY = (1 - point.y) * viewport.height / 2;
         let angle = 0, length = Infinity;
         if (label.line) {
-          end.set(endWorldX - origin.meters.x, 0, origin.meters.y - endWorldY);
-          if (projection) projectMapPoint(end, projection); end.project(camera);
+          end.set(endWorldX - origin.meters.x, 0, origin.meters.y - endWorldY); end.project(camera);
           const dx = (end.x - point.x) * viewport.width / 2, dy = -(end.y - point.y) * viewport.height / 2;
           angle = Math.atan2(dy, dx); if (angle > Math.PI / 2) angle -= Math.PI; if (angle < -Math.PI / 2) angle += Math.PI;
           length = Math.hypot(dx, dy) * 2;
@@ -243,7 +239,7 @@ export class LabelSystem {
   }
   /** 投影阶段结束：汇总候选、补齐保留锚点并准备放置状态。 */
   private finishProjection(camera: PerspectiveCamera, origin: MapOrigin, viewport: ViewportSize, tileZoom: number, now: number): void {
-    const point = this.point, projection = this.scene.userData.mapProjection as ProjectionState | undefined, fogEnd = this.fogEnd;
+    const point = this.point, fogEnd = this.fogEnd;
     const projected: Projected[] = [];
     for (const bucket of this.buckets.values()) for (const p of bucket) projected.push(p);
     const availableIds = new Set<string>();
@@ -256,7 +252,6 @@ export class LabelSystem {
       }
       if (availableIds.has(id)) continue;
       point.set(saved.x - origin.meters.x, 0, origin.meters.y - saved.y);
-      if (projection) { if (!facesCamera(point, camera.position, projection)) continue; projectMapPoint(point, projection); }
       if (point.distanceTo(camera.position) > fogEnd * .9) continue;
       point.project(camera); if (point.z < -1 || point.z > 1 || Math.abs(point.x) > 1 || Math.abs(point.y) > 1) continue;
       projected.push({ id, label: saved.label, score: saved.label.priority - 1000,

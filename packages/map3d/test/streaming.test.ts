@@ -10,11 +10,11 @@ import { decodeVectorTile, matches } from '../src/streaming/paint.js';
 import { readFileSync } from 'node:fs';
 
 describe('流式地图空间与数据契约', () => {
-  it('负世界副本和父子地址保持正确的网络归一化', () => {
-    expect(requestUrl({ z: 2, x: -1, y: 1 }, ['/{z}/{x}/{y}'])).toBe('/2/3/1');
-    const a = { z: 4, x: -3, y: 6 };
+  it('父子地址与网络 URL 使用同一层级索引', () => {
+    expect(requestUrl({ z: 2, x: 3, y: 1 }, ['/{z}/{x}/{y}'])).toBe('/2/3/1');
+    const a = { z: 4, x: 3, y: 6 };
     for (const child of childrenOf(a)) { expect(parentOf(child)).toEqual(a); expect(contains(a, child)).toBe(true); }
-    expect(contains(a, { z: 3, x: -1, y: 3 })).toBe(false);
+    expect(contains(a, { z: 3, x: 1, y: 3 })).toBe(false);
   });
   it('真实 MVT fixture 包含道路、地块和建筑', () => {
     const data = readFileSync(new URL('./fixtures/kye-main-z15-26978-12416.mvt', import.meta.url));

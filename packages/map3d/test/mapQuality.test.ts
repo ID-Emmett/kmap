@@ -6,7 +6,7 @@ import type { MapLayerOptions } from '../src/types.js';
 import { buildBuildings, buildingBytes } from '../src/streaming/buildings.js';
 import { buildingViewZoom } from '../src/streaming/buildingSurface.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
-import { canonicalKey, childrenOf } from '../src/streaming/address.js';
+import { childrenOf, keyOf } from '../src/streaming/address.js';
 import { resolveRenderCover } from '../src/streaming/renderCover.js';
 import { decodeVectorTile } from '../src/streaming/paint.js';
 import { buildLines } from '../src/streaming/lines.js';
@@ -65,12 +65,12 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     expect(Math.min(...Array.from(data.positions).filter((_, i) => i % 3 === 1))).toBeCloseTo(5 * Math.cosh(Math.PI / 2), 4);
   });
 
-  it('15.74 门槛、合批、父子裁剪、世界副本与几何释放保持一致', () => {
+  it('15.74 门槛、合批、父子裁剪与几何释放保持一致', () => {
     const data = buildBuildings(decodeVectorTile(fixture()), [layer], address);
     const surfaces = new TileSurfaces(new Scene(), new Color('#ffffff'));
     const bitmap = { width: 1, height: 1, close: vi.fn() } as unknown as ImageBitmap;
     const resource = surfaces.create(bitmap, address, undefined, undefined, data);
-    const resources = new Map([[canonicalKey(address), { surface: resource }]]);
+    const resources = new Map([[keyOf(address), { surface: resource }]]);
     const origin = selectMapOrigin({ lng: 116.39465, lat: 39.90552 }, 15);
     const cells = childrenOf(address).slice(0, 2);
     surfaces.commit(resolveRenderCover(cells, new Set(resources.keys()), 0).patches, resources, origin);
@@ -83,9 +83,9 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     }
     expect(resource.buildings!.mesh.material.depthWrite).toBe(true);
     expect(resource.buildings!.mesh.children).toHaveLength(0);
-    const copy = { ...address, x: address.x + 2 ** address.z };
-    surfaces.commit(resolveRenderCover([address, copy], new Set(resources.keys()), 0).patches, resources, origin);
-    expect(surfaces.instances.size).toBe(2);
+    // 父来源覆盖多个子区域时只提交一个绘制实例，并记录全部子区域。
+    expect(surfaces.instances.size).toBe(1);
+    expect(surfaces.instances.get(keyOf(address))!.cells).toHaveLength(2);
     const dispose = vi.fn(); resource.buildings!.mesh.geometry.addEventListener('dispose', dispose);
     surfaces.dispose(); surfaces.release(resource); expect(dispose).toHaveBeenCalledTimes(1);
   });

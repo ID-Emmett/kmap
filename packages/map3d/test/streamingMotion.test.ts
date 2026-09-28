@@ -2,11 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { Color, PerspectiveCamera, Scene, type WebGPURenderer } from 'three/webgpu';
 import { StreamingEngine } from '../src/streaming/engine.js';
 import { TileSurfaces } from '../src/streaming/surface.js';
-import { childrenOf, keyOf, canonicalKey } from '../src/streaming/address.js';
+import { childrenOf, keyOf } from '../src/streaming/address.js';
 import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
 import { updateMapCamera } from '../src/rendering/mapCamera.js';
 import { resolveRenderCover } from '../src/streaming/renderCover.js';
-import { updateProjection } from '../src/globe/projection.js';
 import type { ViewState } from '../src/types.js';
 
 vi.mock('../src/streaming/workers.js', () => ({ PaintWorkers: class {
@@ -14,22 +13,21 @@ vi.mock('../src/streaming/workers.js', () => ({ PaintWorkers: class {
 } }));
 
 function setup() {
-  const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#e6f4f3'), true);
+  const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#e6f4f3'));
   const engine = new StreamingEngine({ canvas: {} as HTMLCanvasElement, source: { id: 'motion', tiles: ['/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17 }, layers: [] }, surfaces, {} as WebGPURenderer, '#dbdeff');
   vi.spyOn(engine.pipeline, 'pump').mockImplementation(() => {});
   const camera = new PerspectiveCamera(), viewport = { width: 512, height: 512 };
   let now = 0;
   const update = (view: ViewState) => {
     const origin = selectMapOrigin(view.center, Math.floor(view.zoom));
-    const frame = updateMapCamera(camera, view, viewport, origin, true);
-    updateProjection(scene, view, origin, true);
+    const frame = updateMapCamera(camera, view, viewport, origin);
     engine.invalidate(); engine.update(camera, frame, origin, view, viewport, now += 20);
   };
   return { scene, surfaces, engine, update };
 }
 
 describe('运动期间的实际绘制覆盖', () => {
-  it('平面与球面每帧均先绑定编号零，地面与模板内容写入分别控制', () => {
+  it('每帧先绑定编号零，地面始终写入底色', () => {
     const { scene, engine, update } = setup();
     for (const zoom of [15, 5, 4, 6]) {
       update({ center: { lng: 116.39, lat: 39.9 }, zoom, pitch: 40, bearing: 0 });
@@ -38,7 +36,7 @@ describe('运动期间的实际绘制覆盖', () => {
       expect(first.visible).toBe(true);
       expect(material.stencilWrite).toBe(true); expect(material.stencilRef).toBe(0);
       expect(material.stencilWriteMask).toBe(0); expect(material.depthWrite).toBe(false);
-      expect(material.colorWrite).toBe(zoom >= 5.5);
+      expect(material.colorWrite).toBe(true);
     }
     engine.dispose();
   });
@@ -56,12 +54,12 @@ describe('运动期间的实际绘制覆盖', () => {
     const view = { center: { lng: 116.39, lat: 39.9 }, zoom: 15.4, pitch: 55, bearing: 20 };
     update(view);
     for (const target of engine.selection.leaves) {
-      if (empty) { const e = engine.entries.get(canonicalKey(target))!; engine.store.setState(e, 'ready'); e.empty = true; }
+      if (empty) { const e = engine.entries.get(keyOf(target))!; engine.store.setState(e, 'ready'); e.empty = true; }
       for (const child of childrenOf(target)) {
       const e = engine.store.create(child, 'fallback', 0, 0)!;
       e.surface = surfaces.create({ width: 1, height: 1, close() {} } as ImageBitmap, child);
       engine.store.refreshBytes(e);
-      engine.store.setState(e, 'ready'); engine.store.available.add(canonicalKey(child));
+      engine.store.setState(e, 'ready'); engine.store.available.add(keyOf(child));
       }
     }
     // 资源到达通知触发一次基准提交。

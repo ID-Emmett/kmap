@@ -1,6 +1,6 @@
 import type { Map3DOptions } from '../types.js';
 import { bindingBytes } from '../style/palette.js';
-import { canonical, canonicalKey, type Address } from './address.js';
+import { keyOf, type Address } from './address.js';
 import type { PaintResponse } from './protocol.js';
 import { lineBytes } from './lines.js';
 import { buildingBytes } from './buildings.js';
@@ -70,9 +70,9 @@ export class TileStore {
     return pending;
   }
   create(address: Address, kind: DemandKind, priority: number, now: number): TileEntry | undefined {
-    const key = canonicalKey(address); const existing = this.entries.get(key); if (existing) return existing;
+    const key = keyOf(address); const existing = this.entries.get(key); if (existing) return existing;
     if (this.entries.size >= this.maxEntries && !this.makeRoom(0, 0, 1, priority)) return;
-    const entry: TileEntry = { address: canonical(address), key, kind, priority, state: 'queued', touched: now, lastWanted: now, attempts: 0, retryAt: 0, features: 0, empty: false, reservedBytes: 0, startedAt: 0, accountedCpu: 0, accountedGpu: 0 };
+    const entry: TileEntry = { address, key, kind, priority, state: 'queued', touched: now, lastWanted: now, attempts: 0, retryAt: 0, features: 0, empty: false, reservedBytes: 0, startedAt: 0, accountedCpu: 0, accountedGpu: 0 };
     this.entries.set(key, entry); this.addToBucket(entry); return entry;
   }
   /** 阶段切换同时维护阶段索引；重复设置同一阶段无副作用。 */
@@ -97,7 +97,7 @@ export class TileStore {
   }
   /** 条目仍在时以条目为准；条目已淘汰时回落到已解析空登记。 */
   isEmpty(address: Address): boolean {
-    const key = canonicalKey(address);
+    const key = keyOf(address);
     return this.entries.get(key)?.empty === true || this.resolvedEmpty.has(key);
   }
   makeRoom(cpu = 0, gpu = 0, slots = 0, priority = -Infinity, exclude?: string): boolean {

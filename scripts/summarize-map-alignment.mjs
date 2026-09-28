@@ -60,7 +60,7 @@ for (const dir of ['packages/map3d/src/streaming', 'packages/map3d/src/labels', 
     const file = `${dir}/${name}`; implementation.push({ file, sha256: sha256(await readFile(file)) });
   }
 }
-for (const file of ['packages/map3d/src/globe/projection.ts', 'apps/playground/src/mapStyle.ts', 'apps/playground/src/mapSource.ts', 'apps/playground/src/roadStyle.ts', 'apps/playground/src/main.ts', 'apps/playground/src/oceanContinuityBenchmark.ts', 'packages/map3d/test/oceanComposition.test.ts']) {
+for (const file of ['packages/map3d/src/rendering/mapVertex.ts', 'apps/playground/src/mapStyle.ts', 'apps/playground/src/mapSource.ts', 'apps/playground/src/roadStyle.ts', 'apps/playground/src/main.ts', 'apps/playground/src/oceanContinuityBenchmark.ts', 'packages/map3d/test/oceanComposition.test.ts']) {
   implementation.push({ file, sha256: sha256(await readFile(file)) });
 }
 await writeFile('docs/evidence/maplibre-alignment/verification-summary.json', `${JSON.stringify({ at: new Date().toISOString(), sources, implementation, evidence }, null, 2)}\n`);

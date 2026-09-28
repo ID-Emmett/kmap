@@ -1,9 +1,9 @@
 import { bindingBytes, MapPalette } from '../style/palette.js';
-import { mapVertex, mapFacing, mapWorldPosition } from '../globe/projection.js';
+import { mapVertex } from '../rendering/mapVertex.js';
 import { maskVertex } from './maskVertex.js';
 import { surfaceStateBytes } from './surfaceBytes.js';
 import { AlwaysStencilFunc, Color, DoubleSide, Mesh, MeshBasicNodeMaterial, ReplaceStencilOp, Vector3, type Scene } from 'three/webgpu';
-import { Fn, float, fog, max, positionLocal, positionWorld, renderGroup, smoothstep, uniform } from 'three/tsl';
+import { fog, positionLocal, positionWorld, renderGroup, smoothstep, uniform } from 'three/tsl';
 import type { MapOrigin } from '../spatial/types.js';
 import { keyOf, tileBounds, type Address } from './address.js';
 import { createLineSurface, LINE_GEOMETRY_KEY, releaseLineSurface, type LineUnit } from './lineSurface.js';
@@ -52,10 +52,10 @@ export class TileSurfaces {
     return { mask: [this.maskSlots.reuses, this.maskSlots.creates], line: [this.lineSlots.reuses, this.lineSlots.creates],
       fill: [this.fillSlots.reuses, this.fillSlots.creates], building: [this.buildingSlots.reuses, this.buildingSlots.creates] };
   }
-  constructor(readonly scene: Scene, background: Color, readonly spherical = false) {
+  constructor(readonly scene: Scene, background: Color) {
     scene.userData.mapPalette = this.palette;
     this.fogColor = uniform(background.clone()).setGroup(renderGroup); this.landColor = uniform(background.clone()).setGroup(renderGroup);
-    scene.fogNode = fog(this.fogColor, max(smoothstep(this.fogStart, this.fogEnd, (this.spherical ? mapWorldPosition : positionWorld).sub(this.fogCenter).length()), this.spherical ? float(1).sub(smoothstep(0, .16, mapFacing)) : 0));
+    scene.fogNode = fog(this.fogColor, smoothstep(this.fogStart, this.fogEnd, positionWorld.sub(this.fogCenter).length()));
     const geometry = new PatchGeometry(); geometry.update({ z: 0, x: 0, y: 0 }, [{ z: 0, x: 0, y: 0 }]);
     // 每个绘制通道先绑定保留编号 0；后续部分区域使用 1～255，模板内容保持原值。
     // Three r185 的 WebGPU 动态编号缓存跨通道保留，显式起始编号使首个区域也完成绑定。
@@ -68,24 +68,23 @@ export class TileSurfaces {
       stencilWrite: true, stencilWriteMask: 255, stencilFunc: AlwaysStencilFunc, stencilZPass: ReplaceStencilOp });
     this.maskMaterial.colorNode = this.landColor;
     this.maskMaterial.positionNode = positionLocal; this.maskMaterial.vertexNode = maskVertex();
-    if (this.spherical) this.maskMaterial.opacityNode = Fn(() => { mapFacing.lessThan(0).discard(); return float(1); })();
   }
-  patchBytes(address: Address): number { return PATCH_RECTANGLE_BYTES * (this.spherical ? 4 ** Math.max(0, 6 - address.z) : 1); }
+  patchBytes(): number { return PATCH_RECTANGLE_BYTES; }
   create(bitmap: ImageBitmap, address: Address, data?: LineData, fillData?: FillData, buildingData?: BuildingData, labels: LabelCandidate[] = []) {
     if (data) this.palette.encode(data.colors, data);
     if (fillData) this.palette.encode(fillData.colors, fillData);
     if (buildingData) this.palette.encode(buildingData.colors, buildingData);
     // 位图只服务像素审计与资源生命周期；模板绘制不采样纹理，因此不创建、也不上传 GPU 纹理。
     const unit = this.maskSlots.acquire(MASK_SLOT_KEY, this.spawnMask);
-    const geometry = this.acquirePatch(address); geometry.update(address, [address]);
+    const geometry = this.acquirePatch(); geometry.update(address, [address]);
     const mesh = unit.mesh; mesh.geometry = geometry;
-    mesh.userData.maskSpan = tileBounds({ ...address, z: this.spherical ? Math.max(6, address.z) : address.z }).span;
+    mesh.userData.maskSpan = tileBounds(address).span;
     mesh.frustumCulled = false; mesh.visible = false; mesh.matrixAutoUpdate = false;
-    const lines = data?.segments.length ? createLineSurface(data, this.spherical, true, this.pool, this.lineSlots) : undefined;
+    const lines = data?.segments.length ? createLineSurface(data, true, this.pool, this.lineSlots) : undefined;
     if (lines) { lines.mesh.renderOrder = 2; mesh.add(lines.mesh); }
-    const fills = fillData?.indices.length ? createFillSurface(fillData, this.spherical, true, this.pool, this.fillSlots) : undefined;
+    const fills = fillData?.indices.length ? createFillSurface(fillData, true, this.pool, this.fillSlots) : undefined;
     if (fills) mesh.add(fills.mesh);
-    const buildings = buildingData?.indices.length ? createBuildingSurface(buildingData, this.spherical, true, this.pool, this.buildingSlots) : undefined;
+    const buildings = buildingData?.indices.length ? createBuildingSurface(buildingData, true, this.pool, this.buildingSlots) : undefined;
     if (buildings) mesh.add(buildings.mesh);
     const stateBytes = surfaceStateBytes(data, buildingData);
     const bindings = [data, fillData, buildingData].reduce((sum, item) => sum + (item ? bindingBytes(item) : 0), 0);
@@ -124,7 +123,7 @@ export class TileSurfaces {
         // 非主实例也取固定槽位：每个槽位有自己的材质以承载独立的模板编号。
         const unit = primary ? resource.unit : this.maskSlots.acquire(MASK_SLOT_KEY, this.spawnMask);
         const mesh = unit.mesh;
-        if (!primary) mesh.geometry = this.acquirePatch(draw.address);
+        if (!primary) mesh.geometry = this.acquirePatch();
         let lines = primary ? resource.lines : undefined;
         let fills = primary ? resource.fills : undefined;
         let buildings = primary ? resource.buildings : undefined;
@@ -172,9 +171,6 @@ export class TileSurfaces {
     this.originX = origin.meters.x; this.originY = origin.meters.y;
   }
   update(origin: MapOrigin, viewZoom: number, tileZoom: number): void {
-    const curved = !!this.scene.userData.mapProjection?.center.w;
-    // 球面仍提交两三角形的状态基准；颜色写入由球面底面负责。
-    this.ground.material.colorWrite = !curved;
     this.ground.position.set(this.fogCenter.value.x, 0, this.fogCenter.value.z);
     this.ground.scale.set(this.fogEnd.value * 2, 1, this.fogEnd.value * 2);
     const moved = origin.meters.x !== this.originX || origin.meters.y !== this.originY;
@@ -189,7 +185,7 @@ export class TileSurfaces {
   }
   place(mesh: Mesh, address: Address, origin: MapOrigin): void {
     (mesh.geometry as PatchGeometry).updateWorld(origin);
-    mesh.userData.maskSpan = tileBounds({ ...address, z: this.spherical ? Math.max(6, address.z) : address.z }).span;
+    mesh.userData.maskSpan = tileBounds(address).span;
     const b = tileBounds(address); mesh.position.set(b.west + b.span / 2 - origin.meters.x, 0, origin.meters.y - b.north + b.span / 2);
     mesh.scale.set(b.span, 1, b.span); mesh.updateMatrix();
   }
@@ -225,14 +221,13 @@ export class TileSurfaces {
     this.pool.dispose();
     this.maskSlots.dispose(); this.lineSlots.dispose(); this.fillSlots.dispose(); this.buildingSlots.dispose();
   }
-  /** 模板矩形几何按投影模式与容量档位分池，重新获取后只重写实际区域。 */
-  private get patchKey(): string { return this.spherical ? 'patch:curved' : 'patch'; }
-  private acquirePatch(address: Address): PatchGeometry {
-    const cells = this.spherical ? 4 ** Math.max(0, 6 - address.z) : 1;
-    const tier = capacityTier(cells);
+  /** 模板矩形几何按容量档位分池，重新获取后只重写实际区域。 */
+  private get patchKey(): string { return 'patch'; }
+  private acquirePatch(): PatchGeometry {
+    const tier = capacityTier(1);
     const pooled = this.pool.acquire(this.patchKey, tier) as PatchGeometry | undefined;
     if (pooled !== undefined) return pooled;
-    const geometry = new PatchGeometry(this.spherical); geometry.userData.poolTier = tier; registerGeometry(geometry); return geometry;
+    const geometry = new PatchGeometry(); geometry.userData.poolTier = tier; registerGeometry(geometry); return geometry;
   }
   /** 新建模板槽位：材质从模板材质克隆，节点图在所有槽位间共享。 */
   private readonly spawnMask = (): MaskUnit => {

@@ -15,4 +15,22 @@ describe('城市飞行路径', () => {
       expect(Math.abs(current.zoom - previous.zoom)).toBeLessThan(.1); expect(current.center.lng).toBeGreaterThanOrEqual(previous.center.lng); previous = current;
     }
   });
+  it('从西经与边界视角飞往广州时路径不越出单世界', () => {
+    const origins = [
+      { center: { lng: -100, lat: 40 }, zoom: 0, bearing: 0, pitch: 0 },
+      { center: { lng: -170, lat: 0 }, zoom: 0, bearing: 0, pitch: 0 },
+      { center: { lng: -180, lat: -85.051129 }, zoom: 0, bearing: 0, pitch: 0 },
+      { center: { lng: 180, lat: -85.051129 }, zoom: 0, bearing: 0, pitch: 0 },
+    ];
+    for (const from of origins) {
+      for (let i = 0; i <= 200; i++) {
+        const current = flightView(from, CITIES.guangzhou, i / 200);
+        expect(current.center.lng).toBeGreaterThanOrEqual(-180);
+        expect(current.center.lng).toBeLessThanOrEqual(180);
+      }
+      const end = flightView(from, CITIES.guangzhou, 1);
+      expect(end.center.lng).toBeCloseTo(CITIES.guangzhou.center.lng);
+      expect(end.center.lat).toBeCloseTo(CITIES.guangzhou.center.lat);
+    }
+  });
 });

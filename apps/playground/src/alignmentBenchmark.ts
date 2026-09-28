@@ -94,7 +94,7 @@ export async function runSeamBenchmark(current: Map3D): Promise<void> {
     });
     return z > 7 && (x + y) % 7 === 0 ? new Response(null, { status: 204 }) : new Response(tile.slice());
   };
-  const map = new Map3D({ canvas, globe: false, renderer: { forceWebGL: backend === 'webgl2', backgroundColor: '#ff00ff' },
+  const map = new Map3D({ canvas, renderer: { forceWebGL: backend === 'webgl2', backgroundColor: '#ff00ff' },
     source: { id: 'coverage-test', tiles: ['/__alignment_tiles/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17 },
     layers: [{ type: 'fill', id: 'solid', sourceLayer: 'surface', paint: { color: '#185e96' } }],
     view: { center: { lng: 116.39, lat: 39.9 }, zoom: 10, pitch: 0, bearing: 0 } });

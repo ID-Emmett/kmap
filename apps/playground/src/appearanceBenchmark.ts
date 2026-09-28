@@ -32,7 +32,7 @@ export async function runAppearanceBenchmark(map: Map3D): Promise<void> {
       map.setLabelStyle({ layers: Object.fromEntries(['place-label', 'poi-label', 'road-label'].map(id => [id, { haloColor: theme === 'default' ? '#fff' : THEMES[theme].backgroundColor }])) });
       for (const [name, view] of [
         ['city', base], ['buildings', { ...base, zoom: 16.3, pitch: 60, bearing: 25 }],
-        ['fog', { ...base, zoom: 5.5, pitch: 75 }], ['globe', { ...base, zoom: 0 }],
+        ['fog', { ...base, zoom: 5.5, pitch: 75 }], ['world', { ...base, zoom: 0 }],
         ['dateline', { ...base, center: { lng: 179.9, lat: 0 }, zoom: 3, pitch: 40 }],
       ] as [string, ViewState][]) {
         status.textContent = `${map.getBackend()} ${theme} ${name}`; map.setView(view);
@@ -70,11 +70,11 @@ export async function runAppearanceBenchmark(map: Map3D): Promise<void> {
     }
     map.setView({ ...base, zoom: 0, center: { lng: 116.394653, lat: 0 } }); await settle();
     for (let n = 0; n <= 36; n++) {
-      map.setView({ center: { lng: 116.394653 + n * 10, lat: 0 } }); await settle(); await next();
-      if (n % 3 === 0) capture(`revolution-${n}`);
+      map.setView({ center: { lng: -180 + n * 10, lat: 0 } }); await settle(); await next();
+      if (n % 3 === 0) capture(`sweep-${n}`);
     }
     const response = await fetch('/__kmap/diagnostics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      kind: 'spherical-appearance', backend: map.getBackend(), at: new Date().toISOString(), viewport: map.getDiagnostics().viewport,
+      kind: 'planar-appearance', backend: map.getBackend(), at: new Date().toISOString(), viewport: map.getDiagnostics().viewport,
       visibility: document.visibilityState, results, errors, visualFrames,
     }) });
     if (!response.ok) throw new Error('验收证据保存失败');

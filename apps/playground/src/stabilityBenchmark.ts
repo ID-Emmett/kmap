@@ -1,6 +1,6 @@
 import type { Map3D, ViewState } from '@kmap/map3d';
 
-/** 双后端同场景测试：海面、虚线、字体、地球与连续运动帧独立留存。 */
+/** 双后端同场景测试：海面、虚线、字体、低缩放世界与连续运动帧独立留存。 */
 export async function runStabilityBenchmark(map: Map3D, status: (text: string) => void): Promise<void> {
   const scenarios: { name: string; view: ViewState }[] = [
     { name: 'sea-report-1', view: { center: { lng: 121.22962, lat: 25.965288 }, zoom: 7.5, bearing: 305.8, pitch: 75 } },
@@ -8,9 +8,9 @@ export async function runStabilityBenchmark(map: Map3D, status: (text: string) =
     { name: 'rail-labels', view: { center: { lng: 116.421, lat: 39.902 }, zoom: 16.5, bearing: 0, pitch: 45 } },
     { name: 'city-labels', view: { center: { lng: 116.394653, lat: 39.90552 }, zoom: 15.74, bearing: 30, pitch: 60 } },
     { name: 'borders', view: { center: { lng: 104, lat: 35 }, zoom: 7, bearing: 0, pitch: 0 } },
-    { name: 'globe-transition', view: { center: { lng: 116, lat: 30 }, zoom: 5, bearing: 0, pitch: 0 } },
-    { name: 'whole-earth', view: { center: { lng: 116, lat: 30 }, zoom: 0, bearing: 0, pitch: 0 } },
-    { name: 'earth-dateline', view: { center: { lng: 179, lat: -20 }, zoom: 0, bearing: 45, pitch: 0 } },
+    { name: 'world-low-zoom', view: { center: { lng: 116, lat: 30 }, zoom: 5, bearing: 0, pitch: 0 } },
+    { name: 'world-overview', view: { center: { lng: 116, lat: 30 }, zoom: 0, bearing: 0, pitch: 0 } },
+    { name: 'world-dateline', view: { center: { lng: 179, lat: -20 }, zoom: 0, bearing: 45, pitch: 0 } },
   ];
   const started = performance.now(), results: unknown[] = [], errors: unknown[] = [], visualFrames: { image: string; atMs: number }[] = [];
   const stopError = map.on('error', error => errors.push(error));
@@ -23,7 +23,7 @@ export async function runStabilityBenchmark(map: Map3D, status: (text: string) =
       const begin = performance.now(); let settled = 0;
       while (performance.now() - begin < 25000 && settled < 90) {
         await next(); const d = map.getDiagnostics();
-        const dataReady = d.globe.active ? d.globe.ready : d.tiles?.idle && d.tiles.uncoveredCells === 0 && d.tiles.targetMissing === 0;
+        const dataReady = d.tiles?.idle && d.tiles.uncoveredCells === 0 && d.tiles.targetMissing === 0;
         const textReady = scenario.name.includes('labels') ? (d.labels?.placed ?? 0) > 0 && d.labels?.pendingRanges === 0 : true;
         settled = dataReady && textReady ? settled + 1 : 0;
       }
@@ -38,9 +38,9 @@ export async function runStabilityBenchmark(map: Map3D, status: (text: string) =
       }
       const samples = frames.map(frame => frame.ms).sort((a, b) => a - b), cpu = frames.map(frame => frame.cpuMs).sort((a, b) => a - b);
       const p95 = (values: number[]) => values[Math.floor(values.length * .95)] ?? 0;
-      const uncoveredFrames = diagnostics.globe.active ? null : frames.filter(frame => frame.uncovered > 0).length;
-      const passed = settled >= 90 && diagnostics.backend === map.getBackend() && diagnostics.globe.errors === 0
-        && (uncoveredFrames ?? 0) === 0 && (diagnostics.labels?.glyphErrors ?? 0) === 0 && (diagnostics.tiles?.network.errors ?? 0) === 0;
+      const uncoveredFrames = frames.filter(frame => frame.uncovered > 0).length;
+      const passed = settled >= 90 && diagnostics.backend === map.getBackend()
+        && uncoveredFrames === 0 && (diagnostics.labels?.glyphErrors ?? 0) === 0 && (diagnostics.tiles?.network.errors ?? 0) === 0;
       results.push({ name: scenario.name, passed, diagnostics, frames, motion: { frameP95: p95(samples), cpuP95: p95(cpu),
         uncoveredFrames } });
     }

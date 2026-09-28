@@ -1,11 +1,10 @@
-import { GLOBE_END } from '../globe/globeCamera.js';
 import { stableTileZoom } from './lod.js';
-import { selectGlobeTiles } from '../globe/cover.js';
+import { clampMercatorLongitude } from '../spatial/mercator.js';
 import { PerspectiveCamera, type WebGPURenderer } from 'three/webgpu';
 import { updateMapCamera, type MapCameraFrame } from '../rendering/mapCamera.js';
 import type { MapOrigin } from '../spatial/types.js';
 import type { Map3DOptions, MapError, ViewportSize, ViewState } from '../types.js';
-import { cachedKey, canonicalKey, contains, keyOf, parentOf, type Address } from './address.js';
+import { cachedKey, contains, keyOf, parentOf, type Address } from './address.js';
 import { selectTiles, emptySelection } from './selection.js';
 import { Samples } from './samples.js';
 import { TileSurfaces } from './surface.js';
@@ -74,7 +73,7 @@ export class StreamingEngine {
   addPrefetch(addresses: Address[], ttl = 1000, priority = 65, explicit = false): void {
     const now = performance.now(); if (explicit) this.lastPrefetch = now;
     for (const address of addresses) {
-      const key = canonicalKey(address); const previous = this.prefetch.get(key);
+      const key = keyOf(address); const previous = this.prefetch.get(key);
       this.prefetch.set(key, { address, until: now + ttl, priority: Math.min(previous?.priority ?? Infinity, priority) });
     }
     for (const [key, value] of this.prefetch) if (value.until <= now) this.prefetch.delete(key);
@@ -92,17 +91,16 @@ export class StreamingEngine {
       // 层级切换后旧层级的在途工作没有可复用内容，只会在队列里挡住新目标；
       // 首次规划不属于切换，不触发丢弃。
       if (previousZoom > 0 && this.targetZoom !== previousZoom) this.dropStale = true;
-      const spherical = this.options.globe !== false && this.options.source.minZoom === 0 && view.zoom < GLOBE_END;
       if (view.zoom >= 6) this.predict(origin, view, viewport, now);
       // 条目较小的实例为缓存、回退和在途工作保留独立容量。
       const limit = Math.min(TILE_LIMITS.visible, Math.max(8, Math.floor(this.maxEntries * .6)));
-      this.selection = spherical ? selectGlobeTiles(camera, origin, view, this.options.source.maxZoom, limit, frame, this.targetZoom) : selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, limit, this.targetZoom);
+      this.selection = selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, limit, this.targetZoom);
       // 依赖回退内容的目标可由子区域覆盖；相机变化后重新核验这些区域的可见范围。已解析空区域不触发重解。
       if (this.selection.leaves.some(a => !this.store.available.has(cachedKey(a)) && !this.store.isEmpty(a))) this.coverDirty = true;
       // 目标集合变化按顺序比较判定，不再逐帧拼接并排序签名字符串。
       if (!this.sameLeaves(this.selection.leaves)) {
         this.snapshotLeaves(this.selection.leaves);
-        if (spherical && view.zoom < 6) this.overview = []; else this.prepareOverview(origin, view, viewport);
+        this.prepareOverview(origin, view, viewport);
         this.scheduleNeighbors(now);
         this.demandDirty = true; this.coverDirty = true;
       }
@@ -167,8 +165,8 @@ export class StreamingEngine {
     for (const a of this.selection.leaves) {
       for (let i = 0; i < NEIGHBOR_OFFSETS.length; i += 2) {
         const next = { z: a.z, x: a.x + NEIGHBOR_OFFSETS[i]!, y: a.y + NEIGHBOR_OFFSETS[i + 1]! };
-        if (next.y < 0 || next.y >= 2 ** next.z) continue;
-        const key = canonicalKey(next); if (selected.has(key)) continue;
+        if (next.x < 0 || next.x >= 2 ** next.z || next.y < 0 || next.y >= 2 ** next.z) continue;
+        const key = keyOf(next); if (selected.has(key)) continue;
         selected.add(key); neighbors.push(next);
       }
     }
@@ -190,7 +188,8 @@ export class StreamingEngine {
     this.lastPrediction = now;
     const dt = Math.max(.016, (now - this.lastPlan) / 1000);
     const dz = view.zoom - this.previousView.zoom;
-    const lng = ((view.center.lng - this.previousView.center.lng + 540) % 360) - 180;
+    // 经度限制在单世界内，相邻视图的经度差不再需要环绕折算。
+    const lng = view.center.lng - this.previousView.center.lng;
     const lat = view.center.lat - this.previousView.center.lat;
     const bearing = ((view.bearing - this.previousView.bearing + 540) % 360) - 180;
     const pitch = view.pitch - this.previousView.pitch;
@@ -204,7 +203,7 @@ export class StreamingEngine {
     if (Math.abs(dz) + Math.abs(lng) + Math.abs(lat) + Math.abs(bearing) + Math.abs(pitch) < .00001) return;
     const horizon = Math.min(.65, Math.max(.2, this.requestTime.snapshot().p95 / 1000 + .1));
     const ahead = horizon / dt;
-    const future = { ...view, center: { lng: view.center.lng + lng * ahead, lat: view.center.lat + lat * ahead },
+    const future = { ...view, center: { lng: clampMercatorLongitude(view.center.lng + lng * ahead), lat: view.center.lat + lat * ahead },
       zoom: Math.max(this.options.source.minZoom, view.zoom + Math.max(-2, Math.min(1, dz * ahead))),
       bearing: view.bearing + bearing * ahead, pitch: Math.min(MAX_MAP_PITCH, Math.max(0, view.pitch + pitch * ahead)) };
     const nextFrame = updateMapCamera(this.predictiveCamera, future, viewport, origin);
@@ -235,7 +234,7 @@ export class StreamingEngine {
     for (const leaf of this.selection.leaves) this.demand(leaf, 'visible', this.selection.priorities.get(keyOf(leaf)) ?? 0);
     const fallback = fallbackRequests(this.selection.leaves, cover.patches, this.options.source.minZoom,
       TILE_LIMITS.fallbackRequests, address => this.store.isEmpty(address),
-      address => ['fetching', 'decoded', 'painting', 'upload', 'preparing'].includes(this.entries.get(canonicalKey(address))?.state ?? ''));
+      address => ['fetching', 'decoded', 'painting', 'upload', 'preparing'].includes(this.entries.get(keyOf(address))?.state ?? ''));
     for (const address of fallback) this.demand(address, 'fallback', -100);
     for (const patch of cover.patches) this.demand(patch.source, 'fallback', 100);
     // 回退安全网：为每个可见目标保留一个最近的祖先瓦片作为退路。
@@ -246,7 +245,7 @@ export class StreamingEngine {
     for (const leaf of this.selection.leaves) {
       let ancestor = parentOf(leaf);
       while (ancestor.z >= this.options.source.minZoom) {
-        const entry = this.entries.get(canonicalKey(ancestor));
+        const entry = this.entries.get(keyOf(ancestor));
         // 已就绪或仍在生产途中的祖先都能成为退路；失败的不再兜底，继续向上找更粗的一级。
         if (entry !== undefined && entry.state !== 'failed') { this.demand(ancestor, 'fallback', -200); break; }
         ancestor = parentOf(ancestor);
@@ -283,7 +282,7 @@ export class StreamingEngine {
     }
   }
   private demand(address: Address, kind: DemandKind, priority: number): void {
-    const key = canonicalKey(address); const existing = this.demandScratch.get(key);
+    const key = keyOf(address); const existing = this.demandScratch.get(key);
     if (existing === undefined || priority < existing.priority) this.demandScratch.set(key, { address, kind, priority });
   }
   private commit(origin: MapOrigin, now: number): void {
@@ -296,10 +295,10 @@ export class StreamingEngine {
     this.patches = cover.patches; this.uncovered = cover.uncovered; this.displayZoomGap = cover.maxGap;
     this.pendingDetailGap = 0;
     for (const target of this.selection.leaves) {
-      if (this.entries.get(canonicalKey(target))?.empty) continue;
+      if (this.entries.get(keyOf(target))?.empty) continue;
       for (const patch of cover.patches) if (contains(target, patch.cell)) this.pendingDetailGap = Math.max(this.pendingDetailGap, target.z - patch.source.z);
     }
-    this.targetMissing = this.selection.leaves.filter(a => this.entries.get(canonicalKey(a))?.state !== 'ready').length;
+    this.targetMissing = this.selection.leaves.filter(a => this.entries.get(keyOf(a))?.state !== 'ready').length;
     this.coverageDetails = cover.patches.filter(p => p.source.z < p.cell.z).map(p => ({ target: keyOf(p.cell), source: keyOf(p.source), gap: p.cell.z - p.source.z, priority: this.selection.priorities.get(keyOf(p.cell)) ?? 0 }));
 
     // 覆盖集合按顺序比较；只有实际变化才重建 GPU 侧模板与实例。

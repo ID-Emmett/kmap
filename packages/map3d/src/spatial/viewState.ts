@@ -1,5 +1,5 @@
 import type { ViewState } from '../types.js';
-import { clampMercatorLatitude } from './mercator.js';
+import { clampMercatorLatitude, clampMercatorLongitude } from './mercator.js';
 import { requireFiniteNumber } from './validation.js';
 
 export const DEFAULT_VIEW_STATE: Readonly<ViewState> = Object.freeze({
@@ -26,7 +26,7 @@ export function normalizeViewState(
 
   return {
     center: {
-      lng: requireFiniteNumber(center.lng, 'center.lng'),
+      lng: clampMercatorLongitude(requireFiniteNumber(center.lng, 'center.lng')),
       lat: clampMercatorLatitude(center.lat),
     },
     zoom: Math.max(

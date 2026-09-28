@@ -5,8 +5,6 @@ import { TileSurfaces } from '../src/streaming/surface.js';
 import { createLineSurface } from '../src/streaming/lineSurface.js';
 import { GlyphAtlas } from '../src/labels/glyphAtlas.js';
 import { LabelSurface } from '../src/labels/labelSurface.js';
-import { GlobeView } from '../src/globe/globeView.js';
-import type { Map3DOptions } from '../src/types.js';
 import type { Object3D } from 'three/webgpu';
 import { MapPalette, paletteColors } from '../src/style/palette.js';
 
@@ -14,7 +12,7 @@ interface ShaderBuilder { camera: PerspectiveCamera; scene: Scene; build(): unkn
   updateNodes: { isBufferNode?: boolean; updateType: string; value: unknown; update(frame: unknown): unknown }[] }
 
 describe('TSL 双后端源码生成', () => {
-  it.each(['webgpu', 'webgl2'] as const)('%s 的线、字形与地球节点图生成完整着色器', backend => {
+  it.each(['webgpu', 'webgl2'] as const)('%s 的线、字形、地面与模板节点图生成完整着色器', backend => {
     const canvas = { width: 800, height: 600, style: {}, addEventListener() {}, removeEventListener() {} } as unknown as HTMLCanvasElement;
     const renderer = new WebGPURenderer({ canvas, forceWebGL: backend === 'webgl2' });
     renderer.hasFeature = () => false;
@@ -25,12 +23,11 @@ describe('TSL 双后端源码生成', () => {
     // WebGPU 的最低设备规格允许最多八个顶点缓冲槽。
     const attributeBuffers = new Set(Object.values(label.mesh.geometry.attributes).map(a => 'data' in a ? a.data : a));
     expect(attributeBuffers.size).toBeLessThanOrEqual(8);
-    const globe = new GlobeView({ canvas, source: { id: 'test', tiles: ['https://example.test/{z}/{x}/{y}'], minZoom: 0, maxZoom: 17 }, layers: [] } as Map3DOptions);
-    const curvedLine = createLineSurface(line.data, true);
-    const themedLine = createLineSurface(line.data, true, true);
-    const surfaces = new TileSurfaces(new Scene(), new Color('#ffffff'), true);
+    const themedLine = createLineSurface(line.data, true);
+    const surfaces = new TileSurfaces(new Scene(), new Color('#ffffff'));
     const mask = surfaces.create({ width: 1, height: 1, close() {} } as ImageBitmap, { z: 7, x: 106, y: 55 });
-    const objects = [line.mesh, curvedLine.mesh, themedLine.mesh, label.mesh, mask.mesh, ...globe.scene.children];
+    const ground = surfaces.scene.children.find(o => o.renderOrder === -5)!;
+    const objects = [line.mesh, themedLine.mesh, label.mesh, mask.mesh, ground];
     const palette = new MapPalette(); palette.values.fill(.25);
     for (const object of objects) {
       const backendBuilder = renderer.backend as typeof renderer.backend & { createNodeBuilder(object: Object3D, renderer: WebGPURenderer): ShaderBuilder };
@@ -59,10 +56,10 @@ describe('TSL 双后端源码生成', () => {
         expect(values).toContain(line.widths); expect(line.widths[0]).toBe(.125);
         additional.mesh.geometry.dispose(); additional.mesh.material.dispose();
       }
-      if (object === themedLine.mesh) expect(builder.vertexShader).toContain('highpModelViewMatrix');
+      // 地面覆盖全屏底色，必须使用 CPU 双精度合成的 modelViewMatrix。
+      if (object === ground) expect(builder.vertexShader).toContain('highpModelViewMatrix');
     }
     themedLine.mesh.geometry.dispose(); themedLine.mesh.material.dispose();
-    curvedLine.mesh.geometry.dispose(); curvedLine.mesh.material.dispose();
-    line.mesh.geometry.dispose(); line.mesh.material.dispose(); label.dispose(); atlas.dispose(); globe.dispose(); surfaces.release(mask); surfaces.dispose();
+    line.mesh.geometry.dispose(); line.mesh.material.dispose(); label.dispose(); atlas.dispose(); surfaces.release(mask); surfaces.dispose();
   });
 });

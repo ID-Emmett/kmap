@@ -1,5 +1,4 @@
 import { paletteColor, paletteOpacity } from '../style/palette.js';
-import { mapVertex, mapFacing } from '../globe/projection.js';
 import { BufferGeometry, DoubleSide, EqualStencilFunc, KeepStencilOp, Mesh, MeshBasicNodeMaterial } from 'three/webgpu';
 import { Fn, attribute, positionLocal, renderGroup, uniform, varying, vec4 } from 'three/tsl';
 import type { FillData } from './fills.js';
@@ -12,7 +11,7 @@ export type FillSurface = ReturnType<typeof createFillSurface>;
 export interface FillUnit { mesh: Mesh<BufferGeometry, MeshBasicNodeMaterial>; material: MeshBasicNodeMaterial; key: string; spawn: () => FillUnit }
 
 /** 原生矢量面在同一次绘制内完成三角形覆盖，样式可见范围按相机缩放求值。 */
-export function createFillSurface(data: FillData, curved = false, themed = false, pool?: GeometryPool, slots?: DrawSlotPool<FillUnit>) {
+export function createFillSurface(data: FillData, themed = false, pool?: GeometryPool, slots?: DrawSlotPool<FillUnit>) {
   const vertices = data.positions.length / 3;
   const tier = capacityTier(Math.max(vertices, data.indices.length));
   let geometry = pool?.acquire(FILL_GEOMETRY_KEY, tier);
@@ -21,8 +20,8 @@ export function createFillSurface(data: FillData, curved = false, themed = false
   writeAttribute(geometry, 'fillColor', data.colors, 3, false, tier * 3);
   writeAttribute(geometry, 'fillStyle', data.styles, 3, false, tier * 3);
   writeIndex(geometry, data.indices, tier);
-  const key = `${curved}:${themed}`;
-  const unit = slots?.acquire(key, () => createFillUnit(curved, themed)) ?? createFillUnit(curved, themed);
+  const key = `${themed}`;
+  const unit = slots?.acquire(key, () => createFillUnit(themed)) ?? createFillUnit(themed);
   unit.mesh.geometry = geometry; unit.mesh.visible = true;
   return { mesh: unit.mesh, unit, data, vertices, indices: data.indices.length };
 }
@@ -36,11 +35,11 @@ export function releaseFillSurface(surface: FillSurface, pool: GeometryPool, slo
   else surface.mesh.material.dispose();
 }
 
-function createFillUnit(curved: boolean, themed: boolean): FillUnit {
-  const key = `${curved}:${themed}`;
-  const material = materials[Number(curved) + Number(themed) * 2]!.clone();
+function createFillUnit(themed: boolean): FillUnit {
+  const key = `${themed}`;
+  const material = materials[Number(themed)]!.clone();
   const mesh = new Mesh(undefined, material); mesh.frustumCulled = false; mesh.renderOrder = 1;
-  return { mesh, material, key, spawn: () => createFillUnit(curved, themed) };
+  return { mesh, material, key, spawn: () => createFillUnit(themed) };
 }
 
 /**
@@ -51,13 +50,11 @@ function createFillUnit(curved: boolean, themed: boolean): FillUnit {
 const tileZoom = uniform(15).setGroup(renderGroup);
 export function setFillTileZoom(value: number): void { tileZoom.value = value; }
 const style = varying(attribute<'vec3'>('fillStyle', 'vec3')).setInterpolation('flat');
-function createMaterial(curved: boolean, themed: boolean) {
+function createMaterial(themed: boolean) {
 const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: DoubleSide,
   stencilWrite: true, stencilWriteMask: 0, stencilFunc: EqualStencilFunc, stencilZPass: KeepStencilOp });
-if (curved) material.vertexNode = mapVertex(positionLocal);
 material.forceSinglePass = true; material.positionNode = positionLocal;
 material.colorNode = Fn(() => {
-    if (curved) mapFacing.lessThan(0).discard();
   tileZoom.lessThan(style.x).or(tileZoom.greaterThanEqual(style.y)).discard();
   const source = attribute<'vec3'>('fillColor', 'vec3'), alpha = style.z.mul(themed ? paletteOpacity(source) : 1);
   alpha.lessThan(.001).discard();
@@ -66,4 +63,4 @@ material.colorNode = Fn(() => {
 
 return material;
 }
-const materials = [createMaterial(false, false), createMaterial(true, false), createMaterial(false, true), createMaterial(true, true)];
+const materials = [createMaterial(false), createMaterial(true)];

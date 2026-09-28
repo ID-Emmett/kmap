@@ -31,6 +31,12 @@ export function clampMercatorLatitude(latitude: number): number {
   );
 }
 
+/** 将经度限制到单个 Web Mercator 世界范围，横向不产生世界副本。 */
+export function clampMercatorLongitude(longitude: number): number {
+  requireFiniteNumber(longitude, 'longitude');
+  return Math.min(180, Math.max(-180, longitude));
+}
+
 /** WGS84 经纬度转换为 Web Mercator 米坐标。 */
 export function projectLngLat(lngLat: LngLat): MercatorPoint {
   const longitude = requireFiniteNumber(lngLat.lng, 'lng');

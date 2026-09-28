@@ -1,4 +1,3 @@
-import { projectMapPosition } from '../globe/projection.js';
 import { Color, DynamicDrawUsage, InstancedInterleavedBuffer, InterleavedBufferAttribute, InstancedBufferGeometry, Mesh, MeshBasicNodeMaterial, PlaneGeometry, Vector2, Vector3 } from 'three/webgpu';
 import { Fn, attribute, cameraProjectionMatrix, cameraViewMatrix, clamp, float, max, mix, smoothstep, texture, uniform, uv, varying, vec2, vec3, vec4 } from 'three/tsl';
 import { GLYPH_RANGE } from './glyphs.js';
@@ -27,9 +26,9 @@ export class LabelSurface {
     const glyphUV = attribute<'vec4'>('labelUV', 'vec4');
     material.vertexNode = Fn(() => {
       const matrix = cameraProjectionMatrix.mul(cameraViewMatrix);
-      const clip = matrix.mul(vec4(projectMapPosition(vec3(anchor.x.sub(this.origin.x), 0, anchor.y.sub(this.origin.z))), 1)).toVar();
+      const clip = matrix.mul(vec4(vec3(anchor.x.sub(this.origin.x), 0, anchor.y.sub(this.origin.z)), 1)).toVar();
       const direction = attribute<'vec3'>('labelDirection', 'vec3');
-      const end = matrix.mul(vec4(projectMapPosition(vec3(direction.x.sub(this.origin.x), 0, direction.y.sub(this.origin.z))), 1));
+      const end = matrix.mul(vec4(vec3(direction.x.sub(this.origin.x), 0, direction.y.sub(this.origin.z)), 1));
       const delta = end.xy.div(end.w).sub(clip.xy.div(clip.w)).mul(this.viewport).mul(vec2(1, -1));
       const tangent = delta.div(max(delta.length(), .00001)).mul(delta.x.lessThan(0).select(-1, 1));
       const pixel = vec2(rect.x.add(uv().x.mul(rect.z)), rect.y.add(float(1).sub(uv().y).mul(rect.w)));

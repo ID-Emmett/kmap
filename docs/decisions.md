@@ -288,3 +288,12 @@
 - 验收：双后端真实 Chromium、慢网、60 秒交互、dispose、自动测试、timeline 和人工体验共同构成发布证据。
 - 任务：T031～T044 按契约、覆盖、调度、管线、缓存、渲染、资源、诊断、集成、浏览器、人工、切换和发布顺序执行。
 - 对应分片：`docs/decisions/D033-nova-tile-engine-plan.md`。
+
+## D034 — 地图始终平面：删除地球视图与世界副本
+
+- 状态：Accepted
+- 确认日期：2026-09-28
+- 决策：删除全部球面渲染实现（globe 目录、globe 公共选项、球面分支及仅服务球面的测试与场景）；删除横向世界副本（副本地址归一化、请求 URL 的 X 归一化、RenderTileKey、±1 根瓦片、经度环绕差值）；地图始终使用单个 Web Mercator 世界平面，经度限制在 [-180, 180]，平移在东西边界停止。
+- 影响：`Map3DOptions.globe` 与 `getDiagnostics().globe` 删除；覆盖统一使用 `selectTiles` 单世界根瓦片；Worker 不再接收球面参数；低层级球面几何细分删除；资源与需求键统一使用 `keyOf`。
+- 对应分片：`docs/decisions/D034-flat-map-only-remove-globe.md`。
+- 对应任务：`tasks/T049-flat-map-only.md`。

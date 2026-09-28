@@ -18,12 +18,12 @@
 
 - KYE 主响应有内容时独占其区域的海陆边界；主响应无内容时才使用基础/详细海洋回退。来源选择在网络与 Worker 阶段执行。赤柱两块真实瓦片的 50 座建筑中心均在主源陆地内，低级海洋在相同位置为水面；真实 fixture 与地表像素验证见 `docs/evidence/maplibre-alignment/coast-authority.md`。
 
-- 当前平面/地球过渡、Inspector、地名层级和逐帧冷加载证据见 [地图样式与稳定性验证](../evidence/map-inspector/README.md)。
+- 当前单世界平面覆盖、Inspector、地名层级和逐帧冷加载证据见 [地图样式与稳定性验证](../evidence/map-inspector/README.md)。
 
-- 最大倾角为 75°。CPU 与 TSL 使用一致的球面距离雾约束，球缘薄雾作用于地平线。目标集合保持单一层级，向下/向上 zoom 滞回分别为 0.18/0.08。
+- 最大倾角为 75°。CPU 与 TSL 使用一致的地面距离雾约束。目标集合保持单一层级，向下/向上 zoom 滞回分别为 0.18/0.08。
 - 道路、面和文字的 `minZoom` / `maxZoom` 显隐使用当前目标瓦片整数层级 `tileZoom`；建筑门槛、线宽插值、投影、相机尺度和碰撞位移使用连续 `viewZoom`。父级回退内容继承目标瓦片层级，同一目标层级内的相机距离变化保持道路、面和文字的层级可见性一致。
 - 地名层级为 z0～z2 中国国名、z3 省名、z4 起省会、z6 起普通城市；各区间按目标瓦片整数层级切换。
-- z5.5 及以上使用平面坐标与 highpModelViewMatrix；z4.5～5.5 连续过渡到球面。完整球面朝向限定过渡可见半球，经度采用最近世界副本。九类 SDF 图标与文字共用字形 atlas，墨迹中心水平对齐。
+- 所有缩放使用平面坐标与 highpModelViewMatrix；地图为单个 Web Mercator 世界，经度限制在 [-180, 180]，无横向世界副本。九类 SDF 图标与文字共用字形 atlas，墨迹中心水平对齐。
 - 晴昼、深海、晴彩覆盖地图面、线、边界、建筑、文字、图标、雾与背景；256 项颜色与参数缓冲共占 8 KiB。BufferNode 保持编译期间的调色板引用。全局平面陆地使用单批次；Inspector 按事件静默同步控件。
 - 显式 WebGL2 模式默认单采样，线与文字保留解析抗锯齿；`renderer.antialias: true` 为 4x MSAA，WebGPU 默认 MSAA。同机采样对照见 `docs/evidence/map-experience/aa-comparison.json`。
 - SDK 道路线宽支持米和 CSS 像素；Playground 使用 OpenFreeMap Liberty 的缩放插值，按 256/512 瓦片尺度转换后映射到地表并参加透视投影。近景保留原始 MVT 折点，线段采用共享折点挤出。

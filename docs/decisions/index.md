@@ -21,12 +21,14 @@
 | D031 | Accepted | 冻结 V2 补丁链，建立瓦片子系统重置与 AI 上下文隔离 | 瓦片失败路线默认读取 |
 | D032 | Accepted | TileStreamingEngine 全新瓦片系统重建 | T029 默认读取 |
 | D033 | Accepted | NovaTileEngine 任务化重建方案 | T031 默认读取 |
+| D034 | Accepted | 地图始终平面：删除地球视图与世界副本 | 涉及投影、低缩放视图或经度边界时读取 |
 
 ## 分片
 
 - `docs/decisions/D031-tile-system-reset-and-ai-context-isolation.md`
 - `docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`
 - `docs/decisions/D033-nova-tile-engine-plan.md`
+- `docs/decisions/D034-flat-map-only-remove-globe.md`
 
 ## 归档入口
 
