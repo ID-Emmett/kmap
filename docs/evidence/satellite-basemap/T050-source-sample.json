@@ -1,0 +1,354 @@
+{
+  "at": "2026-09-28T14:37:49.674Z",
+  "source": "高德 webst01..04 style=6",
+  "center": {
+    "lng": 116.3946533203125,
+    "lat": 39.90552253972854
+  },
+  "records": [
+    {
+      "node": 1,
+      "address": {
+        "z": 0,
+        "x": 0,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    },
+    {
+      "node": 1,
+      "address": {
+        "z": 1,
+        "x": 1,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 10037,
+      "format": "jpeg",
+      "sha256": "387a265c909c09bad9bd586afcc65fcad96a424c96b126c3c5c8350e38cd35d8"
+    },
+    {
+      "node": 1,
+      "address": {
+        "z": 6,
+        "x": 52,
+        "y": 24
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 9669,
+      "format": "jpeg",
+      "sha256": "74ab0a54ff86f22d3342e54fe6e8928ac6e54916fdbe62781f785b61622f07be"
+    },
+    {
+      "node": 1,
+      "address": {
+        "z": 17,
+        "x": 107914,
+        "y": 49666
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 11567,
+      "format": "jpeg",
+      "sha256": "a132cd061f36d6c7ec68e5e519d2fad29639c2df1bacfca216e947dc430c2dc4"
+    },
+    {
+      "node": 1,
+      "address": {
+        "z": 18,
+        "x": 215828,
+        "y": 99332
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 8005,
+      "format": "jpeg",
+      "sha256": "678c5b0fc4f9e48f10f75b9af538375dbd9a45dd43e0bb6d9a4a00eb7fb6d58e"
+    },
+    {
+      "node": 1,
+      "address": {
+        "z": 19,
+        "x": 431656,
+        "y": 198664
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    },
+    {
+      "node": 2,
+      "address": {
+        "z": 0,
+        "x": 0,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    },
+    {
+      "node": 2,
+      "address": {
+        "z": 1,
+        "x": 1,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 10037,
+      "format": "jpeg",
+      "sha256": "387a265c909c09bad9bd586afcc65fcad96a424c96b126c3c5c8350e38cd35d8"
+    },
+    {
+      "node": 2,
+      "address": {
+        "z": 6,
+        "x": 52,
+        "y": 24
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 9669,
+      "format": "jpeg",
+      "sha256": "74ab0a54ff86f22d3342e54fe6e8928ac6e54916fdbe62781f785b61622f07be"
+    },
+    {
+      "node": 2,
+      "address": {
+        "z": 17,
+        "x": 107914,
+        "y": 49666
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 11567,
+      "format": "jpeg",
+      "sha256": "a132cd061f36d6c7ec68e5e519d2fad29639c2df1bacfca216e947dc430c2dc4"
+    },
+    {
+      "node": 2,
+      "address": {
+        "z": 18,
+        "x": 215828,
+        "y": 99332
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 8005,
+      "format": "jpeg",
+      "sha256": "678c5b0fc4f9e48f10f75b9af538375dbd9a45dd43e0bb6d9a4a00eb7fb6d58e"
+    },
+    {
+      "node": 2,
+      "address": {
+        "z": 19,
+        "x": 431656,
+        "y": 198664
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    },
+    {
+      "node": 3,
+      "address": {
+        "z": 0,
+        "x": 0,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    },
+    {
+      "node": 3,
+      "address": {
+        "z": 1,
+        "x": 1,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 10037,
+      "format": "jpeg",
+      "sha256": "387a265c909c09bad9bd586afcc65fcad96a424c96b126c3c5c8350e38cd35d8"
+    },
+    {
+      "node": 3,
+      "address": {
+        "z": 6,
+        "x": 52,
+        "y": 24
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 9669,
+      "format": "jpeg",
+      "sha256": "74ab0a54ff86f22d3342e54fe6e8928ac6e54916fdbe62781f785b61622f07be"
+    },
+    {
+      "node": 3,
+      "address": {
+        "z": 17,
+        "x": 107914,
+        "y": 49666
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 11567,
+      "format": "jpeg",
+      "sha256": "a132cd061f36d6c7ec68e5e519d2fad29639c2df1bacfca216e947dc430c2dc4"
+    },
+    {
+      "node": 3,
+      "address": {
+        "z": 18,
+        "x": 215828,
+        "y": 99332
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 8005,
+      "format": "jpeg",
+      "sha256": "678c5b0fc4f9e48f10f75b9af538375dbd9a45dd43e0bb6d9a4a00eb7fb6d58e"
+    },
+    {
+      "node": 3,
+      "address": {
+        "z": 19,
+        "x": 431656,
+        "y": 198664
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    },
+    {
+      "node": 4,
+      "address": {
+        "z": 0,
+        "x": 0,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    },
+    {
+      "node": 4,
+      "address": {
+        "z": 1,
+        "x": 1,
+        "y": 0
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 10037,
+      "format": "jpeg",
+      "sha256": "387a265c909c09bad9bd586afcc65fcad96a424c96b126c3c5c8350e38cd35d8"
+    },
+    {
+      "node": 4,
+      "address": {
+        "z": 6,
+        "x": 52,
+        "y": 24
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 9669,
+      "format": "jpeg",
+      "sha256": "74ab0a54ff86f22d3342e54fe6e8928ac6e54916fdbe62781f785b61622f07be"
+    },
+    {
+      "node": 4,
+      "address": {
+        "z": 17,
+        "x": 107914,
+        "y": 49666
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 11567,
+      "format": "jpeg",
+      "sha256": "a132cd061f36d6c7ec68e5e519d2fad29639c2df1bacfca216e947dc430c2dc4"
+    },
+    {
+      "node": 4,
+      "address": {
+        "z": 18,
+        "x": 215828,
+        "y": 99332
+      },
+      "status": 200,
+      "contentType": "image/jpeg",
+      "bytes": 8005,
+      "format": "jpeg",
+      "sha256": "678c5b0fc4f9e48f10f75b9af538375dbd9a45dd43e0bb6d9a4a00eb7fb6d58e"
+    },
+    {
+      "node": 4,
+      "address": {
+        "z": 19,
+        "x": 431656,
+        "y": 198664
+      },
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 4235,
+      "format": "png",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "sha256": "24b9a6081f06fe76f8461e18f27375f90a1349932fbe635256fd72d523a16854"
+    }
+  ]
+}
