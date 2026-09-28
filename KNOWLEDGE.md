@@ -16,6 +16,7 @@
 | 主题 | 文件 | 默认用途 |
 | --- | --- | --- |
 | StreamingEngine | `docs/knowledge/streaming.md` | 当前 MVT 绘制、加载、覆盖、缓存、LOD、雾和连续浏览器证据 |
+| 卫星底图 | `docs/knowledge/satellite-basemap.md` | 高德影像源抽样、独立栅格覆盖、纯卫星门控和双后端验证 |
 | 数据协议与输入 | `docs/knowledge/data.md` | KYE MVT、fixture、style、动态业务数据、空瓦片和资源格式 |
 | Tile Runtime | `docs/knowledge/tile-runtime.md` | TileKey、coverage、cache、TileEngineV2、调度/显示失败事实 |
 | Rendering | `docs/knowledge/rendering.md` | Three.js 后端、Polygon/Line、视觉基线、网格伪影、渐隐 |

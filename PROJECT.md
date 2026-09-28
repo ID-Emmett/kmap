@@ -16,6 +16,8 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 
 当前生产地图由 `StreamingEngine` 驱动，模块位于 `packages/map3d/src/streaming/`。系统使用真实 XYZ MVT、Worker 矢量面、线段实例与合批建筑、Three.js WebGPU 合成、有界调度、LOD、父子覆盖和缓存回收。当前连续浏览器验证入口为 `docs/evidence/streaming-rebuild/`。
 
+D035 卫星底图由独立 `RasterLayer` 驱动；纯卫星状态不创建矢量运行时，开启线路或文字时按需启用矢量路径。T050 双后端浏览器证据位于 `docs/evidence/satellite-basemap/T050-current-verification.md`，人工观感验收进行中。
+
 ## 当前事实基线
 
 - 单世界平面地图、分类文字/图标、Inspector 元素样式编辑及晴昼/深海/晴彩主题已实现。当前验证见 `docs/evidence/map-inspector/README.md`。

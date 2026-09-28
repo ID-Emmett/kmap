@@ -70,6 +70,8 @@
 
 ## 接口与观测
 
+- D035 的卫星底图由独立 `RasterLayer` 管理 XYZ 影像需求、请求、解码、纹理、互斥祖先覆盖和回收。`Map3D.setBasemap/getBasemap` 控制卫星、矢量线和文字；纯卫星状态不创建 `StreamingEngine`，卫星叠加状态按有效图层创建矢量路径，且矢量面与建筑关闭。影像取图层级受原生有效层级与设备像素密度约束，Playground 的 z0 全球概览使用 z1 有效影像。双后端验证入口为 `docs/evidence/satellite-basemap/T050-current-verification.md`。
+
 - `prefetchViews` 接受视图、时效、优先级与数量限制。相机城市飞行保持 van Wijk / Nuij 路径。
 - `observeFrames` 在真实 render 调用完成后触发；`getFrameState` 提供帧编号、CPU 分段、覆盖版本与资源计数。
 - `getTileSnapshot` 提供当前目标、理想目标、来源分区和条目用途。`getTileDebug` 提供来源编号与屏幕多边形。

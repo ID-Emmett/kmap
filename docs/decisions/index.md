@@ -22,6 +22,7 @@
 | D032 | Accepted | TileStreamingEngine 全新瓦片系统重建 | T029 默认读取 |
 | D033 | Accepted | NovaTileEngine 任务化重建方案 | T031 默认读取 |
 | D034 | Accepted | 地图始终平面：删除地球视图与世界副本 | 涉及投影、低缩放视图或经度边界时读取 |
+| D035 | Accepted | 卫星 XYZ 影像与按需矢量叠加 | T050 默认读取 |
 
 ## 分片
 
@@ -29,6 +30,7 @@
 - `docs/decisions/D032-tile-streaming-engine-clean-rebuild.md`
 - `docs/decisions/D033-nova-tile-engine-plan.md`
 - `docs/decisions/D034-flat-map-only-remove-globe.md`
+- `docs/decisions/D035-satellite-raster-basemap.md`
 
 ## 归档入口
 

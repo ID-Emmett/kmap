@@ -4,7 +4,7 @@ import type { Inspector } from 'three/addons/inspector/Inspector.js';
 import { createDiagnosticsPanel } from './diagnosticsPanel.js';
 
 import { PLAYGROUND_STYLE } from './mapStyle.js';
-import { PLAYGROUND_SOURCE } from './mapSource.js';
+import { PLAYGROUND_SOURCE, PLAYGROUND_SATELLITE_SOURCE } from './mapSource.js';
 import playgroundStyles from './style.css?inline';
 
 const style = document.createElement('style');
@@ -37,6 +37,9 @@ async function bootstrap(): Promise<void> {
       backgroundColor: PLAYGROUND_STYLE.backgroundColor,
     },
     source: PLAYGROUND_SOURCE,
+    satelliteSource: PLAYGROUND_SATELLITE_SOURCE,
+    basemap: new URLSearchParams(window.location.search).get('basemap') === 'satellite'
+      ? { satellite: true, vectorLines: false, labels: false } : {},
     layers: PLAYGROUND_STYLE.layers,
     labels: { glyphs: 'https://tiles.kye-erp.com/maptiles/fonts/{fontstack}/{range}.pbf', fontStack: 'Microsoft YaHei Regular', maxLabels: 256 },
     // 已验证 fixture z15/26978/12416 的 Tile 中心。

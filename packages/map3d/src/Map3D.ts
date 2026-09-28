@@ -15,7 +15,9 @@ import { auditPixels } from './streaming/pixelAudit.js';
 import { tileDiagnostics } from './streaming/diagnostics.js';
 import { selectTiles } from './streaming/selection.js';
 import { LabelSystem } from './labels/labelSystem.js';
-import type { MapTheme, LabelAppearance, Map3DOptions, MapEventMap, MapRuntimeStats, RenderBackend, ViewportSize, ViewState } from './types.js';
+import { RasterLayer } from './raster/rasterLayer.js';
+import { activeVectorLayers, normalizeBasemap, validateSatelliteSource } from './basemap.js';
+import type { BasemapState, MapTheme, LabelAppearance, Map3DOptions, MapEventMap, MapRuntimeStats, RenderBackend, ViewportSize, ViewState } from './types.js';
 
 /** Three.js 地图容器：相机交互、WebGPU 帧循环与瓦片流式合成。 */
 export class Map3D {
@@ -29,8 +31,10 @@ export class Map3D {
   private readonly background: Color;
   private theme: MapTheme | undefined;
   private labelAppearance: LabelAppearance = {};
+  private basemap: BasemapState;
   private engine: StreamingEngine | undefined;
   private labels: LabelSystem | undefined;
+  private raster: RasterLayer | undefined;
   private viewport = normalizeViewport({ width: 1, height: 1 });
   private origin: MapOrigin; private cameraFrame: MapCameraFrame;
   private initializePromise: Promise<void> | undefined;
@@ -41,6 +45,9 @@ export class Map3D {
   constructor(private readonly options: Map3DOptions) {
     if (!options.source.id || options.source.tiles.length === 0 || options.source.tiles.some(t => !['{z}', '{x}', '{y}'].every(part => t.includes(part)))) throw new TypeError('Source 必须包含有效 XYZ URL 模板。');
     if (!Number.isInteger(options.source.minZoom) || !Number.isInteger(options.source.maxZoom) || options.source.minZoom < 0 || options.source.maxZoom < options.source.minZoom) throw new TypeError('Source 层级范围无效。');
+    if (options.satelliteSource) validateSatelliteSource(options.satelliteSource);
+    this.basemap = normalizeBasemap(options.basemap);
+    if (this.basemap.satellite && !options.satelliteSource) throw new TypeError('卫星底图需要 satelliteSource。');
     this.background = new Color(options.renderer?.backgroundColor ?? '#F5F5F2'); this.scene.background = this.background;
     // WebGL 默认依赖线与字形的解析抗锯齿；显式 antialias=true 启用 4x MSAA。
     this.renderer = new WebGPURenderer({ canvas: options.canvas, stencil: true, antialias: options.renderer?.antialias ?? options.renderer?.forceWebGL !== true, forceWebGL: options.renderer?.forceWebGL ?? false });
@@ -58,10 +65,15 @@ export class Map3D {
   private async initializeOnce(): Promise<void> {
     await this.renderer.init();
     if (this.disposed) throw createMapDisposedError();
-    const surfaces = new TileSurfaces(this.scene, this.background);
-    this.engine = new StreamingEngine(this.options, surfaces, this.renderer, `#${this.background.getHexString()}`, error => this.events.emit('error', error));
-    if (this.options.labels && this.options.layers.some(layer => layer.type === 'symbol')) this.labels = new LabelSystem(this.options.labels, this.scene);
-    if (this.theme) this.setTheme(this.theme); this.labels?.setStyle(this.labelAppearance);
+    if (this.options.satelliteSource) {
+      this.raster = new RasterLayer(this.scene, this.renderer, this.options.satelliteSource, (key, error) => {
+        const [z, x, y] = key.split('/').map(Number) as [number, number, number];
+        this.events.emit('error', { code: 'NETWORK_ERROR', phase: 'request', message: String(error), recoverable: true,
+          tileKey: { sourceId: this.options.satelliteSource!.id, z, x, y }, cause: error });
+      });
+      this.raster.setEnabled(this.basemap.satellite);
+    }
+    this.rebuildVector();
     this.initialized = true; this.applyView(this.getView()); this.start();
     this.events.emit('load', { backend: this.getBackend() });
   }
@@ -75,6 +87,39 @@ export class Map3D {
   }
   /** 文字外观在下一次屏幕布局中生效，字形缓存继续复用。 */
   setLabelStyle(style: LabelAppearance): void { this.assertLive(); this.labelAppearance = style; this.labels?.setStyle(style); }
+  /** 底图三开关原子提交；卫星状态始终排除矢量面与建筑。 */
+  setBasemap(update: Partial<BasemapState>): void {
+    this.assertLive();
+    const next = normalizeBasemap(update, this.basemap);
+    if (next.satellite && !this.options.satelliteSource) throw new TypeError('卫星底图需要 satelliteSource。');
+    if (next.satellite === this.basemap.satellite && next.vectorLines === this.basemap.vectorLines && next.labels === this.basemap.labels) return;
+    this.basemap = next;
+    if (!this.initialized) return;
+    this.raster?.setEnabled(next.satellite);
+    this.rebuildVector();
+  }
+  getBasemap(): BasemapState { return { ...this.basemap }; }
+  private rebuildVector(): void {
+    this.labels?.dispose(); this.labels = undefined;
+    this.engine?.dispose(); this.engine = undefined;
+    this.scene.fogNode = null;
+    const layers = activeVectorLayers(this.options.layers, this.basemap);
+    if (this.basemap.satellite && layers.length === 0) return;
+    const surfaces = new TileSurfaces(this.scene, this.background);
+    const source = this.basemap.satellite ? { ...this.options.source,
+      overlays: (this.options.source.overlays ?? []).filter(overlay => layers.some(layer => layer.sourceLayer === overlay.targetLayer)) }
+      : this.options.source;
+    this.engine = new StreamingEngine({ ...this.options, source, layers }, surfaces, this.renderer,
+      `#${this.background.getHexString()}`, error => this.events.emit('error', error));
+    if (this.options.labels && layers.some(layer => layer.type === 'symbol')) {
+      this.labels = new LabelSystem(this.options.labels, this.scene);
+      this.labels.setStyle(this.labelAppearance);
+    }
+    if (this.theme) this.setTheme(this.theme);
+  }
+  private rasterBytes(): { cpuBytes: number; gpuBytes: number } {
+    return this.raster?.getBytes() ?? { cpuBytes: 0, gpuBytes: 0 };
+  }
   getRenderer(): WebGPURenderer { return this.renderer; }
   getBackend(): RenderBackend {
     const backend = this.renderer.backend as { isWebGPUBackend?: boolean; isWebGLBackend?: boolean };
@@ -101,7 +146,7 @@ export class Map3D {
   }
   private applyView(view: ViewState): void {
     this.origin = selectMapOrigin(view.center, Math.max(0, Math.floor(view.zoom)));
-    this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin); this.engine?.invalidate();
+    this.cameraFrame = updateMapCamera(this.camera, view, this.viewport, this.origin); this.engine?.invalidate(); this.raster?.invalidate();
   }
   start(): void {
     this.assertLive(); if (!this.initialized || this.running) return;
@@ -115,6 +160,7 @@ export class Map3D {
     if (this.lastFrame) this.interval.add(this.frameMs); this.lastFrame = now;
     if (this.changedAt) { this.input.add(start - this.changedAt); this.changedAt = 0; }
     const view = this.viewStore.current();
+    this.raster?.update(this.camera, this.cameraFrame, this.origin, view, this.viewport, start);
     this.engine?.update(this.camera, this.cameraFrame, this.origin, view, this.viewport, start);
     const afterEngine = performance.now();
     if (this.labels && this.engine) this.labels.update(this.engine.surfaces, this.camera, this.origin, view, this.engine.tileZoom,
@@ -135,18 +181,20 @@ export class Map3D {
     const engine = this.engine; const entries = engine ? [...engine.entries.values()] : [];
     const count = (state: string) => entries.filter(e => e.state === state).length;
     const frame = this.cpu.snapshot(); const visible = engine?.shown.size ?? 0;
+    const raster = this.rasterBytes();
     return { backend: this.getBackend(), frame: { lastMs: frame.last, p95Ms: frame.p95 },
       tiles: { visible, queued: count('queued'), fetching: count('fetching'), decoding: 0, building: count('painting'), ready: count('ready'), empty: entries.filter(e => e.empty).length, failed: count('failed') },
-      resources: { cpuBytes: engine?.cpuBytes ?? 0, gpuBytes: engine?.gpuBytes ?? 0, batches: visible, features: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + e.features, 0), vertices: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + 4 + (e.surface?.lines?.vertices ?? 0) + (e.surface?.fills?.vertices ?? 0) + (e.surface?.buildings?.vertices ?? 0), 0), indices: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + 6 + (e.surface?.lines?.indices ?? 0) + (e.surface?.fills?.indices ?? 0) + (e.surface?.buildings?.indices ?? 0), 0), objects: entries.filter(e => e.surface).reduce((sum, e) => sum + 1 + (e.surface?.lines ? 1 : 0) + (e.surface?.fills ? 1 : 0) + (e.surface?.buildings ? 1 : 0), 0) },
+      resources: { cpuBytes: (engine?.cpuBytes ?? 0) + raster.cpuBytes, gpuBytes: (engine?.gpuBytes ?? 0) + raster.gpuBytes, batches: visible, features: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + e.features, 0), vertices: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + 4 + (e.surface?.lines?.vertices ?? 0) + (e.surface?.fills?.vertices ?? 0) + (e.surface?.buildings?.vertices ?? 0), 0), indices: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + 6 + (e.surface?.lines?.indices ?? 0) + (e.surface?.fills?.indices ?? 0) + (e.surface?.buildings?.indices ?? 0), 0), objects: entries.filter(e => engine?.shown.has(e.key)).reduce((sum, e) => sum + 1 + (e.surface?.lines ? 1 : 0) + (e.surface?.fills ? 1 : 0) + (e.surface?.buildings ? 1 : 0), 0) },
       workers: engine?.workers.getStats() ?? { active: 0, queued: 0 } };
   }
   getDiagnostics() {
     const interval = this.interval.snapshot(); const info = this.renderer.info;
-    return { backend: this.getBackend(), view: this.getView(), viewport: this.viewport,
+    const raster = this.raster?.getDiagnostics();
+    return { backend: this.getBackend(), view: this.getView(), viewport: this.viewport, basemap: this.getBasemap(), raster,
       camera: { position: this.cameraFrame.position, origin: this.origin },
       frame: { cpu: this.cpu.snapshot(), interval, input: this.input.snapshot(), fps: interval.mean > 0 ? 1000 / interval.mean : 0 },
       render: { drawCalls: info.render.drawCalls, triangles: info.render.triangles },
-      memory: { paletteBytes: this.engine ? this.engine.surfaces.palette.values.byteLength + this.engine.surfaces.palette.parameters.byteLength : 0, geometries: info.memory.geometries, textures: info.memory.textures, total: this.engine?.gpuBytes ?? 0 },
+      memory: { paletteBytes: this.engine ? this.engine.surfaces.palette.values.byteLength + this.engine.surfaces.palette.parameters.byteLength : 0, geometries: info.memory.geometries, textures: info.memory.textures, total: (this.engine?.gpuBytes ?? 0) + (raster?.gpuBytes ?? 0) },
       workers: this.engine?.workers.getStats(), sceneTiles: this.engine?.shown.size ?? 0,
       labels: this.labels ? { candidates: this.labels.candidates, placed: this.labels.placed, glyphs: this.labels.atlas.glyphs.size, glyphErrors: this.labels.atlas.errors,
         missingGlyphs: this.labels.atlas.missing, layoutMs: this.labels.layoutMs, layouts: this.labels.layouts, quads: this.labels.surface.count,
@@ -160,13 +208,14 @@ export class Map3D {
   observeFrames(observer: () => void): () => void { this.frameObservers.add(observer); return () => { this.frameObservers.delete(observer); }; }
   getFrameState() {
     const e = this.engine;
+    const raster = this.rasterBytes();
     return { id: this.frameId, at: this.lastFrame, ms: this.frameMs, cpuMs: this.cpuMs, engineMs: this.engineMs, labelMs: this.labelMs, renderMs: this.renderMs,
       phases: e?.framePhases ?? { plan: 0, demand: 0, commit: 0, surfaces: 0, upload: 0, pump: 0, recycle: 0 },
       uploadPhases: e?.pipeline.uploadPhases ?? { create: 0, compile: 0 }, view: this.getView(),
-      revision: e?.revision ?? 0, uncovered: e?.uncovered ?? 0, missing: e?.targetMissing ?? 0, gap: e?.displayZoomGap ?? 0, pendingDetailGap: e?.pendingDetailGap ?? 0,
+      revision: e?.revision ?? 0, uncovered: this.basemap.satellite ? (this.raster?.cover.uncovered ?? 0) : (e?.uncovered ?? 0), missing: e?.targetMissing ?? 0, gap: e?.displayZoomGap ?? 0, pendingDetailGap: e?.pendingDetailGap ?? 0,
       fogStart: e?.selection.fogStart ?? 0, fogEnd: e?.selection.fogEnd ?? 0, cutoff: e?.selection.cutoff ?? 0,
       target: e?.selection.leaves.length ?? 0, sources: e?.shown.size ?? 0, entries: e?.entries.size ?? 0,
-      fetching: e?.active ?? 0, cpuBytes: e?.cpuBytes ?? 0, gpuBytes: e?.gpuBytes ?? 0 };
+      fetching: (e?.active ?? 0) + (this.raster?.active ?? 0), cpuBytes: (e?.cpuBytes ?? 0) + raster.cpuBytes, gpuBytes: (e?.gpuBytes ?? 0) + raster.gpuBytes };
   }
   getTileDebug() { return debugTiles(this.camera, this.origin, this.viewport, this.engine?.patches ?? [], this.engine?.selection.cutoff ?? 0); }
   /** 同步像素回读供专项视觉验证使用，调用耗时独立于常规帧率验收。 */
@@ -180,7 +229,8 @@ export class Map3D {
   }
   dispose(): void {
     if (this.disposed) return; this.disposed = true; this.stop(); this.interactions.dispose(); this.viewStore.dispose();
-    this.labels?.dispose(); this.engine?.dispose(); this.engine = undefined; this.renderer.dispose(); this.events.clear(); this.frameObservers.clear(); this.initialized = false;
+    this.labels?.dispose(); this.engine?.dispose(); this.engine = undefined; this.raster?.dispose(); this.raster = undefined;
+    this.renderer.dispose(); this.events.clear(); this.frameObservers.clear(); this.initialized = false;
   }
   private assertLive(): void { if (this.disposed) throw createMapDisposedError(); }
 }

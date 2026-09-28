@@ -20,6 +20,8 @@ export type {
   MapRuntimeStats,
   RenderBackend,
   VectorTileSourceOptions,
+  RasterTileSourceOptions,
+  BasemapState,
   ViewportSize,
   ViewState,
 } from './types.js';

@@ -57,8 +57,11 @@
 | T047 | Interaction Smoothness Hardening | DONE | 实施会话 | T046 |
 | T048 | Material Slot Rendering | IN_PROGRESS | 实施会话 | T046, T047 |
 | T049 | Flat Map Only: Remove Globe and World Copies | DONE | 实施会话 | T046 |
+| T050 | Satellite XYZ Raster Basemap and On-Demand Vector Overlay | VERIFYING | 实施会话 | T049 |
 
 ## 当前任务
+
+T050 按 D035 已接入可配置卫星 XYZ 影像、独立线路和文字开关及纯卫星零矢量路径。双后端连续缩放、慢网、切换与自动门禁证据见 `docs/evidence/satellite-basemap/T050-current-verification.md`；状态为 VERIFYING，等待人工观感验收。
 
 T049 已完成并结项（人工负责人 2026-09-28 验收通过）：删除地球视图与横向世界副本，地图始终为单个 Web Mercator 世界平面，经度限制在 [-180, 180]；边界视角平移瞬移与城市飞行路径越界两轮缺陷已修复并有回归测试。结论与清理记录见 `tasks/T049-flat-map-only.md`，决策见 `docs/decisions/D034-flat-map-only-remove-globe.md`。
 
@@ -81,4 +84,4 @@ T044 承担发布回归，发布范围由人工负责人确认。
 - 非 DONE 的实施任务缺少 `Task Context Packet` 时不得执行；必须先由决策会话补齐或重新定义。
 - 未经确认，不直接进入地图功能实现。
 - 当前默认下一步以 `docs/project-state.md` 和本文件一致结论为准。
-- T003-T049 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。
+- T003-T050 的具体 Scope、Non-Goals、验收和测试以各自 Task 文件为准。

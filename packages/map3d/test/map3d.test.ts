@@ -40,6 +40,63 @@ const tick = async (frames = 200) => {
 afterEach(() => { maps.splice(0).forEach(map => map.dispose()); mocks.renderers.length = 0; mocks.bitmaps.length = 0; vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('Map3D 生命周期与流式覆盖', () => {
+  it('纯卫星冷启动只请求影像，开启线路时才启动矢量 Worker 管线', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
+    const image = { width: 256, height: 256, close: vi.fn() };
+    vi.stubGlobal('createImageBitmap', vi.fn(async () => image));
+    const fetcher = vi.fn(async (url: string) => url.includes('satellite.example')
+      ? new Response(new Uint8Array([1]), { headers: { 'content-type': 'image/jpeg' } })
+      : new Response(new Uint8Array([1])));
+    vi.stubGlobal('fetch', fetcher);
+    const map = new Map3D({ ...options(),
+      layers: [{ type: 'line', id: 'road', sourceLayer: 'road', paint: { color: '#ffffff', width: 1 } }],
+      satelliteSource: { id: 'satellite', tiles: ['https://satellite.example/{z}/{x}/{y}.jpg'], tileSize: 256, minZoom: 1, maxZoom: 18 },
+      basemap: { satellite: true, vectorLines: false, labels: false } });
+    maps.push(map); map.resize({ width: 1280, height: 720 }); await map.initialize(); await tick(5);
+    expect(map.getDiagnostics().basemap).toEqual({ satellite: true, vectorLines: false, labels: false });
+    expect(map.getDiagnostics().tiles).toBeUndefined();
+    expect(map.getDiagnostics().raster?.starts).toBeGreaterThan(0);
+    expect(fetcher.mock.calls.every(([url]) => String(url).includes('satellite.example'))).toBe(true);
+    map.setBasemap({ vectorLines: true }); await tick(4);
+    expect(map.getDiagnostics().tiles).toBeDefined();
+    expect(fetcher.mock.calls.some(([url]) => String(url).includes('tiles.example'))).toBe(true);
+    map.setBasemap({ vectorLines: false }); await tick(2);
+    expect(map.getDiagnostics().tiles).toBeUndefined();
+    expect(map.getDiagnostics().raster?.enabled).toBe(true);
+  });
+  it('影像 GPU 上传失败时关闭解码位图并保持资源统计为零', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
+    const image = { width: 256, height: 256, close: vi.fn() };
+    const decode = vi.fn(async () => image);
+    vi.stubGlobal('createImageBitmap', decode);
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array([1]), { headers: { 'content-type': 'image/jpeg' } })));
+    const map = new Map3D({ ...options(),
+      satelliteSource: { id: 'satellite', tiles: ['https://satellite.example/{z}/{x}/{y}.jpg'], tileSize: 256, minZoom: 1, maxZoom: 18 },
+      basemap: { satellite: true, vectorLines: false, labels: false } });
+    maps.push(map); map.resize({ width: 1280, height: 720 }); await map.initialize();
+    mocks.renderers.at(-1)!.initTexture.mockImplementation(() => { throw new Error('GPU upload failed'); });
+    await tick(12);
+    expect(decode).toHaveBeenCalled();
+    expect(image.close).toHaveBeenCalledTimes(decode.mock.calls.length);
+    expect(map.getDiagnostics().raster?.ready).toBe(0);
+    expect(map.getStats().resources.gpuBytes).toBe(0);
+  });
+  it('影像请求超时后释放网络槽位并自动重试', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
+    vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => reject(init.signal instanceof AbortSignal ? init.signal.reason : 'abort'));
+    })));
+    const map = new Map3D({ ...options(),
+      satelliteSource: { id: 'satellite', tiles: ['https://satellite.example/{z}/{x}/{y}.jpg'], tileSize: 256, minZoom: 1, maxZoom: 18 },
+      basemap: { satellite: true, vectorLines: false, labels: false } });
+    maps.push(map); map.resize({ width: 1280, height: 720 }); await map.initialize();
+    await tick(510);
+    const afterTimeout = map.getDiagnostics().raster!;
+    expect(afterTimeout.errors).toBeGreaterThan(0);
+    expect(afterTimeout.loading).toBeLessThanOrEqual(8);
+    await tick(520);
+    expect(map.getDiagnostics().raster!.starts).toBeGreaterThan(afterTimeout.starts);
+  });
   it('预测名额饱和时概览祖先仍保持独立需求', async () => {
     vi.useFakeTimers({ toFake: ['performance', 'setTimeout', 'clearTimeout'] });
     vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})));

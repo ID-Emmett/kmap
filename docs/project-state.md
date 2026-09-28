@@ -1,6 +1,6 @@
 # Kmap Current Project State
 
-更新日期：2026-09-23
+更新日期：2026-09-28
 
 本文件是 Kmap AI 会话的低 token 启动入口。新会话先读本文件，再按会话类型和当前任务读取索引、任务文件和必要分片；不得用本文件替代 `PROJECT.md`、`TASKS.md`、任务文件、decisions、knowledge 或 evidence。
 
@@ -16,6 +16,7 @@
 - T046 状态为 IN_PROGRESS，范围包含瓦片系统、性能指标面板和真实 WebGPU 验收。
 - T047 状态为 DONE（人工负责人 2026-09-23 采纳方案 A）：回访缓存零请求已交付（`cacheRevisitNoFetch:true`，含预测跳变判定、已确认空登记和 8 秒回访保护窗口）；GPU 几何池常驻实验后回退（无稳态收益且引入 NaN 警告与加载退化）；160fps/P95/P99 断言未达标，移交 T048。
 - T048 状态为 IN_PROGRESS：已核验 Three WebGPU 动态模板值（成立，模板编号不入管线缓存键）并实施固定绘制槽位与档位容量预分配几何；真实输入探针 bufferDelta 合计 2865→2379、属性重建归零；60 秒验收 `stable160fps` 与 `motionFrameP95/P99` 仍未达标，根因为稳态条目不淘汰导致槽位无内容可复用，已记录待决策会话。
+- T050 状态为 VERIFYING：D035 的可配置高德卫星 XYZ 影像、纯卫星零矢量工作与独立线路/文字叠加已实施。双后端连续缩放、慢网、切换和资源证据见 `docs/evidence/satellite-basemap/T050-current-verification.md`，待人工观感验收。
 - 浏览器入口为 `http://127.0.0.1:6661/`，当前瓦片系统的时序、录像与视觉审查证据位于 `docs/evidence/streaming-rebuild/`。
 - 当前双后端性能、连续覆盖和视觉检查事实见 `docs/knowledge/streaming.md`。
 - pan/zoom 抖动已完成归因与治理：指针按帧合并、移除无采样纹理、阶段索引与增量字节、上传预算、标签运动期降频、GPU 几何池；真实输入拖拽帧间隔 P99 4.5ms、长任务 0，残留新瓦片首屏 GPU 侧准备见 T046 Open Issues。
@@ -56,6 +57,7 @@
 | T047 | DONE | 回访零请求已交付；池常驻实验后回退；性能断言移交 T048 |
 | T048 | BACKLOG | 固定绘制槽位与档位容量几何已实施；60 秒验收性能断言未达标，待决策会话 |
 | T049 | DONE | 已删除地球视图与世界副本；人工验收通过（2026-09-28） |
+| T050 | VERIFYING | 卫星 XYZ 影像与按需矢量叠加；双后端证据已形成，待人工观感验收 |
 
 ## 默认读取策略
 

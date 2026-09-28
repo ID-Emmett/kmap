@@ -77,6 +77,7 @@
 | T046 | 6 | `T046-lifecycle-audit.json`, `T046-scheduler-churn.json`, `T046-scheduler-cap.json`, `T046-lifecycle-audit.test.ts`, `T046-production-browser.json`, `streaming-rebuild/T046-playground-preview-build.json` | 生命周期引用/回收、连续请求复用、moving active cap、Fetch 取消/超时、双文件 Playground 发布和真实浏览器停止收敛证据；最新真实 KYE WebGPU Preview 复跑通过 |
 | T047 | 4 | `streaming-rebuild/acceptance-60s-T047.json`, `streaming-rebuild/acceptance-60s-T047-baseline.json`, `streaming-rebuild/smoothness-T047-final.json`, `streaming-rebuild/smoothness-T047-pool.json` | 回访窗口请求归因（fetch=0、`cacheRevisitNoFetch:true`）、修复前基线、回退后真实输入探针（P95 4.3ms、长任务 0）与池预热实验证据；性能类断言未达标在验收 JSON 内登记 |
 | T048 | 8 | `streaming-rebuild/acceptance-60s-T048.json`, `acceptance-60s-T048-rerun.json`, `acceptance-60s-T048-baseline.json`, `smoothness-T048-baseline.json`, `smoothness-T048-final.json`, `smoothness-T048-final2.json`, `smoothness-T048-final2-rotate.png`, `smoothness-T048-final2-fixture.png` | 固定绘制槽位前后证据：bufferDelta 合计 2865→2379、属性重建归零、槽位复用 1131/275；60 秒验收两次离散（minWindowFps 125.6 / 100.4），性能断言未达标 |
+| T050 | 12 份主要证据 + 双后端代表性截图 | `satellite-basemap/T050-current-verification.md`、`T050-source-sample.json`、`T050-*-continuity.json`、`T050-*-fallback.json`、`T050-*-switch.json`、`T050-*-preview.json`、`T050-*-smoke.json` | 高德有效层级样本、纯卫星零矢量请求、双后端 z0～z18 连续缩放、祖先影像兜底、重试、面板预设和资源上限 |
 
 ## 当前高风险证据
 

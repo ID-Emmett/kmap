@@ -9,6 +9,7 @@ interface Editor extends InspectorValue { domElement: HTMLElement }
 export function createAppearanceInspector(map: Map3D, inspector: Inspector): () => void {
   const configuration = new StyleConfiguration();
   const global = { theme: configuration.theme, visible: true, sizeScale: 0.8, maxLabels: 128, icons: true };
+  const basemap = map.getBasemap();
   const selection = { element: 'water-fill', label: 'poi-label' };
   const element = configuration.getElement(selection.element), label = configuration.getLabel(selection.label);
   const environment = { backgroundColor: '#f5f5f2', landColor: '#f5f5f2', fogColor: '#f5f5f2' };
@@ -35,6 +36,13 @@ export function createAppearanceInspector(map: Map3D, inspector: Inspector): () 
   };
   const apply = () => { map.setTheme(configuration.getTheme()); map.setLabelStyle(configuration.labels(global)); document.documentElement.dataset.theme = global.theme; };
   const root = inspector.createParameters('地图样式');
+  const basemapPanel = root.addFolder('底图');
+  const applyBasemap = () => { map.setBasemap(basemap); refreshers.forEach(update => update()); };
+  bind(basemapPanel.add(basemap, 'satellite').name('卫星影像').onChange(applyBasemap), '卫星影像', () => basemap.satellite);
+  bind(basemapPanel.add(basemap, 'vectorLines').name('矢量线路').onChange(applyBasemap), '矢量线路', () => basemap.vectorLines);
+  bind(basemapPanel.add(basemap, 'labels').name('文字名称').onChange(applyBasemap), '文字名称', () => basemap.labels);
+  basemapPanel.add({ satellite() { Object.assign(basemap, { satellite: true, vectorLines: false, labels: false }); applyBasemap(); } }, 'satellite').name('一键卫星');
+  basemapPanel.add({ vector() { Object.assign(basemap, { satellite: false, vectorLines: true, labels: true }); applyBasemap(); } }, 'vector').name('一键矢量');
   bind(root.add(global, 'theme', { '晴昼 · 默认': 'default', '深海 · 深色': 'dark', '晴彩 · 鲜艳': 'vivid' }).name('全局主题').onChange(() => {
     configuration.theme = global.theme; refresh(); apply();
   }), '全局主题', () => global.theme);
@@ -50,7 +58,6 @@ export function createAppearanceInspector(map: Map3D, inspector: Inspector): () 
   bind(elements.add(element, 'heightScale', 0, 3, .1).name('建筑高度倍率').onChange(saveElement), '建筑高度倍率', () => element.heightScale);
   elements.add({ reset() { configuration.resetElement(selection.element); refresh(); apply(); } }, 'reset').name('重置此元素');
   const text = root.addFolder('文字与图标');
-  bind(root.add(global, 'visible').name('显示全部文字').onChange(apply), '显示全部文字', () => global.visible);
   bind(text.add(global, 'sizeScale', .75, 1.5, .05).name('全局字号倍率').onChange(apply), '文字大小', () => global.sizeScale);
   bind(text.add(global, 'maxLabels', { 简洁: 128, 标准: 256, 丰富: 384 }).name('文字密度').onChange(apply), '文字密度', () => global.maxLabels);
   bind(text.add(global, 'icons').name('分类图标').onChange(apply), '分类图标', () => global.icons);
@@ -63,7 +70,7 @@ export function createAppearanceInspector(map: Map3D, inspector: Inspector): () 
     bind(text.add(label, key, min, max, step).name(title).onChange(saveLabel), title, () => label[key]);
   bind(text.add(label, 'icon', { 自动: 'auto', 无: 'none', 地铁: 'metro', 机场: 'airport', 医疗: 'hospital', 教育: 'school', 公园: 'park', 文化: 'museum', 餐饮: 'food', 购物: 'shop', 酒店: 'hotel' }).name('图标').onChange(saveLabel), '图标类型', () => label.icon);
   text.add({ reset() { configuration.resetLabel(selection.label); refresh(); apply(); } }, 'reset').name('重置此文字类型');
-  root.add({ reset() { configuration.resetTheme(); global.visible = true; global.sizeScale = 1; global.maxLabels = 256; global.icons = true; refresh(); apply(); } }, 'reset').name('重置当前主题');
+  root.add({ reset() { configuration.resetTheme(); global.sizeScale = 1; global.maxLabels = 256; global.icons = true; refresh(); apply(); } }, 'reset').name('重置当前主题');
   refresh(); apply(); text.close();
   const runtime = inspector as Inspector & { parameters: Tab & { builtinButton: HTMLButtonElement | null } };
   // Parameters 的内置按钮携带目标 tab，按 Inspector 自身的打开事件初始化面板。

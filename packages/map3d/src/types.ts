@@ -57,6 +57,26 @@ export interface VectorTileSourceOptions {
   ];
 }
 
+/** 独立 XYZ 影像源；原生层级限定真实可用图片，超出时由最高有效层级提供画面。 */
+export interface RasterTileSourceOptions {
+  id: string;
+  tiles: readonly string[];
+  tileSize: number;
+  minZoom: number;
+  maxZoom: number;
+  /** 数据提供方返回的无影像占位图片 SHA-256，按小写十六进制配置。 */
+  missingTileHashes?: readonly string[];
+  attribution?: string;
+  maxTileEntries?: number;
+}
+
+/** 三个开关分别控制卫星影像、矢量线和文字。卫星状态下矢量面始终关闭。 */
+export interface BasemapState {
+  satellite: boolean;
+  vectorLines: boolean;
+  labels: boolean;
+}
+
 export interface TileOverlaySource {
   tiles: readonly string[];
   minZoom: number;
@@ -254,6 +274,10 @@ export interface Map3DOptions {
   source: VectorTileSourceOptions;
   /** 按顺序渲染的 fill/line 与建筑挤出图层。 */
   layers: readonly MapLayerOptions[];
+  /** 可选卫星影像源；卫星底图状态需要此来源。 */
+  satelliteSource?: RasterTileSourceOptions;
+  /** 初始底图状态；默认矢量面、线与文字。 */
+  basemap?: Partial<BasemapState>;
   /** 标准 SDF glyph PBF 资源；按需加载 256 字符的 range。 */
   labels?: { glyphs: string; fontStack: string; maxLabels?: number };
   renderer?: {

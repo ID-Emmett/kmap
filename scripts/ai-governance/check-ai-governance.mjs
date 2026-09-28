@@ -74,6 +74,7 @@ const taskFileById = new Map([
   ['T047', 'tasks/T047-interaction-smoothness-hardening.md'],
   ['T048', 'tasks/T048-material-slot-rendering.md'],
   ['T049', 'tasks/T049-flat-map-only.md'],
+  ['T050', 'tasks/T050-satellite-raster-basemap.md'],
 ]);
 
 const errors = [];
