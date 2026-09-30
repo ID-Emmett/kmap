@@ -30,6 +30,8 @@
 - KYE 有效主瓦片独占其区域的海陆边界，主响应无内容时启用海洋回退。台湾与赤柱的地表验证见 `docs/evidence/maplibre-alignment/coast-authority.md`。
 - 台湾主源 `7/107/55` 返回 HTTP 204，`6/53/27` 提供有效祖先数据；省名来自 `place/class=state`。数据与渲染验证见 `docs/evidence/map-continuity/README.md`。
 
+- 天空背景与远景雾共用同一渐变：内容边界随相机与雾完成位置逐帧移动，`pitch=0` 无天空、75° 边界位于屏幕顶部 40%，主题天顶色可配置。事实见 `docs/knowledge/rendering.md`，双后端前台证据见 `docs/evidence/T051-sky-fog/`。
+
 - Three r185 WebGPU 模板编号缓存、运动中的子区域覆盖和整数层级滞回已通过定点与逐帧验证，见 `docs/evidence/streaming-motion/README.md`。
 - 单世界平面覆盖、近景精度、调色板编译时序、地名层级和 Inspector 的双后端验证见 `docs/evidence/map-inspector/README.md`。
 

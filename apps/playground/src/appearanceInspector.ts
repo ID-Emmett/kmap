@@ -5,6 +5,8 @@ import { StyleConfiguration, ELEMENT_OPTIONS, LABEL_OPTIONS, hexColor } from './
 import { syncInspectorValue, type InspectorValue } from './inspectorSync.js';
 
 interface Editor extends InspectorValue { domElement: HTMLElement }
+/** SDK 在主题省略 skyZenithColor 时使用的默认天顶色。 */
+const DEFAULT_SKY_ZENITH_COLOR = '#4a90d9';
 /** 样式编辑使用 Inspector 原生 Parameters；编辑器按事件同步，空闲帧无轮询。 */
 export function createAppearanceInspector(map: Map3D, inspector: Inspector): () => void {
   const configuration = new StyleConfiguration();
@@ -12,7 +14,7 @@ export function createAppearanceInspector(map: Map3D, inspector: Inspector): () 
   const basemap = map.getBasemap();
   const selection = { element: 'water-fill', label: 'poi-label' };
   const element = configuration.getElement(selection.element), label = configuration.getLabel(selection.label);
-  const environment = { backgroundColor: '#f5f5f2', landColor: '#f5f5f2', fogColor: '#f5f5f2' };
+  const environment = { backgroundColor: '#f5f5f2', landColor: '#f5f5f2', fogColor: '#f5f5f2', skyZenithColor: DEFAULT_SKY_ZENITH_COLOR };
   const refreshers: (() => void)[] = [];
   const bind = (control: unknown, name: string, value: () => unknown) => {
     const editor = control as Editor;
@@ -32,6 +34,7 @@ export function createAppearanceInspector(map: Map3D, inspector: Inspector): () 
     label.color = hexColor(label.color); label.haloColor = hexColor(label.haloColor); label.iconColor = hexColor(label.iconColor);
     const theme = configuration.getTheme(); environment.backgroundColor = hexColor(theme.backgroundColor);
     environment.landColor = hexColor(theme.landColor ?? theme.backgroundColor); environment.fogColor = hexColor(theme.fogColor ?? theme.backgroundColor);
+    environment.skyZenithColor = hexColor(theme.skyZenithColor ?? DEFAULT_SKY_ZENITH_COLOR);
     refreshers.forEach(update => update());
   };
   const apply = () => { map.setTheme(configuration.getTheme()); map.setLabelStyle(configuration.labels(global)); document.documentElement.dataset.theme = global.theme; };
@@ -46,7 +49,7 @@ export function createAppearanceInspector(map: Map3D, inspector: Inspector): () 
   bind(root.add(global, 'theme', { '晴昼 · 默认': 'default', '深海 · 深色': 'dark', '晴彩 · 鲜艳': 'vivid' }).name('全局主题').onChange(() => {
     configuration.theme = global.theme; refresh(); apply();
   }), '全局主题', () => global.theme);
-  for (const [key, title] of [['backgroundColor', '天空背景'], ['landColor', '陆地底色'], ['fogColor', '远景雾色']] as const)
+  for (const [key, title] of [['backgroundColor', '天空背景'], ['skyZenithColor', '天空天顶色'], ['landColor', '陆地底色'], ['fogColor', '远景雾色']] as const)
     bind(root.addColor(environment, key).name(title).onChange(() => { configuration.setEnvironment(environment); apply(); }), title, () => environment[key]);
   const elements = root.addFolder('地图元素');
   bind(elements.add(selection, 'element', ELEMENT_OPTIONS).name('元素').onChange(refresh), '地图元素', () => selection.element);

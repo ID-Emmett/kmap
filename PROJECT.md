@@ -1,6 +1,6 @@
 # Kmap Project Status
 
-更新日期：2026-09-17
+更新日期：2026-09-29
 
 ## 项目背景
 
@@ -18,6 +18,8 @@ T009 Line Batches and Dynamic MVP Runtime 已完成。核心功能链已经贯�
 
 D035 卫星底图由独立 `RasterLayer` 驱动；纯卫星状态不创建矢量运行时，开启线路或文字时按需启用矢量路径。T050 双后端浏览器证据位于 `docs/evidence/satellite-basemap/T050-current-verification.md`，人工观感验收进行中。
 
+D036 的天空背景与远景雾已按 T051 实施：场景背景与雾末端共用同一渐变颜色，天空可见底边由相机与雾完成位置逐帧确定，`MapTheme.skyZenithColor` 与 Playground 面板控件已完成；状态为 VERIFYING，等待人工视觉验收。证据入口 `docs/evidence/T051-sky-fog/`，当前任务规格见 `tasks/T051-sky-fog-visual-continuity.md`。
+
 ## 当前事实基线
 
 - 单世界平面地图、分类文字/图标、Inspector 元素样式编辑及晴昼/深海/晴彩主题已实现。当前验证见 `docs/evidence/map-inspector/README.md`。
@@ -32,7 +34,7 @@ D035 卫星底图由独立 `RasterLayer` 驱动；纯卫星状态不创建矢量
 - Worker 使用 `@mapbox/vector-tile`、`pbf` 解码并构建面、线、建筑 TypedArray；OffscreenCanvas 输出 1×1 区域背景。TSL 使用米制缩放线宽、虚线和分类建筑配色。
 - `z15/26978/12416` MVT fixture 用于验证道路、地块、建筑和属性过滤；真实浏览器使用 KYE 网络瓦片。
 - Camera 使用 45° 垂直 FOV 和 256px XYZ zoom 语义；不同 viewport/resize 已通过纯数学测试，WebGPU/WebGL2 下基础 pan、连续 zoom 和 bearing/pitch 已通过真实浏览器验证。
-- 当前可见集由视锥和共享雾距离选择，目标瓦片使用统一整数层级；容量不足时整体降低目标层级。最大 pitch 为 75°，顶部约 40% 完全入雾。
+- 当前可见集由视锥和共享雾距离选择，目标瓦片使用统一整数层级；容量不足时整体降低目标层级。最大 pitch 为 75°。内容边界固定在屏幕上：pitch 0 屏幕内无天空，20° 起顶部出现天空，75° 边界位于屏幕顶部 40% 且雾带约占 13% 屏幕高度；已提交分区随该可见范围逐帧更新。
 - StreamingEngine 采用 12 请求流水线、至多 4 Worker、256 条目与各 256 MiB CPU/GPU 预算，每帧上传至多 1 张纹理。
 - 已验证 KYE Style、主 MVT、水系、行政区、Raster、Glyph、Sprite、动态业务 MVT 和 Geobuf；适用范围和样本限制以 `docs/research/` 为准。
 
@@ -64,7 +66,7 @@ KYE Tile
 - 官方 Playground 使用原创的 Apple Maps-inspired 浅色底图骨架，不存在非预期规则网格水印或 Tile 接缝。
 - StreamingEngine 采用视锥与统一目标层级、祖先覆盖、有限预测和路线预取、LRU 缓存、互斥区域直接接替及逐帧纹理预算。
 - pan 与 bearing/pitch 旋转在释放后具有基于帧时间的有界惯性；wheel zoom 合并为连续帧更新。
-- pitch 增大时，远处地图使用共享 TSL 距离雾渐隐；选片和邻接预取使用同一截止半径，城市飞行的目的地预取具有独立时效。
+- pitch 增大时，远处地图使用共享 TSL 距离雾渐隐并连续融入同色天空；选片和邻接预取使用同一截止半径，城市飞行的目的地预取具有独立时效。
 
 Non-Goals：
 
@@ -135,9 +137,10 @@ Non-Goals：
 
 ## 下一步
 
-1. 执行 T046，完成 NTE 生命周期、资源回收、连续调度、倾斜覆盖和性能全量修复。
-2. 重跑 T042，完成 NTE 双后端完整人工体验验收。
-3. 执行 T044，完成删除后回归与发布验证。
+1. 完成 T051 人工视觉验收（自适应双后端证据已就绪）。
+2. 执行 T046，完成 NTE 生命周期、资源回收、连续调度、倾斜覆盖和性能全量修复。
+3. 重跑 T042，完成 NTE 双后端完整人工体验验收。
+4. 执行 T044，完成删除后回归与发布验证。
 
 ## 已确认架构约束
 
@@ -184,4 +187,4 @@ D032 已确认 `TileStreamingEngine` 路线；D033 已确认 `NovaTileEngine` �
 - T016 后北京 city z10 clean harness 的 WebGPU/WebGL2 最大 CPU resource 分别为 `134,170,325` 和 `134,195,458` bytes，低于 128 MiB 上限但仅余 `47,403` 和 `22,270` bytes；资源阻断已解除，但 cache 余量极小。T010 Chrome trace 复现 60 秒交互 long task，并将方向定位到渲染帧更新、Worker 回调和 WebGL2 worker message 主线程处理；当前为非阻断性能风险。如最终发布需要另一台指定设备，仍需重复真实浏览器矩阵。
 - T017 已修复原单层级硬截断问题，T020 已消除 Ready Tile 立即释放和 warm ancestor 重复请求；T021 已在旧路径补齐 Display Coverage 空间 replacement 不变量并通过自动/浏览器回归，但人工负责人明确不接受 pan/zoom 加载观感。T023 已将这些不变量迁移到唯一 TileEngineV2 生产路径，T024/T025 又完成了局部补丁，但人工负责人仍不接受最终体验。
 - T021/T023/T025 人工验收已明确不通过：加载延迟、运动期间缺少预加载感、停止后请求波次、中心向外逐块出现、白闪、低帧率和 pan 卡顿仍存在。D031 已冻结 T026/T027 补丁链，后续必须执行 T029。
-- 当前雾在 fogEnd 达到背景色，CPU 按同曲线 98% 不透明度剔除远处需求；75° 的目标瓦片数量及实际截图见画质验证报告。
+- 当前雾完全按屏幕行判定，等值线是水平线；过渡色取 `mix(fogColor ?? backgroundColor, skyZenithColor, 0.35)`，完全入雾内容与天空底边同色。选片半径 = 98% 入雾距离 × 横向展宽系数 `sqrt(1 + tanH²)`，75° 完全入雾行位于屏幕顶部 40%，双后端前台截图、颜色剖面与三列过渡行见 `docs/evidence/T051-sky-fog/`。

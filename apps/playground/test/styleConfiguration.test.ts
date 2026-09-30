@@ -13,6 +13,15 @@ describe('Inspector 配置模型', () => {
     config.theme = 'default'; expect(config.getElement('water-fill').opacity).toBe(.5);
     config.resetTheme(); expect(config.getElement('water-fill').opacity).toBe(1);
   });
+  it('天空天顶色按主题解析，可覆盖并在重置后恢复主题默认', () => {
+    const config = new StyleConfiguration(); config.theme = 'vivid';
+    expect(config.getTheme().skyZenithColor).toBe(THEMES.vivid.skyZenithColor);
+    config.setEnvironment({ skyZenithColor: '#123456' });
+    expect(config.getTheme().skyZenithColor).toBe('#123456');
+    config.theme = 'dark'; expect(config.getTheme().skyZenithColor).toBe(THEMES.dark.skyZenithColor);
+    config.theme = 'vivid'; expect(config.getTheme().skyZenithColor).toBe('#123456');
+    config.resetTheme(); expect(config.getTheme().skyZenithColor).toBe(THEMES.vivid.skyZenithColor);
+  });
   it('兴趣点默认图标采用数据分类，分类颜色与图标可分别配置', () => {
     const config = new StyleConfiguration(); expect(config.getLabel('poi-label').icon).toBe('auto'); expect(config.getLabel('hospital').icon).toBe('hospital');
     config.setLabel('hospital', { color: '#ff0000', iconColor: '#0000ff', iconSize: 20 });

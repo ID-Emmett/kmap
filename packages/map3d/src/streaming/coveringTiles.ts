@@ -3,7 +3,7 @@ import type { MapCameraFrame } from '../rendering/mapCamera.js';
 import type { MapOrigin } from '../spatial/types.js';
 import type { ViewportSize, ViewState } from '../types.js';
 import { childrenOf, keyOf, tileBounds, type Address } from './address.js';
-import { distanceToGroundBox, fogDistances } from './fog.js';
+import { distanceToGroundBox, FOG_CUTOFF_ROOT, fogCornerCoverage, fogDistances } from './fog.js';
 import { groundVisibility } from './groundVisibility.js';
 import { TILE_LIMITS } from './limits.js';
 
@@ -18,8 +18,10 @@ export function emptySelection(): Selection {
 export function selectTiles(camera: PerspectiveCamera, frame: MapCameraFrame, origin: MapOrigin, view: ViewState, viewport: ViewportSize,
   minZoom: number, maxZoom: number, margin = 1, maxLeaves: number = TILE_LIMITS.visible, targetZoom = Math.floor(view.zoom)): Selection {
   const result = emptySelection(); const fog = fogDistances(frame, view.pitch);
-  // Mapbox 的 98% 可见雾阈值；0.915962 为 smoothstep(t)=0.98 的根。
-  result.cutoff = fog.start + (fog.end - fog.start) * .915962; result.fogStart = fog.start; result.fogEnd = fog.end;
+  // 剔除半径取 98% 可见雾位置（Mapbox 同口径），再乘横向展宽系数：
+  // 同一屏幕行的边缘地面距离最远为中心列的 sqrt(1 + tanH²) 倍，放大后边缘在完全入雾前不会先被剔除。
+  result.cutoff = (fog.start + (fog.end - fog.start) * FOG_CUTOFF_ROOT) * fogCornerCoverage(viewport);
+  result.fogStart = fog.start; result.fogEnd = fog.end;
   const frustum = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem);
   const exactVisible = groundVisibility(frustum, frame.position, result.cutoff);
   const box = new Box3();

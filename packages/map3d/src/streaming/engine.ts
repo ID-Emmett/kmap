@@ -5,7 +5,7 @@ import { updateMapCamera, type MapCameraFrame } from '../rendering/mapCamera.js'
 import type { MapOrigin } from '../spatial/types.js';
 import type { Map3DOptions, MapError, ViewportSize, ViewState } from '../types.js';
 import { cachedKey, contains, keyOf, parentOf, type Address } from './address.js';
-import { selectTiles, emptySelection } from './selection.js';
+import { selectTiles, emptySelection, type Selection } from './selection.js';
 import { Samples } from './samples.js';
 import { TileSurfaces } from './surface.js';
 import { TileStore, type DemandKind } from './tileStore.js';
@@ -47,7 +47,7 @@ export class StreamingEngine {
   private readonly prefetchScratch: string[] = [];
   private readonly patchSnapshot: number[] = [];
   private patchCount = 0;
-  private cover: RenderCover | undefined; private coverAvailability = -1;
+  private cover: RenderCover | undefined; private coverAvailability = -1; private coverSelection: Selection | undefined;
   private targetZoom = -1;
   private previousView?: ViewState;
   private readonly predictiveCamera = new PerspectiveCamera();
@@ -95,6 +95,9 @@ export class StreamingEngine {
       // 条目较小的实例为缓存、回退和在途工作保留独立容量。
       const limit = Math.min(TILE_LIMITS.visible, Math.max(8, Math.floor(this.maxEntries * .6)));
       this.selection = selectTiles(camera, frame, origin, view, viewport, this.options.source.minZoom, this.options.source.maxZoom, 1, limit, this.targetZoom);
+      // 覆盖分区跟随当前选择：可见裁剪由相机与雾边界决定，叶子集合不变时分区也可能改变。
+      // 已提交分区必须与当前可见范围一致，否则新进入雾边界的地面会缺少覆盖。
+      if (!this.samePatches(this.coverFor().patches)) this.coverDirty = true;
       // 依赖回退内容的目标可由子区域覆盖；相机变化后重新核验这些区域的可见范围。已解析空区域不触发重解。
       if (this.selection.leaves.some(a => !this.store.available.has(cachedKey(a)) && !this.store.isEmpty(a))) this.coverDirty = true;
       // 目标集合变化按顺序比较判定，不再逐帧拼接并排序签名字符串。
@@ -112,8 +115,6 @@ export class StreamingEngine {
       // 需求登记后再放弃，才能识别哪些在途工作已经不属于任何目标。
       if (this.dropStale) { this.dropStale = false; this.pipeline.dropValueless(); }
     } else this.framePhases.demand = 0;
-    this.surfaces.fogCenter.value.set(frame.position.x, frame.position.y, frame.position.z);
-    this.surfaces.fogStart.value = this.selection.fogStart; this.surfaces.fogEnd.value = this.selection.fogEnd;
     // 上传与相机规划共享主线程预算，超预算时下一帧获得独立上传机会。
     const uploadStart = performance.now();
     if (performance.now() - startedFrame < 1.5 || !planned) this.pipeline.upload(now, camera);
@@ -121,7 +122,7 @@ export class StreamingEngine {
     if (this.coverDirty) {
       const commitStart = performance.now(); this.commit(origin, now); this.coverDirty = false; this.framePhases.commit = performance.now() - commitStart;
     } else this.framePhases.commit = 0;
-    const surfaceStart = performance.now(); this.surfaces.update(origin, view.zoom, this.tileZoom); this.framePhases.surfaces = performance.now() - surfaceStart;
+    const surfaceStart = performance.now(); this.surfaces.update(origin, view.zoom, this.tileZoom, this.selection.cutoff); this.framePhases.surfaces = performance.now() - surfaceStart;
     const pumpStart = performance.now(); this.pipeline.pump(now); this.framePhases.pump = performance.now() - pumpStart;
     if (now - this.lastRecycle >= 250) {
       const start = performance.now();
@@ -222,14 +223,20 @@ export class StreamingEngine {
     this.addPrefetch(selected.leaves, 700, 30);
   }
   private readyKeys() { return this.store.available; }
+  /** 当前选择与就绪集合对应的覆盖结果；选择或就绪集合变化时重新解析。 */
+  private coverFor(): RenderCover {
+    const available = this.readyKeys();
+    if (this.cover === undefined || this.coverAvailability !== available.revision || this.coverSelection !== this.selection)
+      this.cover = resolveRenderCover(this.selection.leaves, available, this.options.source.minZoom, this.selection.visible);
+    this.coverAvailability = available.revision; this.coverSelection = this.selection;
+    return this.cover;
+  }
   /** 目标、回退与预测需求统一登记；优先级分档迭代代替每轮排序分配。 */
   private plan(now: number): void {
     this.pipeline.invalidate();
     const previous = this.wantedSnapshot; previous.clear(); for (const key of this.wanted) previous.add(key);
     this.wanted.clear();
-    const available = this.readyKeys();
-    const cover = resolveRenderCover(this.selection.leaves, available, this.options.source.minZoom, this.selection.visible);
-    this.cover = cover; this.coverAvailability = available.revision;
+    const cover = this.coverFor();
     const demands = this.demandScratch; demands.clear();
     for (const leaf of this.selection.leaves) this.demand(leaf, 'visible', this.selection.priorities.get(keyOf(leaf)) ?? 0);
     const fallback = fallbackRequests(this.selection.leaves, cover.patches, this.options.source.minZoom,
@@ -287,11 +294,8 @@ export class StreamingEngine {
   }
   private commit(origin: MapOrigin, now: number): void {
     const start = performance.now();
-    const available = this.readyKeys();
-    // 同一份可用集合下复用规划阶段的覆盖结果，只有就绪集合变化才重新解析。
-    const cover = this.cover !== undefined && this.coverAvailability === available.revision
-      ? this.cover
-      : resolveRenderCover(this.selection.leaves, available, this.options.source.minZoom, this.selection.visible);
+    // 同一选择与就绪集合下复用已解析的覆盖结果，两者任一变化才重新解析。
+    const cover = this.coverFor();
     this.patches = cover.patches; this.uncovered = cover.uncovered; this.displayZoomGap = cover.maxGap;
     this.pendingDetailGap = 0;
     for (const target of this.selection.leaves) {

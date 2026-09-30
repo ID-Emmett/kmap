@@ -1,6 +1,8 @@
 import { Color, PerspectiveCamera, Scene, WebGPURenderer } from 'three/webgpu';
 import { MapInteractionController } from './interaction/mapInteractions.js';
 import { updateMapCamera, type MapCameraFrame } from './rendering/mapCamera.js';
+import { MapSky, resolveSkyColors } from './rendering/sky.js';
+import { fogDistances, fogRowForDistance } from './streaming/fog.js';
 import { normalizeViewport } from './rendering/viewport.js';
 import { TypedEventEmitter } from './runtime/events.js';
 import { createMapDisposedError } from './runtime/errors.js';
@@ -29,6 +31,7 @@ export class Map3D {
   private readonly interactions: MapInteractionController;
   private readonly cpu = new Samples(); private readonly interval = new Samples(); private readonly input = new Samples();
   private readonly background: Color;
+  private readonly sky: MapSky;
   private theme: MapTheme | undefined;
   private labelAppearance: LabelAppearance = {};
   private basemap: BasemapState;
@@ -49,6 +52,9 @@ export class Map3D {
     this.basemap = normalizeBasemap(options.basemap);
     if (this.basemap.satellite && !options.satelliteSource) throw new TypeError('卫星底图需要 satelliteSource。');
     this.background = new Color(options.renderer?.backgroundColor ?? '#F5F5F2'); this.scene.background = this.background;
+    // 天空与远景雾共用一份状态：背景节点按屏幕位置绘制渐变，雾末端收敛到同一地平线色。
+    this.sky = new MapSky(this.background);
+    this.scene.backgroundNode = this.sky.backgroundNode; this.scene.fogNode = this.sky.fogNode;
     // WebGL 默认依赖线与字形的解析抗锯齿；显式 antialias=true 启用 4x MSAA。
     this.renderer = new WebGPURenderer({ canvas: options.canvas, stencil: true, antialias: options.renderer?.antialias ?? options.renderer?.forceWebGL !== true, forceWebGL: options.renderer?.forceWebGL ?? false });
     this.viewStore = new ViewStateStore(options.view);
@@ -79,9 +85,12 @@ export class Map3D {
   }
   /** 原子更新全局调色板，已加载与后续瓦片共享同一主题。 */
   setTheme(theme: MapTheme): void {
-    this.assertLive(); this.theme = theme; this.background.set(theme.backgroundColor);
+    this.assertLive(); this.theme = theme;
+    // 地平线色与雾末端色共用同一解析结果；天顶色省略时使用 SDK 蓝色默认值。
+    const colors = resolveSkyColors(theme);
+    this.background.set(colors.horizon);
+    this.sky.setColors(colors.horizon, colors.zenith);
     this.engine?.surfaces.palette.set(theme);
-    this.engine?.surfaces.fogColor.value.set(theme.fogColor ?? theme.backgroundColor);
     this.engine?.surfaces.landColor.value.set(theme.landColor ?? theme.backgroundColor);
     this.labels?.invalidate();
   }
@@ -102,10 +111,9 @@ export class Map3D {
   private rebuildVector(): void {
     this.labels?.dispose(); this.labels = undefined;
     this.engine?.dispose(); this.engine = undefined;
-    this.scene.fogNode = null;
     const layers = activeVectorLayers(this.options.layers, this.basemap);
     if (this.basemap.satellite && layers.length === 0) return;
-    const surfaces = new TileSurfaces(this.scene, this.background);
+    const surfaces = new TileSurfaces(this.scene, this.background, this.sky);
     const source = this.basemap.satellite ? { ...this.options.source,
       overlays: (this.options.source.overlays ?? []).filter(overlay => layers.some(layer => layer.sourceLayer === overlay.targetLayer)) }
       : this.options.source;
@@ -160,6 +168,10 @@ export class Map3D {
     if (this.lastFrame) this.interval.add(this.frameMs); this.lastFrame = now;
     if (this.changedAt) { this.input.add(start - this.changedAt); this.changedAt = 0; }
     const view = this.viewStore.current();
+    // 天空、雾与地面在同一帧使用同一组相机与雾参数；雾距离与瓦片覆盖选择共用同一函数，
+    // 着色器按 min(相机距离, 屏幕行地面距离) 判定，这里的距离同时决定天空底边所在的完全入雾行。
+    const fog = fogDistances(this.cameraFrame, view.pitch);
+    this.sky.update(this.camera, fog.start, fog.end, fogRowForDistance(this.cameraFrame, view.pitch, fog.end));
     this.raster?.update(this.camera, this.cameraFrame, this.origin, view, this.viewport, start);
     this.engine?.update(this.camera, this.cameraFrame, this.origin, view, this.viewport, start);
     const afterEngine = performance.now();
@@ -190,7 +202,7 @@ export class Map3D {
   getDiagnostics() {
     const interval = this.interval.snapshot(); const info = this.renderer.info;
     const raster = this.raster?.getDiagnostics();
-    return { backend: this.getBackend(), view: this.getView(), viewport: this.viewport, basemap: this.getBasemap(), raster,
+    return { backend: this.getBackend(), view: this.getView(), viewport: this.viewport, basemap: this.getBasemap(), sky: this.sky.getState(), raster,
       camera: { position: this.cameraFrame.position, origin: this.origin },
       frame: { cpu: this.cpu.snapshot(), interval, input: this.input.snapshot(), fps: interval.mean > 0 ? 1000 / interval.mean : 0 },
       render: { drawCalls: info.render.drawCalls, triangles: info.render.triangles },
@@ -229,6 +241,7 @@ export class Map3D {
   }
   dispose(): void {
     if (this.disposed) return; this.disposed = true; this.stop(); this.interactions.dispose(); this.viewStore.dispose();
+    this.scene.backgroundNode = null; this.scene.fogNode = null;
     this.labels?.dispose(); this.engine?.dispose(); this.engine = undefined; this.raster?.dispose(); this.raster = undefined;
     this.renderer.dispose(); this.events.clear(); this.frameObservers.clear(); this.initialized = false;
   }

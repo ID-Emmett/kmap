@@ -1,6 +1,6 @@
 # Kmap Decisions Index
 
-更新日期：2026-09-13
+更新日期：2026-09-29
 
 本文件是重大决策的低 token 入口。默认读取本索引；只有当前任务明确关联某个决策时，再读取 `docs/decisions.md` 中的对应条目或 `docs/decisions/Dxxx-*.md` 分片。
 
@@ -23,6 +23,7 @@
 | D033 | Accepted | NovaTileEngine 任务化重建方案 | T031 默认读取 |
 | D034 | Accepted | 地图始终平面：删除地球视图与世界副本 | 涉及投影、低缩放视图或经度边界时读取 |
 | D035 | Accepted | 卫星 XYZ 影像与按需矢量叠加 | T050 默认读取 |
+| D036 | Accepted | 天空背景、可见内容边界与远景雾视觉契约 | T051 默认读取 |
 
 ## 分片
 
@@ -31,6 +32,7 @@
 - `docs/decisions/D033-nova-tile-engine-plan.md`
 - `docs/decisions/D034-flat-map-only-remove-globe.md`
 - `docs/decisions/D035-satellite-raster-basemap.md`
+- `docs/decisions/D036-sky-fog-visual-contract.md`
 
 ## 归档入口
 

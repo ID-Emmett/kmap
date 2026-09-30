@@ -79,6 +79,8 @@
 | T048 | 8 | `streaming-rebuild/acceptance-60s-T048.json`, `acceptance-60s-T048-rerun.json`, `acceptance-60s-T048-baseline.json`, `smoothness-T048-baseline.json`, `smoothness-T048-final.json`, `smoothness-T048-final2.json`, `smoothness-T048-final2-rotate.png`, `smoothness-T048-final2-fixture.png` | 固定绘制槽位前后证据：bufferDelta 合计 2865→2379、属性重建归零、槽位复用 1131/275；60 秒验收两次离散（minWindowFps 125.6 / 100.4），性能断言未达标 |
 | T050 | 12 份主要证据 + 双后端代表性截图 | `satellite-basemap/T050-current-verification.md`、`T050-source-sample.json`、`T050-*-continuity.json`、`T050-*-fallback.json`、`T050-*-switch.json`、`T050-*-preview.json`、`T050-*-smoke.json` | 高德有效层级样本、纯卫星零矢量请求、双后端 z0～z18 连续缩放、祖先影像兜底、重试、面板预设和资源上限 |
 
+| T051 | 42 | `T051-sky-fog/` | 天空与远景雾双后端证据（含 pitch 26 屏幕行雾形复验） |
+
 ## 当前高风险证据
 
 - T021/T023/T025 的自动证据与人工体验冲突，后续瓦片任务必须同时追踪逐帧 timeline 和人工验收。

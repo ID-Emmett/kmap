@@ -14,6 +14,8 @@ import { normalizeViewState } from '../spatial/viewState.js';
 import type { ViewportSize, ViewState } from '../types.js';
 
 export const MAP_CAMERA_FOV = 45;
+/** 垂直半视场正切：屏幕行与地面距离换算、天空与雾的着色器节点共用同一值。 */
+export const MAP_CAMERA_HALF_FOV_TANGENT = Math.tan((MAP_CAMERA_FOV * Math.PI) / 360);
 export const MAP_TILE_SIZE_PIXELS = 256;
 
 export interface MapCameraFrame {

@@ -76,7 +76,7 @@ describe('建筑几何、连续线宽与大倾角画质', () => {
     surfaces.commit(resolveRenderCover(cells, new Set(resources.keys()), 0).patches, resources, origin);
     expect(resource.buildings!.mesh.userData.buildingState.clipCount).toBe(2);
     for (const [viewZoom, tileZoom, visible] of [[15.7, 15, false], [15.8, 15, true], [15.2, 16, false], [16.1, 15, true]] as const) {
-      surfaces.update(origin, viewZoom, tileZoom);
+      surfaces.update(origin, viewZoom, tileZoom, 4e3);
       // 视图缩放由渲染组共享：每帧写入一次，所有瓦片读到同一值。
       expect(buildingViewZoom()).toBe(viewZoom);
       expect(resource.buildings!.mesh.visible).toBe(visible);

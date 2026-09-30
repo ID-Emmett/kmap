@@ -1,6 +1,6 @@
 # Kmap Technical Decisions
 
-更新日期：2026-09-12
+更新日期：2026-09-29
 
 本文件保存重大技术决策归档。低 token 决策入口见 `docs/decisions/index.md`；新增重大决策优先写入 `docs/decisions/Dxxx-*.md` 分片并在索引登记。讨论过程和废弃内容由 Git history 与 AI Session Log 保存。
 
@@ -192,8 +192,8 @@
 - 人工方向：3D 倾斜视角下远处逐渐淡出，形成深度提示。
 - 决策：Polygon/Line 共用 TSL/Node Material 路径，根据 pitch、Camera target distance 和 ground footprint 将远景平滑融合到 renderer background/haze color。
 - 约束：pitch 0 不改变画面；近景保持可读；fogEnd 之前不得用渐隐掩盖加载空洞或 seam。高倾角有效 Coverage 边界和 loadCutoff 按 D029 执行，不通过简单裁短 Camera far plane 实现。
-- 技术边界：WebGPU/WebGL2 使用同一节点实现，不引入 post-processing、天空、Terrain、Globe 或独立 GLSL/WGSL。
-- API：MVP 使用自动推导的默认效果，不新增公开 atmosphere API。详细基线见 `docs/experience-baseline.md`。
+- 技术边界：WebGPU/WebGL2 使用同一节点实现；天空背景与主题天顶色遵循 D036。Terrain、Globe、post-processing 和独立 GLSL/WGSL 保持范围外。
+- API：远景渐隐使用自动推导的默认参数；天空天顶色使用 D036 定义的可选主题字段。详细基线见 `docs/experience-baseline.md`。
 
 ## D026 — Line 样式 Pass 复用共享几何
 
@@ -237,8 +237,8 @@
 - 人工方向：高 pitch 时远景雾效更强，完全雾化区域之后无需继续加载和渲染，体验参考成熟地图引擎的自然渐隐和受控 Tile 数量。
 - 决策：Shader 和 mixed-LOD selector 共用自动推导的 fogStart、fogEnd、loadCutoff 与 guard band。fogStart 后逐渐降低 refinement，fogEnd 完全融合到背景，Tile 包围体完全超过 loadCutoff 后不进入 Target、Fetch、Worker 或 Render。
 - 覆盖：fogEnd 之前仍必须由 selected Tile 或 ready ancestor 完整覆盖；与 loadCutoff 相交的 Tile 保留。guard band、运动预测和迟滞用于避免边界 popping，不允许在完全雾化区域继续高精度 refinement。
-- 平面视角：pitch 0 保持现有 Coverage 和视觉；不改变公共 ViewState、Layer、renderer 或 atmosphere API。
-- 技术边界：继续使用 Three.js TSL/Node Material 和 WebGPU/WebGL2 共享实现，不引入天空、Terrain、Globe、后处理或完整第三方地图 Runtime。
+- 平面视角：pitch 0 保持现有 Coverage 和俯视地图视觉；天空主题配置遵循 D036，公共 ViewState、Layer 和 renderer API 保持当前契约。
+- 技术边界：继续使用 Three.js TSL/Node Material 和 WebGPU/WebGL2 共享实现；天空背景遵循 D036。Terrain、Globe、后处理和完整第三方地图 Runtime 保持范围外。
 - 实施：T023 稳定 V2 生产路径后执行 T022；T019 负责量化 Tile、请求、CPU/GPU、对象和视觉绝对验收指标。
 - 依据：`docs/research/tile-retention-display-fog.md`。
 

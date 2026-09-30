@@ -12,14 +12,16 @@ const accents: Record<string, [string, string]> = {
   '#43805C': ['#7EC6A1', '#087C44'], '#8C609B': ['#C49DD8', '#8734C4'], '#B97540': ['#E9B386', '#CF5400'],
   '#A06483': ['#CF9CBF', '#C52A8F'], '#7763A8': ['#AB9DE3', '#6244C7'],
 };
+/** 三套主题的天空天顶色：晴昼柔和、深海深蓝、晴彩高饱和。 */
+const SKY_ZENITH: Record<ThemeId, string> = { default: '#5b9ee0', dark: '#1d4468', vivid: '#2b9ae8' };
 function createTheme(id: ThemeId): MapTheme {
-  if (id === 'default') return { backgroundColor: '#dbdeff', landColor: '#e6f4f3', fogColor: '#dbdeff' };
+  if (id === 'default') return { backgroundColor: '#dbdeff', landColor: '#e6f4f3', fogColor: '#dbdeff', skyZenithColor: SKY_ZENITH.default };
   const palette = id === 'dark' ? dark : vivid, index = id === 'dark' ? 0 : 1;
   const colors: Record<string, string> = Object.fromEntries(Object.values(light).map((color, i) => [color, palette[i]!]));
   for (const [source, targets] of Object.entries(accents)) colors[source] = targets[index];
   const buildings = id === 'dark' ? ['#405469', '#475269', '#4C5368', '#3D6260', '#4B5D78'] : ['#FFBE55', '#EF88A8', '#74B4F2', '#54CE9D', '#B88CEC'];
   Object.values(BUILDING_CATEGORY_COLORS).forEach((color, i) => { colors[color] = buildings[i % buildings.length]!; });
-  return { backgroundColor: palette[0]!, colors };
+  return { backgroundColor: palette[0]!, skyZenithColor: SKY_ZENITH[id], colors };
 }
 export const THEMES: Record<ThemeId, MapTheme> = { default: createTheme('default'), dark: createTheme('dark'), vivid: createTheme('vivid') };
 /** 测试与面板共用完整基础色集合。 */

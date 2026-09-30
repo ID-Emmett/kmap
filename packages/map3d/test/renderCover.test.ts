@@ -91,7 +91,9 @@ describe('实际显示区域归属', () => {
     expect(p.mesh.material.opacity).toBe(1); expect(c.mesh.material.opacity).toBe(1);
     expect(scene.children).toHaveLength(3); expect(p.mesh.geometry.drawRange.count).toBe(6);
     expect(p.lines!.mesh.material.stencilRef).toBe(p.mesh.material.stencilRef);
-    for (const node of [surfaces.fogCenter, surfaces.fogStart, surfaces.fogEnd, surfaces.fogColor]) expect(node.groupNode).toBe(renderGroup);
+    // 天空与雾的共享 uniform 属于渲染组：绑定更新不随可见瓦片数增长。
+    const sky = surfaces.sky;
+    for (const node of [sky.fogCenter, sky.fogStart, sky.fogEnd, sky.horizon, sky.zenith, sky.boundary]) expect(node.groupNode).toBe(renderGroup);
     surfaces.commit(resolveRenderCover([parent], new Set(resources.keys()), 0).patches, resources, origin);
     expect(p.mesh.material.stencilWrite).toBe(true); expect(c.mesh.visible).toBe(false);
     expect(p.mesh.geometry).toBe(geometry); expect(geometry.drawRange.count).toBe(6);

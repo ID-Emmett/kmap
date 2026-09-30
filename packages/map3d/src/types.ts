@@ -176,6 +176,8 @@ export interface LabelAppearance {
 export interface MapElementStyle { color?: string | number; opacity?: number; visible?: boolean; widthScale?: number; heightScale?: number }
 export interface MapTheme {
   backgroundColor: string | number; landColor?: string | number; fogColor?: string | number;
+  /** 可见天空的天顶色；省略时使用 SDK 蓝色默认值。地平线色与雾末端色共用 `fogColor ?? backgroundColor`。 */
+  skyZenithColor?: string | number;
   colors?: Readonly<Record<string, string | number>>;
   /** 键为图层 id；建筑分类键为 `图层id/分类值`。 */
   elements?: Readonly<Record<string, MapElementStyle>>;

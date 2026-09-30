@@ -1,9 +1,10 @@
 import { bindingBytes, MapPalette } from '../style/palette.js';
 import { mapVertex } from '../rendering/mapVertex.js';
+import { MapSky } from '../rendering/sky.js';
 import { maskVertex } from './maskVertex.js';
 import { surfaceStateBytes } from './surfaceBytes.js';
-import { AlwaysStencilFunc, Color, DoubleSide, Mesh, MeshBasicNodeMaterial, ReplaceStencilOp, Vector3, type Scene } from 'three/webgpu';
-import { fog, positionLocal, positionWorld, renderGroup, smoothstep, uniform } from 'three/tsl';
+import { AlwaysStencilFunc, Color, DoubleSide, Mesh, MeshBasicNodeMaterial, ReplaceStencilOp, type Scene } from 'three/webgpu';
+import { positionLocal, renderGroup, uniform } from 'three/tsl';
 import type { MapOrigin } from '../spatial/types.js';
 import { keyOf, tileBounds, type Address } from './address.js';
 import { createLineSurface, LINE_GEOMETRY_KEY, releaseLineSurface, type LineUnit } from './lineSurface.js';
@@ -26,8 +27,9 @@ export interface MaskUnit { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; ma
 interface DrawInstance { mesh: Mesh<PatchGeometry, MeshBasicNodeMaterial>; unit: MaskUnit; lines: undefined | ReturnType<typeof createLineSurface>; fills: undefined | ReturnType<typeof createFillSurface>; buildings: undefined | ReturnType<typeof createBuildingSurface>; address: Address; cells: Address[]; resource: Surface; primary: boolean }
 /** 全部可绘制瓦片先写模板覆盖；内容按同一份模板逐采样点裁剪。 */
 export class TileSurfaces {
-  readonly fogCenter = uniform(new Vector3()).setGroup(renderGroup);
-  readonly fogStart = uniform(1).setGroup(renderGroup); readonly fogEnd = uniform(2).setGroup(renderGroup); readonly fogColor; readonly landColor;
+  /** 共享天空与远景雾状态：地面批次按同一份雾参数收敛到地平线色。 */
+  readonly sky: MapSky;
+  readonly landColor;
   readonly palette = new MapPalette();
   readonly instances = new Map<string, DrawInstance>();
   private readonly ground: Mesh<PatchGeometry, MeshBasicNodeMaterial>;
@@ -52,10 +54,9 @@ export class TileSurfaces {
     return { mask: [this.maskSlots.reuses, this.maskSlots.creates], line: [this.lineSlots.reuses, this.lineSlots.creates],
       fill: [this.fillSlots.reuses, this.fillSlots.creates], building: [this.buildingSlots.reuses, this.buildingSlots.creates] };
   }
-  constructor(readonly scene: Scene, background: Color) {
+  constructor(readonly scene: Scene, background: Color, sky: MapSky = new MapSky(background)) {
     scene.userData.mapPalette = this.palette;
-    this.fogColor = uniform(background.clone()).setGroup(renderGroup); this.landColor = uniform(background.clone()).setGroup(renderGroup);
-    scene.fogNode = fog(this.fogColor, smoothstep(this.fogStart, this.fogEnd, positionWorld.sub(this.fogCenter).length()));
+    this.sky = sky; this.landColor = uniform(background.clone()).setGroup(renderGroup);
     const geometry = new PatchGeometry(); geometry.update({ z: 0, x: 0, y: 0 }, [{ z: 0, x: 0, y: 0 }]);
     // 每个绘制通道先绑定保留编号 0；后续部分区域使用 1～255，模板内容保持原值。
     // Three r185 的 WebGPU 动态编号缓存跨通道保留，显式起始编号使首个区域也完成绑定。
@@ -170,9 +171,11 @@ export class TileSurfaces {
     }
     this.originX = origin.meters.x; this.originY = origin.meters.y;
   }
-  update(origin: MapOrigin, viewZoom: number, tileZoom: number): void {
-    this.ground.position.set(this.fogCenter.value.x, 0, this.fogCenter.value.z);
-    this.ground.scale.set(this.fogEnd.value * 2, 1, this.fogEnd.value * 2);
+  update(origin: MapOrigin, viewZoom: number, tileZoom: number, cutoff: number): void {
+    // 地面底板必须覆盖实际加载范围：选片半径含横向展宽系数，可能大于雾完成距离。
+    const fogCenter = this.sky.fogCenter.value, radius = Math.max(this.sky.fogEnd.value, cutoff);
+    this.ground.position.set(fogCenter.x, 0, fogCenter.z);
+    this.ground.scale.set(radius * 2, 1, radius * 2);
     const moved = origin.meters.x !== this.originX || origin.meters.y !== this.originY;
     // 样式缩放对所有瓦片同值：渲染组共享 uniform 每帧只写一次，逐对象写入不再随可见瓦片数增长。
     setLineTileZoom(tileZoom); setFillTileZoom(tileZoom); setBuildingViewZoom(viewZoom);

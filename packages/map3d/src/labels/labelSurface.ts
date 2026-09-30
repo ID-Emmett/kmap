@@ -20,7 +20,8 @@ export class LabelSurface {
     for (const [name, size] of [['labelAnchor', 2], ['labelDirection', 3], ['labelRect', 4], ['labelUV', 4], ['labelStyle', 4], ['labelFade', 3], ['labelColor', 3], ['labelHalo', 3]] as const) {
       geometry.setAttribute(name, new InterleavedBufferAttribute(this.attributes, size, offset)); offset += size;
     }
-    const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, fog: false });
+    // 远景文字随场景雾收敛到地平线色：进入纯天空区域前与内容一起淡出。
+    const material = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
     const rect = attribute<'vec4'>('labelRect', 'vec4'), anchor = attribute<'vec2'>('labelAnchor', 'vec2');
     const style = varying(attribute<'vec4'>('labelStyle', 'vec4')).setInterpolation('flat');
     const glyphUV = attribute<'vec4'>('labelUV', 'vec4');

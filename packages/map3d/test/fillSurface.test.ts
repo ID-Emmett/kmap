@@ -29,11 +29,11 @@ describe('原生面批次的裁剪与资源所有权', () => {
     expect(parent.mesh.geometry.drawRange.count).toBe(6);
     expect(parent.mesh.renderOrder).toBeLessThan(child.mesh.renderOrder);
     expect(child.mesh.material.visible).toBe(true); expect(child.fills!.mesh.material.stencilWrite).toBe(true);
-    surfaces.update(origin, 6.84, 7);
+    surfaces.update(origin, 6.84, 7, 4e3);
     // 样式缩放由渲染组共享：逐瓦片不再持有副本，避免每帧逐对象写入绑定。
     expect('tileZoom' in parent.fills!).toBe(false); expect('tileZoom' in child.fills!).toBe(false);
     expect(parent.lines!.viewZoom.value).toBe(6.84); expect(parent.lines!.tileZoom.value).toBe(7);
-    surfaces.update(origin, 7.09, 7);
+    surfaces.update(origin, 7.09, 7, 4e3);
     expect(parent.lines!.viewZoom.value).toBe(7.09); expect(parent.lines!.tileZoom.value).toBe(7);
     surfaces.commit(resolveRenderCover([address], new Set(resources.keys()), 0).patches, resources, origin);
     expect(parent.fills!.mesh.material.stencilWrite).toBe(true); expect(parent.mesh.material.visible).toBe(true);
@@ -51,7 +51,7 @@ describe('原生面批次的裁剪与资源所有权', () => {
     expect(instance.cells).toHaveLength(4);
     expect(instance.fills!.mesh).toBe(resource.fills!.mesh);
     expect(resource.cpuBytes).toBe(4 + fillBytes(content));
-    surfaces.update(origin, 7.09, 7);
+    surfaces.update(origin, 7.09, 7, 4e3);
     surfaces.commit(resolveRenderCover([children[0]!], new Set(resources.keys()), 0).patches, resources, origin);
     expect(surfaces.instances.get(keyOf(address))!.cells).toHaveLength(1);
     surfaces.dispose(); surfaces.release(resource);
