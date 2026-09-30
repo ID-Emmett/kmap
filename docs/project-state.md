@@ -1,10 +1,12 @@
 # Kmap Current Project State
 
-更新日期：2026-09-29
+更新日期：2026-09-30
 
 本文件是 Kmap AI 会话的低 token 启动入口。新会话先读本文件，再按会话类型和当前任务读取索引、任务文件和必要分片；不得用本文件替代 `PROJECT.md`、`TASKS.md`、任务文件、decisions、knowledge 或 evidence。
 
 ## 当前结论
+
+- T046 瓦片 GPU 几何释放采用当前 renderer 的几何/属性所有权快照，固定绘制槽位与几何池保持复用；双后端静态与 1200 帧连续运动专项证据见 `docs/evidence/T046-tile-render-ownership/README.md`，人工连续手势验收待执行。
 
 - 当前瓦片采用 canonical 数据身份、GPU 管线准备后发布、父到子完整来源模板和逐采样点所有权；图层显隐使用目标瓦片整数层级，道路宽度使用连续视图缩放曲线，文字采用持久身份与连续显隐。实现规范见 `docs/architecture/maplibre-aligned-streaming.md`，验证入口为 `docs/evidence/maplibre-alignment/README.md`。
 - 主瓦片独占有效内容区域的海陆边界，主响应无内容时启用 KYE 海洋回退；视图缩放独立于海洋内容可见性。资源覆盖与海陆像素正确性分别验证，见 `docs/evidence/maplibre-alignment/coast-authority.md`。

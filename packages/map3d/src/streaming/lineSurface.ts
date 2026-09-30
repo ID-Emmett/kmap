@@ -10,7 +10,7 @@ export const LINE_GEOMETRY_KEY = 'line';
 export type LineSurface = ReturnType<typeof createLineSurface>;
 /** 固定绘制槽位：mesh、材质与样式缓冲一体复用，绑定组在交互期保持恒定。 */
 export interface LineUnit { mesh: Mesh<BufferGeometry, MeshBasicNodeMaterial>; material: MeshBasicNodeMaterial; state: ReturnType<typeof createLineSlot>; key: string; spawn: () => LineUnit }
-/** 单位四边形在所有线几何间共享，缓冲只创建一次。 */
+/** 单位四边形提供 CPU 模板，每个线几何独占索引和属性，池内复用保持缓冲身份。 */
 const sharedPlane = new PlaneGeometry(1, 1);
 /**
  * 渲染组共享的样式缩放：所有瓦片在同一帧看到相同的值。
@@ -27,9 +27,11 @@ export function createLineSurface(data: LineData, themed = false, pool?: Geometr
   if (geometry === undefined) {
     geometry = new InstancedBufferGeometry(); geometry.userData.poolTier = tier; registerGeometry(geometry);
   }
-  geometry.index = sharedPlane.index;
-  geometry.setAttribute('position', sharedPlane.attributes.position!);
-  geometry.setAttribute('uv', sharedPlane.attributes.uv!);
+  if (geometry.index === null) {
+    geometry.index = sharedPlane.index!.clone();
+    geometry.setAttribute('position', sharedPlane.attributes.position!.clone());
+    geometry.setAttribute('uv', sharedPlane.attributes.uv!.clone());
+  }
   geometry.instanceCount = instances;
   writeAttribute(geometry, 'lineSegment', data.segments, 4, true, tier * 4);
   writeAttribute(geometry, 'lineStyle', data.styles, 4, true, tier * 4);

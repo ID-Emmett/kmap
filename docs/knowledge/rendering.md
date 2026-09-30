@@ -1,8 +1,11 @@
 # Kmap Knowledge — Rendering
 
-更新日期：2026-09-12
+更新日期：2026-09-30
 
 ## Three.js 后端
+
+- Three.js 0.185.1 的 `Geometries.initGeometry()` 释放回调读取可变 RenderObject 的当前属性。固定 mesh/material 槽位切换几何时，旧几何释放可销毁当前几何的 GPU 缓冲。WebGL2 六次换入定点实验产生 5 次当前缓冲失效与 4 次错误中心像素。
+- 当前 renderer 初始化后安装几何释放所有权快照，释放清理登记和监听；线四边形属性/索引由独立几何拥有，池内复用保留身份。适配使用锁定版本的 Three.js 私有组件，依赖升级需要专项复验。证据：`docs/evidence/T046-tile-render-ownership/README.md`。
 
 - 项目锁定 Three.js 0.185.1；`WebGPURenderer` 默认尝试 WebGPU，不可用时自动使用 WebGL2 backend，并支持 `forceWebGL`。
 - SDK 不维护两套独立场景实现；WebGPU/WebGL2 必须共享渲染抽象。

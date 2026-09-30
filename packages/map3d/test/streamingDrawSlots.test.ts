@@ -8,6 +8,7 @@ import { createBuildingSurface } from '../src/streaming/buildingSurface.js';
 import { createFillSurface } from '../src/streaming/fillSurface.js';
 import { GeometryPool, capacityTier } from '../src/streaming/geometryPool.js';
 import { DrawSlotPool } from '../src/streaming/drawSlots.js';
+import { lineQuadBytes } from '../src/streaming/surfaceBytes.js';
 import { selectMapOrigin } from '../src/spatial/mapOrigin.js';
 import type { FillData } from '../src/streaming/fills.js';
 import type { LineData } from '../src/streaming/lines.js';
@@ -24,6 +25,24 @@ const buildings = (n: number): BuildingData => ({ positions: new Float32Array(n 
   colors: new Float32Array(n * 3), styles: new Float32Array(n * 3), indices: new Uint32Array([0, 1, 2]), features: 0 });
 
 describe('固定绘制槽位', () => {
+  it('独立线几何各自拥有四边形属性与索引，池内复用保留自身属性', () => {
+    const pool = new GeometryPool();
+    const first = createLineSurface(lines(4), false, pool);
+    const second = createLineSurface(lines(4), false, pool);
+    expect(first.mesh.geometry.index).not.toBe(second.mesh.geometry.index);
+    for (const name of ['position', 'uv']) {
+      expect(first.mesh.geometry.getAttribute(name)).not.toBe(second.mesh.geometry.getAttribute(name));
+    }
+    const geometry = first.mesh.geometry, index = geometry.index, position = geometry.getAttribute('position');
+    releaseLineSurface(first, pool);
+    const reused = createLineSurface(lines(4), false, pool);
+    expect(reused.mesh.geometry).toBe(geometry);
+    expect(reused.mesh.geometry.index).toBe(index);
+    expect(reused.mesh.geometry.getAttribute('position')).toBe(position);
+    expect(lineQuadBytes(lines(4))).toBe(index!.array.byteLength + position.array.byteLength + geometry.getAttribute('uv').array.byteLength);
+    expect(lineQuadBytes(lines(0))).toBe(0); expect(lineQuadBytes()).toBe(0);
+    releaseLineSurface(reused, pool); releaseLineSurface(second, pool); pool.dispose();
+  });
   it('瓦片释放后线与面的 mesh、材质及样式数组整体复用', () => {
     const scene = new Scene(), surfaces = new TileSurfaces(scene, new Color('#ffffff'));
     const first = surfaces.create(bitmap(), address, lines(4), fills(3), buildings(3));

@@ -76,6 +76,8 @@ IN_PROGRESS
 
 ## Findings
 
+- 2026-09-30 瓦片整块底色与矩形缺口专项已完成几何生命周期因果验证：Three.js 0.185.1 旧几何释放回调读取槽位当前 RenderObject 属性，定点 WebGL2 对照中 5 次当前缓冲失效、4 次像素错误。当前 renderer 采用几何/属性释放快照与初始化登记清理；线四边形采用独占属性并登记 92 bytes。双后端固定视点、1200 帧运动回访、释放、200 项 SDK 与 22 项 Playground 测试证据见 `docs/evidence/T046-tile-render-ownership/README.md`。
+
 - 用户于 2026-09-16 批准架构适配、剔除瓦片淡变及其指标、严格数量控制和 160 fps WebGPU 验收。
 - 成熟公开机制及固定版本来源见行业资料核验报告。
 - Playground 生产构建固定输出 `index.html` 与 `playground.js`；样式、动态模块和瓦片 Worker 均进入主包。真实 WebGPU Preview 收敛为 15/15 瓦片，覆盖缺口、待就绪目标、网络错误和控制台错误均为 0。
@@ -85,6 +87,8 @@ IN_PROGRESS
 - 几何池的收益边界：单次手势内缓存未发生淘汰（`releases=0`）时池为空，复用不生效；长距离浏览触发淘汰后按布局键复用缓冲。证据：`docs/evidence/streaming-rebuild/smoothness-*.json`、`smoothness-final-fixture.png`（视觉抽样无残留几何，覆盖缺口 0）。
 
 ## Open Issues
+
+- GPU 几何释放所有权专项自动验证完成；负责人对五张问题截图对应区域的连续手势与静止结果进行人工验收。
 
 - 每个新瓦片首次上屏仍需创建约 30 个 GPU 对象并产生 15–25ms GPU 侧准备；30 秒连续手势内残留 1 帧超过 16.7ms。彻底消除需要固定绘制槽位（有界预分配缓冲与稳定绑定），属核心渲染架构变更，需决策会话批准后新建任务。
 - 当前改造的源码、离线回归与真实浏览器联合验收正在执行。

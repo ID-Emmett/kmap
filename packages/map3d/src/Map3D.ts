@@ -2,6 +2,7 @@ import { Color, PerspectiveCamera, Scene, WebGPURenderer } from 'three/webgpu';
 import { MapInteractionController } from './interaction/mapInteractions.js';
 import { updateMapCamera, type MapCameraFrame } from './rendering/mapCamera.js';
 import { MapSky, resolveSkyColors } from './rendering/sky.js';
+import { installGeometryDisposalGuard } from './rendering/geometryDisposal.js';
 import { fogDistances, fogRowForDistance } from './streaming/fog.js';
 import { normalizeViewport } from './rendering/viewport.js';
 import { TypedEventEmitter } from './runtime/events.js';
@@ -71,6 +72,7 @@ export class Map3D {
   private async initializeOnce(): Promise<void> {
     await this.renderer.init();
     if (this.disposed) throw createMapDisposedError();
+    installGeometryDisposalGuard(this.renderer);
     if (this.options.satelliteSource) {
       this.raster = new RasterLayer(this.scene, this.renderer, this.options.satelliteSource, (key, error) => {
         const [z, x, y] = key.split('/').map(Number) as [number, number, number];

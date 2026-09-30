@@ -1,4 +1,4 @@
-import { surfaceStateBytes } from './surfaceBytes.js';
+import { lineQuadBytes, surfaceStateBytes } from './surfaceBytes.js';
 import type { Camera, WebGPURenderer } from 'three/webgpu';
 import type { Map3DOptions, MapError } from '../types.js';
 import { requestTile } from './tileRequest.js';
@@ -149,10 +149,11 @@ export class TilePipeline {
       const result = entry.result; if (!result?.bitmap) continue;
       const patchBytes = this.store.surfaces.patchBytes();
       const stateBytes = surfaceStateBytes(result.lines, result.buildings);
+      const quadBytes = lineQuadBytes(result.lines);
       // 位图不进入 GPU；预算只登记几何、区域缓冲与状态缓冲。
-      const gpu = lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + patchBytes + stateBytes;
+      const gpu = lineBytes(result.lines) + fillBytes(result.fills) + buildingBytes(result.buildings) + patchBytes + stateBytes + quadBytes;
       if (count && (bytes + gpu > TILE_LIMITS.uploadBytes || performance.now() - start >= TILE_LIMITS.uploadMs)) break;
-      if (!this.store.makeRoom(patchBytes + stateBytes, gpu, 0, entry.priority, entry.key)) continue;
+      if (!this.store.makeRoom(patchBytes + stateBytes + quadBytes, gpu, 0, entry.priority, entry.key)) continue;
       const time = performance.now();
       const surface = this.store.surfaces.create(result.bitmap, entry.address, result.lines, result.fills, result.buildings, result.labels);
       this.uploadPhases.create = performance.now() - time;

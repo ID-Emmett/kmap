@@ -1,6 +1,6 @@
 # Kmap Verified Knowledge Index
 
-更新日期：2026-09-20
+更新日期：2026-09-30
 
 本文件是 Kmap 已验证事实的轻量入口。默认启动只读本文件；需要细节时先按主题读取 `docs/knowledge/` 分片，再按证据索引追溯具体文件。
 
@@ -25,6 +25,8 @@
 | AI Governance | `docs/knowledge/ai-governance.md` | 低 token 入口、Task Context Packet、会话记录和治理门禁 |
 
 ## 当前高信号事实
+
+- Three.js 0.185.1 固定绘制槽位的几何释放所有权与 WebGL2 当前缓冲失效定点证据见 `docs/evidence/T046-tile-render-ownership/README.md`；实现与适配边界见 `docs/knowledge/rendering.md`。
 
 - canonical 来源、GPU 准备、父子模板所有权、道路缩放曲线及文字连续显隐的当前设计见 `docs/architecture/maplibre-aligned-streaming.md`。指标定义见 `docs/evidence/maplibre-alignment/metrics.md`。
 - KYE 有效主瓦片独占其区域的海陆边界，主响应无内容时启用海洋回退。台湾与赤柱的地表验证见 `docs/evidence/maplibre-alignment/coast-authority.md`。

@@ -5,6 +5,7 @@ vi.mock('three/webgpu', async original => {
   const three = await original<typeof import('three/webgpu')>();
   return { ...three, WebGPURenderer: class {
     backend = { isWebGPUBackend: true }; callback: ((time: number) => void) | null = null;
+    _geometries = { initGeometry: vi.fn(), delete: vi.fn(), _geometryDisposeListeners: new Map() };
     info = { render: { drawCalls: 0, triangles: 0 }, memory: { geometries: 0, textures: 0 } };
     init = vi.fn(async () => {}); dispose = vi.fn(); initTexture = vi.fn(); compileAsync = vi.fn(async () => {});
     setPixelRatio() {} setSize() {} render() {}

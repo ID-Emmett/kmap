@@ -2,7 +2,7 @@ import { bindingBytes, MapPalette } from '../style/palette.js';
 import { mapVertex } from '../rendering/mapVertex.js';
 import { MapSky } from '../rendering/sky.js';
 import { maskVertex } from './maskVertex.js';
-import { surfaceStateBytes } from './surfaceBytes.js';
+import { lineQuadBytes, surfaceStateBytes } from './surfaceBytes.js';
 import { AlwaysStencilFunc, Color, DoubleSide, Mesh, MeshBasicNodeMaterial, ReplaceStencilOp, type Scene } from 'three/webgpu';
 import { positionLocal, renderGroup, uniform } from 'three/tsl';
 import type { MapOrigin } from '../spatial/types.js';
@@ -88,8 +88,9 @@ export class TileSurfaces {
     const buildings = buildingData?.indices.length ? createBuildingSurface(buildingData, true, this.pool, this.buildingSlots) : undefined;
     if (buildings) mesh.add(buildings.mesh);
     const stateBytes = surfaceStateBytes(data, buildingData);
+    const quadBytes = lineQuadBytes(data);
     const bindings = [data, fillData, buildingData].reduce((sum, item) => sum + (item ? bindingBytes(item) : 0), 0);
-    const resource = { mesh, unit, bitmap, lines, fills, buildings, labels, stateBytes, bytes: lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes, cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes + labelBytes(labels) + bindings };
+    const resource = { mesh, unit, bitmap, lines, fills, buildings, labels, stateBytes, bytes: lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes + quadBytes, cpuBytes: bitmap.width * bitmap.height * 4 + lineBytes(data) + fillBytes(fillData) + buildingBytes(buildingData) + stateBytes + quadBytes + labelBytes(labels) + bindings };
     this.resources.add(resource); this.#geometryBytes += geometry.bytes; return resource;
   }
   commit(patches: readonly CoverPatch[], resources: ReadonlyMap<string, { surface?: Surface }>, origin: MapOrigin): void {
